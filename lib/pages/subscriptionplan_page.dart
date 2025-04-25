@@ -1,0 +1,269 @@
+// Widget to show bottom modal
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nandiott_flutter/pages/payment_page.dart';
+import 'package:nandiott_flutter/providers/subscription_provider.dart';
+import 'package:nandiott_flutter/providers/subscriptionplan_provider.dart';
+
+class SubscriptionPlanModal extends ConsumerStatefulWidget {
+  final String userId;
+  final String movieId;
+
+  const SubscriptionPlanModal(
+      {super.key, required this.userId, required this.movieId});
+
+  @override
+  ConsumerState<SubscriptionPlanModal> createState() =>
+      _SubscriptionPlanModalState();
+}
+
+class _SubscriptionPlanModalState extends ConsumerState<SubscriptionPlanModal> {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    ref.refresh(subscriptionProvider(
+        SubscriptionDetailParameter(userId: widget.userId)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final plansState = ref.watch(subscriptionPlanProvider);
+    final selectedSubscription = ref.watch(subscriptionProvider(
+        SubscriptionDetailParameter(userId: widget.userId)));
+
+    int focusedIndex = 0;
+
+    int index = 0;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            'Choose Your Subscription Plan',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          plansState.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, stack) => Text(
+              "❌ Error: $error",
+              style: TextStyle(color: Colors.red),
+            ),
+            data: (plans) => plans.isEmpty
+                ? const Text('No subscription plans available')
+                : Column(
+                    children: [
+                      ...plans.map((plan) {
+                        Gradient? backgroundGradient;
+                        if (plan.name.toLowerCase() == 'free') {
+                          backgroundGradient = const LinearGradient(
+                            colors: [Color(0xFFA8E6CF), Color(0xFF56AB2F)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          );
+                        } else if (plan.name.toLowerCase() == 'silver') {
+                          backgroundGradient = const LinearGradient(
+                            colors: [Color(0xFFC0C0C0), Color(0xFFE0E0E0)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          );
+                        } else if (plan.name.toLowerCase() == 'gold') {
+                          backgroundGradient = const LinearGradient(
+                            colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          );
+                        }
+                        return FocusableActionDetector(
+                          autofocus: index == 0, // Autofocus first plan
+                          onShowFocusHighlight: (hasFocus) {
+                            setState(() {
+                              focusedIndex = index;
+                            });
+                          },
+                          child: GestureDetector(
+                            onTap: () {
+                              ref
+                                  .read(subscriptionProvider(
+                                      SubscriptionDetailParameter(
+                                          userId: widget.userId)))
+                                  .whenData((value) {
+                                setState(() {
+                                  // Update selected subscription
+                                });
+                              });
+
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      SubscriptionPaymentRedirectPage(
+                                    movieId: widget.movieId,
+                                    planName: plan.name,
+                                    redirectUrl:
+                                        "https://nandi.webscicle.com/app/subscriptionreport",
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(vertical: 8),
+                              decoration: BoxDecoration(
+                                gradient: backgroundGradient,
+                                borderRadius: BorderRadius.circular(15),
+                                border: Border.all(
+                                  color: focusedIndex == index
+                                      ? Colors.blueAccent
+                                      : Colors.transparent,
+                                  width: 3,
+                                ),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Colors.black12,
+                                    blurRadius: 6,
+                                    offset: Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: ListTile(
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(15)),
+                                tileColor: Colors.transparent,
+                                leading: Radio<String>(
+                                  value: plan.name,
+                                  groupValue: selectedSubscription.when(
+                                    data: (sub) => sub!.subscriptionType.name,
+                                    loading: () => null,
+                                    error: (err, stack) => null,
+                                  ),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      // Update selected subscription
+                                    });
+
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            SubscriptionPaymentRedirectPage(
+                                          movieId: widget.movieId,
+                                          planName: value!,
+                                          redirectUrl:
+                                              "https://nandi.webscicle.com/app/paymentreport",
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  activeColor: Colors.black,
+                                ),
+                                title: Text(
+                                  plan.name,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      color: Colors.black),
+                                ),
+                                subtitle: Text(
+                                  plan.description,
+                                  style: const TextStyle(color: Colors.black87),
+                                ),
+                                trailing: Text(
+                                  plan.price == 0 ? "Free" : "₹${plan.price}",
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.black),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                        // return GestureDetector(
+                        //   onTap: () {
+                        //     ref.read(subscriptionProvider(SubscriptionDetailParameter(userId: widget.userId))).whenData((value) {
+                        //       setState(() {
+                        //         // Update selected subscription
+                        //       });
+                        //     });
+
+                        //     Navigator.push(
+                        //       context,
+                        //       MaterialPageRoute(
+                        //         builder: (_) => SubscriptionPaymentRedirectPage(
+                        //           movieId: widget.movieId,
+                        //           planName: plan.name,
+                        //           redirectUrl: "https://nandi.webscicle.com/app/subscriptionreport",
+                        //         ),
+                        //       ),
+                        //     );
+                        //   },
+                        //   child: Container(
+                        //     margin: const EdgeInsets.symmetric(vertical: 8),
+                        //     decoration: BoxDecoration(
+                        //       gradient: backgroundGradient,
+                        //       borderRadius: BorderRadius.circular(15),
+                        //       boxShadow: const [
+                        //         BoxShadow(
+                        //           color: Colors.black12,
+                        //           blurRadius: 6,
+                        //           offset: Offset(0, 3),
+                        //         ),
+                        //       ],
+                        //     ),
+                        //     child: ListTile(
+                        //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                        //       tileColor: Colors.transparent,
+                        //       leading: Radio<String>(
+                        //         value: plan.name,
+                        //         groupValue: selectedSubscription.when(
+                        //           data: (sub) => sub!.subscriptionType.name,
+                        //           loading: () => null,
+                        //           error: (err, stack) => null,
+                        //         ),
+                        //         onChanged: (value) {
+                        //           setState(() {
+                        //             // Update selected subscription
+                        //           });
+
+                        //           Navigator.push(
+                        //             context,
+                        //             MaterialPageRoute(
+                        //               builder: (_) => SubscriptionPaymentRedirectPage(
+                        //                 movieId: widget.movieId,
+                        //                 planName: value!,
+                        //                 redirectUrl: "https://nandi.webscicle.com/app/paymentreport",
+                        //               ),
+                        //             ),
+                        //           );
+                        //         },
+                        //         activeColor: Colors.black,
+                        //       ),
+                        //       title: Text(
+                        //         plan.name,
+                        //         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.black),
+                        //       ),
+                        //       subtitle: Text(
+                        //         plan.description,
+                        //         style: const TextStyle(color: Colors.black87),
+                        //       ),
+                        //       trailing: Text(
+                        //         plan.price == 0 ? "Free" : "₹${plan.price}",
+                        //         style: const TextStyle(fontWeight: FontWeight.w500, color: Colors.black),
+                        //       ),
+                        //     ),
+                        //   ),
+                        // );
+                      }),
+                    ],
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}

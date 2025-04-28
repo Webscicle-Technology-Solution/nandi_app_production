@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nandiott_flutter/app/widgets/favFilm_card_widget.dart';
 import 'package:nandiott_flutter/app/widgets/skeltonLoader/filmSkelton.dart';
-import 'package:nandiott_flutter/features/auth/login_page.dart';
 import 'package:nandiott_flutter/features/auth/loginpage_tv.dart';
 import 'package:nandiott_flutter/models/fav_movie.dart';
 import 'package:nandiott_flutter/models/moviedetail_model.dart';

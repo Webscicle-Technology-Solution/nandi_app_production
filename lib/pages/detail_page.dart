@@ -10,7 +10,6 @@ import 'package:nandiott_flutter/app/widgets/drmVideoplayer_widget.dart';
 import 'package:nandiott_flutter/app/widgets/season_dialog.dart';
 import 'package:nandiott_flutter/app/widgets/skeltonLoader/buttonSkelton.dart';
 import 'package:nandiott_flutter/app/widgets/skeltonLoader/detailSkelton.dart';
-import 'package:nandiott_flutter/features/auth/login_page.dart';
 import 'package:nandiott_flutter/features/auth/loginpage_tv.dart';
 import 'package:nandiott_flutter/features/profile/watchHistory/watchHistory_provider.dart';
 import 'package:nandiott_flutter/features/rental_download/download_page.dart';

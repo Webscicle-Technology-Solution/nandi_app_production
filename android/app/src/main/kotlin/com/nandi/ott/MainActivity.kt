@@ -1,4 +1,4 @@
-package com.example.nandiott_flutter
+package com.nandi.ott
 
 import android.os.Bundle
 import android.view.WindowManager

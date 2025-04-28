@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:nandiott_flutter/app/widgets/customappbar.dart';
 import 'package:nandiott_flutter/app/widgets/drmVideoplayer_widget.dart';
-import 'package:nandiott_flutter/features/auth/login_page.dart';
 import 'package:nandiott_flutter/features/auth/loginpage_tv.dart';
 import 'package:nandiott_flutter/features/profile/watchHistory/watchHistory_provider.dart';
 import 'package:nandiott_flutter/providers/checkMovieUrl.dart';

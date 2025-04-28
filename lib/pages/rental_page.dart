@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nandiott_flutter/app/widgets/banner_poster_image.dart';
-import 'package:nandiott_flutter/features/auth/login_page.dart';
 import 'package:nandiott_flutter/features/auth/loginpage_tv.dart';
 import 'package:nandiott_flutter/pages/detail_page.dart';
 import 'package:nandiott_flutter/providers/checkauth_provider.dart';

@@ -1,32 +1,13 @@
 {
   "project_info": {
-    "project_number": "18957244394",
-    "project_id": "nandipictures-34c07",
-    "storage_bucket": "nandipictures-34c07.firebasestorage.app"
+    "project_number": "161738553298",
+    "project_id": "nandi-ott",
+    "storage_bucket": "nandi-ott.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:18957244394:android:3af0ec9795e171f4b50493",
-        "android_client_info": {
-          "package_name": "com.example.nandiott_flutter"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyB7gfZnAGbJvgZuFlXaJXArioPIRU9Ysv8"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:18957244394:android:cb7935f88bed601fb50493",
+        "mobilesdk_app_id": "1:161738553298:android:eba1b865a317716e3bfa0b",
         "android_client_info": {
           "package_name": "com.nandi.ott"
         }
@@ -34,26 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyB7gfZnAGbJvgZuFlXaJXArioPIRU9Ysv8"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:18957244394:android:29d8c196a945bf4fb50493",
-        "android_client_info": {
-          "package_name": "com.nandipictures.ott"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyB7gfZnAGbJvgZuFlXaJXArioPIRU9Ysv8"
+          "current_key": "AIzaSyANGW_RoDyjqxEPGp_al3aVNC72I2SgkCA"
         }
       ],
       "services": {

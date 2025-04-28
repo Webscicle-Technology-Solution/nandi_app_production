@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nandiott_flutter/app/widgets/skeltonLoader/filmSkelton.dart';
-import 'package:nandiott_flutter/features/auth/login_page.dart';
 import 'package:nandiott_flutter/features/auth/loginpage_tv.dart';
 import 'package:nandiott_flutter/features/profile/watchHistory/historyCard_widget.dart';
 import 'package:nandiott_flutter/features/profile/watchHistory/watchHistory_provider.dart';
@@ -9,7 +8,6 @@ import 'package:nandiott_flutter/providers/checkauth_provider.dart';
 import 'package:nandiott_flutter/providers/detail_provider.dart';
 import 'package:nandiott_flutter/providers/series_watchhistory_provider.dart';
 import 'package:nandiott_flutter/utils/Device_size.dart';
-import 'package:nandiott_flutter/utils/appstyle.dart';
 
 class WatchHistoryPage extends ConsumerStatefulWidget {
   const WatchHistoryPage({super.key});

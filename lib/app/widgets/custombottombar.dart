@@ -355,54 +355,59 @@ class _ResponsiveNavigationState extends ConsumerState<ResponsiveNavigation> {
         }
         return KeyEventResult.ignored;
       },
-      child: Container(
-        width: 60,
-        color: _navigationFocusNode.hasFocus
-            ? Theme.of(context).scaffoldBackgroundColor.withOpacity(1)
-            : Theme.of(context).scaffoldBackgroundColor.withOpacity(0.9),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(30),
-                border: Border.all(
+      child: InkWell(
+onTap: () {
+  ref.read(isNavigationExpandedProvider.notifier).state = true;
+},
+        child: Container(
+          width: 60,
+          color: _navigationFocusNode.hasFocus
+              ? Theme.of(context).scaffoldBackgroundColor.withOpacity(1)
+              : Theme.of(context).scaffoldBackgroundColor.withOpacity(0.9),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(
+                    color: _navigationFocusNode.hasFocus
+                        ? Colors.amber
+                        : Colors.grey.withOpacity(0.5),
+                    width: _navigationFocusNode.hasFocus ? 3 : 1,
+                  ),
+                ),
+                child: Icon(
+                  Icons.menu,
                   color: _navigationFocusNode.hasFocus
                       ? Colors.amber
-                      : Colors.grey.withOpacity(0.5),
-                  width: _navigationFocusNode.hasFocus ? 3 : 1,
+                      : Theme.of(context).primaryColorDark,
+                  size: 30,
                 ),
               ),
-              child: Icon(
-                Icons.menu,
-                color: _navigationFocusNode.hasFocus
-                    ? Colors.amber
-                    : Theme.of(context).primaryColorDark,
-                size: 30,
-              ),
-            ),
-            SizedBox(height: 10),
-            if (_navigationFocusNode.hasFocus)
-              Column(
-                children: [
-                  Icon(
-                    Icons.keyboard_arrow_right,
-                    color: Colors.amber,
-                    size: 24,
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    "Press OK",
-                    style: TextStyle(
+              SizedBox(height: 10),
+              if (_navigationFocusNode.hasFocus)
+                Column(
+                  children: [
+                    Icon(
+                      Icons.keyboard_arrow_right,
                       color: Colors.amber,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
+                      size: 24,
                     ),
-                  ),
-                ],
-              ),
-          ],
+                    SizedBox(height: 8),
+                    Text(
+                      "Press OK",
+                      style: TextStyle(
+                        color: Colors.amber,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+            ],
+          ),
         ),
       ),
     );

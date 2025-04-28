@@ -5,11 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nandiott_flutter/app/widgets/custombottombar.dart';
 import 'package:nandiott_flutter/features/auth/signup_page.dart';
-import 'package:nandiott_flutter/providers/checkauth_provider.dart';
-import 'package:nandiott_flutter/providers/detail_provider.dart';
 import 'package:nandiott_flutter/providers/otp_provider.dart';
-import 'package:nandiott_flutter/providers/payment_provider.dart';
-import 'package:nandiott_flutter/providers/rental_provider.dart';
 import 'package:nandiott_flutter/services/auth_service.dart';
 import 'package:nandiott_flutter/utils/Device_size.dart';
 import 'package:nandiott_flutter/utils/appstyle.dart';
@@ -146,22 +142,6 @@ String? _deviceType;
       });
     });
   }
-  
-  // Register the UUID with backend (placeholder function)
-  // void _registerUuidWithBackend() async {
-  //   // TODO: Implement API call to register UUID with backend
-  //   // This would typically involve sending the UUID to your server
-  //   // so it can be used to associate the mobile device that scans this code
-  //   // with this specific TV session
-    
-  //   // Example:
-  //   // final response = await apiService.registerTvSession(_sessionUuid);
-  //   // if (response.isSuccessful) {
-  //   //   // UUID registered successfully
-  //   // } else {
-  //   //   // Handle error
-  //   // }
-  // }
 
   void _handleNumPadInput(String value) {
     if (_isOtpSent) {

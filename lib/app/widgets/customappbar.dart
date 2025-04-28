@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:nandiott_flutter/features/auth/login_page.dart';
-import 'package:nandiott_flutter/features/home/provider/getMedia.dart';
 import 'package:nandiott_flutter/pages/search_page.dart';
-import 'package:nandiott_flutter/main.dart';
-import 'package:nandiott_flutter/providers/checkauth_provider.dart';
 import 'package:nandiott_flutter/utils/Device_size.dart';
 import 'package:nandiott_flutter/utils/appstyle.dart';
 
@@ -25,8 +20,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    // final deviceType = AppSizes.getDeviceType(context);
-    // final isTV = deviceType == DeviceType.tv;
 
     return Padding(
       padding:
@@ -158,8 +151,5 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Size get preferredSize => Size.fromHeight(
-      // AppSizes.getDeviceType(MaterialApplication.globalKey.currentContext!) ==
-      //         DeviceType.tv
-      //     ? 100
            60);
 }

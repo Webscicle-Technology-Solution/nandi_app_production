@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>AIzaSyBSvpjBJ3SF3gZDj7gaU1-bUvkbLODnLs4</string>
+	<string>AIzaSyA7E5VR4abUK0k4LjyA8ylmjYBxVbNwHG4</string>
 	<key>GCM_SENDER_ID</key>
-	<string>18957244394</string>
+	<string>161738553298</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
 	<string>com.example.nandiottFlutter</string>
 	<key>PROJECT_ID</key>
-	<string>nandipictures-34c07</string>
+	<string>nandi-ott</string>
 	<key>STORAGE_BUCKET</key>
-	<string>nandipictures-34c07.firebasestorage.app</string>
+	<string>nandi-ott.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:18957244394:ios:3e958676f738e938b50493</string>
+	<string>1:161738553298:ios:b49491314e6f6e4e3bfa0b</string>
 </dict>
 </plist>

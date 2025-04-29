@@ -2,7 +2,6 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nandiott_flutter/models/moviedetail_model.dart';
 import 'package:nandiott_flutter/services/detail_service.dart';
-import 'package:nandiott_flutter/models/movie_model.dart';
 
 
 
@@ -89,6 +88,19 @@ final movieRateProvider=FutureProvider.family<String?, MovieDetailParameter>((re
 
 
 
+final ratedMovieProvider=FutureProvider.family<Map<String, dynamic>?, MovieDetailParameter>((ref, params) async {
+  final ratedService = ref.watch(detailServiceProvider);
+  
+  // Call the API with movieId and redirectUrl
+  final response = await ratedService.getMovieRating(mediaType: params.mediaType,movieId: params.movieId);
+
+  if (response != null && response['success'] == true) {
+    print("get rating provider Response: ${response['data']}");
+    return response['data'];
+  } else {
+    throw Exception(response?['message'] ?? 'Failed to rate ');
+  }
+});
 
 
 

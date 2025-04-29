@@ -6,7 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nandiott_flutter/app/widgets/customappbar.dart';
 import 'package:nandiott_flutter/features/home/filter_container_widget.dart';
-import 'package:nandiott_flutter/features/home/home_page.dart';
+import 'package:nandiott_flutter/features/home/pages/home_page.dart';
+import 'package:nandiott_flutter/features/home/pages/tv_home_page.dart';
 import 'package:nandiott_flutter/features/profile/profile_page.dart';
 import 'package:nandiott_flutter/features/rental_download/download_page.dart';
 import 'package:nandiott_flutter/pages/rental_page.dart';
@@ -195,7 +196,7 @@ class _ResponsiveNavigationState extends ConsumerState<ResponsiveNavigation> {
 
   // Screens corresponding to navigation items
   List<Widget> _getScreens(bool isTV) => [
-        HomePage(),
+        isTV? TVHomePage():HomePage(),
         isTV ? TVSearchPage() : DownloadsPage(),
         MyRentalPage(),
         ProfilePage(),

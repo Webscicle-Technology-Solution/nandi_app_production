@@ -185,7 +185,7 @@ class _ResponsiveNavigationState extends ConsumerState<ResponsiveNavigation> {
   // Screens corresponding to navigation items - MODIFIED FOR TV SPECIFIC PAGES
   List<Widget> _getScreens(bool isTV) => [
         // For Home, use TVHomePage on TV devices, regular HomePage otherwise
-        isTV ? TVHomePage() : HomePage(),
+        HomePage(),
         isTV ? TVSearchPage() : DownloadsPage(),
         MyRentalPage(),
         ProfilePage(),

@@ -199,7 +199,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                                             'Otp sent successfully') {
                                           // Navigate only when OTP is sent successfully
                                           Navigator.of(context)
-                                              .pushAndRemoveUntil(
+                                              .push(
                                             MaterialPageRoute(
                                               builder: (context) => OtpPage(
                                                 email: emailController.text,
@@ -210,8 +210,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                                                 pincode: pincodeController.text,
                                               ),
                                             ),
-                                            (route) =>
-                                                false, // Remove all previous routes from the stack
+                                             // Remove all previous routes from the stack
                                           );
                                         } else {
                                           // Handle OTP failed case (optional)

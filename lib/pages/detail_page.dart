@@ -505,190 +505,261 @@ Widget _buildButton({
     ),
   );
 }
+
   // rent button with focus
-  Widget _buildWatchNowButton(MovieDetail movie, BuildContext context) {
-    bool isRentable = movie.accessParams?.isRentable == true;
-    bool isFree = movie.accessParams?.isFree == true;
+  // Modified _buildWatchNowButton implementation
+Widget _buildWatchNowButton(MovieDetail movie, BuildContext context) {
+  bool isRentable = movie.accessParams?.isRentable == true;
+  bool isFree = movie.accessParams?.isFree == true;
 
-    final authUser = ref.watch(authUserProvider);
-    final rentals = ref.watch(rentalProvider);
+  final authUser = ref.watch(authUserProvider);
+  final rentals = ref.watch(rentalProvider);
 
-    return authUser.when(
-      data: (user) {
-        // When no user is logged in
-        if (user == null) {
-          return _buildButton(
-            text: "Login to watch",
-            icon: Icons.login,
+  // Add a loading state variable
+  bool isRefreshing = false;
+
+  return authUser.when(
+    data: (user) {
+      // When no user is logged in
+      if (user == null) {
+        return _buildButton(
+          text: "Login to watch",
+          icon: Icons.login,
+          textColor: Color(0xFFF4AE00),
+          focusNode: watchButtonFocusNode,
+          autofocus: true,
+          onPressed: () async {
+            // Start with loading state
+            setState(() {
+              isRefreshing = true;
+            });
+
+            // Navigate to login page and wait for result
+            final loginResult = await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => LoginScreen()),
+            );
+
+            // If login was successful
+            if (loginResult == true) {
+              // Explicitly refresh providers one by one in order
+              await ref.refresh(authUserProvider.future);
+              
+              // Wait a small amount of time for auth to propagate
+              await Future.delayed(Duration(milliseconds: 300));
+              
+              // Now refresh dependent providers
+              if (mounted) {
+                final newUser = ref.read(authUserProvider).value;
+                if (newUser != null) {
+                  setState(() {
+                    userId = newUser.id;
+                  });
+                  
+                  // Refresh remaining providers
+                  await ref.refresh(rentalProvider.future);
+                  await ref.refresh(subscriptionProvider(
+                    SubscriptionDetailParameter(userId: newUser.id)
+                  ).future);
+                  // await ref.refresh(isMovieFavoriteProvider(movie.id).future);
+                  await ref.refresh(favoritesProvider.future);
+                }
+                
+                // End loading state
+                setState(() {
+                  isRefreshing = false;
+                });
+              }
+            } else {
+              // Login was not successful
+              setState(() {
+                isRefreshing = false;
+              });
+            }
+          },
+        );
+      } else {
+        // User is already logged in
+        if (isRefreshing) {
+          return const Center(child: Buttonskelton());
+        }
+
+        setState(() {
+          userId = user.id;
+        });
+        
+        final subscriptions = ref.watch(subscriptionProvider(
+          SubscriptionDetailParameter(userId: user.id)
+        ));
+        
+        // User is logged in, show appropriate button based on rental/subscription status
+        return rentals.when(
+          data: (rentalList) {
+            // Check if the user has rented this movie
+            bool hasRented = rentalList.any((rental) =>
+                rental.userId == user.id && rental.movieId == movie.id);
+
+            return subscriptions.when(
+              data: (subscription) {
+                // Check if user has active subscription
+                bool isSubscribed = subscription?.subscriptionType.name != "Free";
+
+                if ((widget.mediaType == "tvseries" || 
+                    widget.mediaType == "TVSeries") && isSubscribed) {
+                  return const SizedBox(height: 10);
+                } else {
+                  if (hasRented || isSubscribed || isFree) {
+                    return _buildButton(
+                      text: "Watch Now",
+                      icon: Icons.visibility,
+                      textColor: Color(0xFFF4AE00),
+                      focusNode: watchButtonFocusNode,
+                      autofocus: true,
+                      onPressed: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => VideoPlayerScreen(
+                              mediaType: widget.mediaType,
+                              movieId: movie.id,
+                            ),
+                          ),
+                        );
+                        ref.invalidate(watchHistoryProvider);
+                        ref.invalidate(movieDetailProvider);
+                        ref.invalidate(tvSeriesWatchProgressProvider);
+                      },
+                    );
+                  } else if (isRentable) {
+                    return _buildButton(
+                      text: "Rent for ₹${movie.accessParams?.rentalPrice ?? "N/A"}",
+                      icon: Icons.payments,
+                      textColor: Color(0xFFF4AE00),
+                      focusNode: watchButtonFocusNode,
+                      autofocus: true,
+                      onPressed: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => RentalPaymentRedirectPage(
+                              movieId: widget.movieId,
+                              redirectUrl: "https://nandi.webscicle.com/app/paymentreport"
+                            )
+                          )
+                        );
+                        if (result == true) {
+                          ref.invalidate(rentalProvider);
+                        }
+                        // Add rental logic here
+                        print("Redirecting to Payment page");
+                      },
+                    );
+                  } else {
+                    return _buildButton(
+                      text: "Subscribe to Watch",
+                      icon: Icons.subscriptions,
+                      textColor: Color(0xFFF4AE00),
+                      focusNode: watchButtonFocusNode,
+                      autofocus: true,
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (_) => SubscriptionPlanModal(
+                            userId: user.id,
+                            movieId: movieId,
+                          ),
+                        );
+                      },
+                    );
+                  }
+                }
+              },
+              loading: () => Center(child: Buttonskelton()),
+              error: (_, __) => _buildButton(
+                text: "Loading Subscription...",  // Changed error text to be less alarming
+                icon: Icons.refresh,
+                textColor: Color(0xFFF4AE00),
+                focusNode: watchButtonFocusNode,
+                autofocus: true,
+                onPressed: () {
+                  ref.refresh(subscriptionProvider(
+                    SubscriptionDetailParameter(userId: user.id)
+                  ).future);
+                },
+              ),
+            );
+          },
+          loading: () => Center(child: Buttonskelton()),
+          error: (_, __) => _buildButton(
+            text: "Loading Content...",  // Changed error text to be less alarming
+            icon: Icons.refresh,
             textColor: Color(0xFFF4AE00),
             focusNode: watchButtonFocusNode,
             autofocus: true,
-            onPressed: () async {
-              // Navigate to login page and wait for result
-              final loginResult = await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => LoginScreen()),
-              );
-
-              // If login was successful
-              if (loginResult == true) {
-                // Explicitly refresh providers
-                ref.invalidate(authUserProvider);
-                ref.invalidate(rentalProvider);
-                ref.invalidate(subscriptionProvider(SubscriptionDetailParameter(
-                    userId: user == null ? userId : user.id)));
-                // ref.invalidate(favoritesProvider);
-                ref.invalidate(isMovieFavoriteProvider(movie.id));
-                ref.invalidate(favoritesProvider);
-                // ref.invalidate(favoritesWithDetailsProvider);
-              }
+            onPressed: () {
+              ref.refresh(rentalProvider.future);
             },
-          );
+          ),
+        );
+      }
+    },
+    loading: () => Center(child: Buttonskelton()),
+    error: (_, __) => _buildButton(
+      text: "Login to Watch",
+      icon: Icons.login,
+      textColor: Color(0xFFF4AE00),
+      focusNode: watchButtonFocusNode,
+      autofocus: true,
+      onPressed: () async {
+        setState(() {
+          isRefreshing = true;
+        });
+        
+        final loginResult = await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => LoginScreen()),
+        );
+
+        // If login was successful
+        if (loginResult == true) {
+          // Explicitly refresh providers one by one
+          await ref.refresh(authUserProvider.future);
+          
+          // Wait for auth to propagate
+          await Future.delayed(Duration(milliseconds: 300));
+          
+          // Now refresh dependent providers
+          if (mounted) {
+            final newUser = ref.read(authUserProvider).value;
+            if (newUser != null) {
+              setState(() {
+                userId = newUser.id;
+              });
+              
+              // Refresh remaining providers
+              await ref.refresh(rentalProvider.future);
+              await ref.refresh(subscriptionProvider(
+                SubscriptionDetailParameter(userId: newUser.id)
+              ).future);
+              // ref.refresh(isMovieFavoriteProvider(movie.id));
+              await ref.refresh(favoritesProvider.future);
+            }
+            
+            setState(() {
+              isRefreshing = false;
+            });
+          }
         } else {
           setState(() {
-            userId = user.id;
+            isRefreshing = false;
           });
-          final subscriptions = ref.watch(subscriptionProvider(
-              SubscriptionDetailParameter(userId: user.id)));
-          // User is logged in, show appropriate button based on rental/subscription status
-          return rentals.when(
-            data: (rentalList) {
-              // Check if the user has rented this movie
-              bool hasRented = rentalList.any((rental) =>
-                  rental.userId == user.id && rental.movieId == movie.id);
-
-              return subscriptions.when(
-                data: (subscription) {
-                  // print("subscription : $subscription");
-                  // Check if user has active subscription
-                  bool isSubscribed =
-                      subscription?.subscriptionType.name != "Free";
-
-                  if (widget.mediaType == "tvseries" ||
-                      widget.mediaType == "TVSeries" && isSubscribed) {
-                    return const SizedBox(height: 10);
-                  } else {
-                    if (hasRented || isSubscribed || isFree) {
-                      return _buildButton(
-                        text: "Watch Now",
-                        icon: Icons.visibility,
-                        textColor: Color(0xFFF4AE00),
-                        focusNode: watchButtonFocusNode,
-                        autofocus: true,
-                        onPressed: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => VideoPlayerScreen(
-                                mediaType: widget.mediaType,
-                                movieId: movie.id,
-                              ),
-                            ),
-                          );
-                          ref.invalidate(watchHistoryProvider);
-                          ref.invalidate(movieDetailProvider);
-                          ref.invalidate(tvSeriesWatchProgressProvider);
-                        },
-                      );
-                    } else if (isRentable) {
-                      return _buildButton(
-                        text:
-                            "Rent for ₹${movie.accessParams?.rentalPrice ?? "N/A"}",
-                        icon: Icons.payments,
-                        textColor: Color(0xFFF4AE00),
-                        focusNode: watchButtonFocusNode,
-                        autofocus: true,
-                        onPressed: () async {
-                          final result = await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => RentalPaymentRedirectPage(
-                                      movieId: widget.movieId,
-                                      redirectUrl:
-                                          "https://nandi.webscicle.com/app/paymentreport")));
-                          if (result == true) {
-                            ref.invalidate(rentalProvider);
-                          }
-                          // Add rental logic here
-                          print("Redirecting to Payment page");
-                        },
-                      );
-                    } else {
-                      return _buildButton(
-                        text: "Subscribe to Watch",
-                        icon: Icons.subscriptions,
-                        textColor: Color(0xFFF4AE00),
-                        focusNode: watchButtonFocusNode,
-                        autofocus: true,
-                        onPressed: () {
-                          
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            backgroundColor: Colors.transparent,
-                            builder: (_) => SubscriptionPlanModal(
-                              userId: user.id,
-                              movieId: movieId,
-                            ),
-                          );
-
-                          // Navigate to subscription page
-                          // Navigator.push(...);
-                        },
-                      );
-                    }
-                  }
-                },
-                loading: () => Center(child: Buttonskelton()),
-                error: (_, __) => _buildButton(
-                  text: "Unable to load subscription status",
-                  icon: Icons.error,
-                  textColor: Colors.red,
-                  focusNode: watchButtonFocusNode,
-                  autofocus: true,
-                  onPressed: () {},
-                ),
-              );
-            },
-            loading: () => Center(child: Buttonskelton()),
-            error: (_, __) => _buildButton(
-              text: "Unable to load rental status",
-              icon: Icons.error,
-              textColor: Colors.red,
-              focusNode: watchButtonFocusNode,
-              autofocus: true,
-              onPressed: () {},
-            ),
-          );
         }
       },
-      loading: () => Center(child: Buttonskelton()),
-      error: (_, __) => _buildButton(
-        text: "Login to Watch",
-        icon: Icons.login,
-        textColor: Color(0xFFF4AE00),
-        focusNode: watchButtonFocusNode,
-        autofocus: true,
-        onPressed: () async {
-          final loginResult = await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => LoginScreen()),
-          );
-
-          // If login was successful
-          if (loginResult == true) {
-            
-            // Explicitly refresh providers
-            ref.invalidate(authUserProvider);
-            ref.invalidate(rentalProvider);
-            ref.invalidate(isMovieFavoriteProvider(movie.id));
-            ref.invalidate(favoritesProvider);
-            // Force rebuild to show updated UI
-          }
-        },
-      ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildFavoriteDownloadButtons(
       MovieDetail movie, BuildContext context) {
@@ -2083,7 +2154,9 @@ void _handleEpisodeTap(
       ),
     );
   }
+  
 }
+
 
   // Widget _buildSeasonSelector(BuildContext context, WidgetRef ref) {
   //   final seasonsAsync = ref.watch(seasonsProvider(widget.movieId));

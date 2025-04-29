@@ -7,12 +7,18 @@
     <uses-permission android:name="android.permission.VIBRATE"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
-    <!-- Optional features -->
+    <!-- Optional features - all marked as not required -->
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
+    <uses-feature android:name="android.hardware.telephony" android:required="false"/>
+    
+    <!-- TV-specific features -->
     <uses-feature android:name="android.software.leanback" android:required="false"/>
+    
+    <!-- CRITICAL: For mobile devices, we need to declare touchscreen as NOT required -->
     <uses-feature android:name="android.hardware.touchscreen" android:required="false"/>
     <uses-feature android:name="android.hardware.faketouch" android:required="false"/>
-    <uses-feature android:name="android.hardware.telephony" android:required="false"/>
+    
+    <!-- Do NOT include compatible-screens as it can actually restrict device compatibility -->
 
     <!-- Queries (for Android 11+) -->
     <queries>
@@ -71,7 +77,7 @@
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme" />
 
-            <!-- Mobile launcher -->
+            <!-- Mobile launcher (CRITICAL: Keep this for mobile compatibility) -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>

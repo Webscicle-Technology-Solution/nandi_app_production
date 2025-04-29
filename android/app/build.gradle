@@ -2,7 +2,7 @@ plugins {
     id "com.android.application"
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
-    id 'com.google.gms.google-services'  // Add this line to apply the Google services plugin
+    id 'com.google.gms.google-services'  // Google services plugin
 }
 
 android {
@@ -23,15 +23,20 @@ android {
         applicationId = "com.nandi.ott"
         minSdkVersion 23
         targetSdk = 34
-        versionCode = 10
-        versionName = "1.0.10"
+        versionCode = 9
+        versionName = "1.0.0+9"
+        
+        // Add support for all ABIs to ensure maximum device compatibility
+        ndk {
+            abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
+        }
     }
 
     signingConfigs {
         release {
             keyAlias 'nandi_key'
             keyPassword 'nandipic'
-            storeFile file('keystore/nandi_key.jks') // Make sure this path is correct!
+            storeFile file('keystore/nandi_key.jks')
             storePassword 'nandipic'
         }
     }
@@ -39,6 +44,20 @@ android {
     buildTypes {
         release {
             signingConfig = signingConfigs.release
+        }
+    }
+    
+    // For testing the fix, disable bundle splits (for APK testing only)
+    // Comment this out when building the final AAB for store submission
+    bundle {
+        language {
+            enableSplit = false
+        }
+        density {
+            enableSplit = false
+        }
+        abi {
+            enableSplit = false
         }
     }
 }
@@ -51,12 +70,7 @@ dependencies {
     // Import the Firebase BoM (Bill of Materials)
     implementation platform('com.google.firebase:firebase-bom:33.12.0')
 
-    // Add Firebase dependencies (Firebase Authentication as an example)
+    // Add Firebase dependencies
     implementation 'com.google.firebase:firebase-auth'
-    
-    // Add more Firebase dependencies based on your project needs
-    // For example, for Firestore:
-    // implementation 'com.google.firebase:firebase-firestore'
-    // For Firebase Cloud Messaging:
-    // implementation 'com.google.firebase:firebase-messaging'
+    implementation 'com.google.firebase:firebase-messaging'
 }

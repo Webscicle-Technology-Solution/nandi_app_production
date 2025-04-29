@@ -239,10 +239,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                     SizedBox(height: 35),
                     GestureDetector(
                       onTap: () {
-                        Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => LoginScreen(),
-                            ),);
+                        Navigator.of(context).pop();
                       },
                       child: Text(
                         'Already have an account? LogIn',

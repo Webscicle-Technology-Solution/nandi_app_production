@@ -6,7 +6,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nandiott_flutter/app/widgets/customappbar.dart';
 import 'package:nandiott_flutter/features/home/filter_container_widget.dart';
-import 'package:nandiott_flutter/features/home/home_page.dart';
+// Import your existing pages
+import 'package:nandiott_flutter/features/home/pages/home_page.dart';
+import 'package:nandiott_flutter/features/home/pages/tv_home_page.dart';
+// Import the new TV Home Page
 import 'package:nandiott_flutter/features/profile/profile_page.dart';
 import 'package:nandiott_flutter/features/rental_download/download_page.dart';
 import 'package:nandiott_flutter/pages/rental_page.dart';
@@ -65,8 +68,8 @@ class _ResponsiveNavigationState extends ConsumerState<ResponsiveNavigation> {
           event.logicalKey == LogicalKeyboardKey.arrowRight) {
         // We're going from navigation to content
         final selectedIndex = ref.read(selectedIndexProvider);
-        final screens =
-            _getScreens(AppSizes.getDeviceType(context) == DeviceType.tv);
+        final isTV = AppSizes.getDeviceType(context) == DeviceType.tv;
+        final screens = _getScreens(isTV);
 
         // If we're going to MyRentalsPage, check after a slight delay
         if (screens[selectedIndex] is MyRentalPage) {
@@ -102,36 +105,22 @@ class _ResponsiveNavigationState extends ConsumerState<ResponsiveNavigation> {
         // Let the login button handle its own focus
         return false;
       }
-      // // we should focus on the navigation menu
-      // if (_isWithinContent(currentFocus) &&
-      //     event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-      //   // Check if we're at the left edge of content
-      //   final RenderBox? renderBox =
-      //       currentFocus?.context?.findRenderObject() as RenderBox?;
-      //   if (renderBox != null) {
-      //     final position = renderBox.localToGlobal(Offset.zero);
-      //     // If close to the left edge, move focus to navigation
-      //     if (position.dx < 150) {
-      //       _navigationFocusNode.requestFocus();
-      //       return true;
-      //     }
-      //   }
-      // }
+      
       if (_isWithinContent(currentFocus) && 
-    event.logicalKey == LogicalKeyboardKey.arrowLeft &&
-    ref.read(selectedIndexProvider) == 0) { // Only for Home page
-  // Check if we're at the left edge of content
-  final RenderBox? renderBox = currentFocus?.context?.findRenderObject() as RenderBox?;
-  if (renderBox != null) {
-    final position = renderBox.localToGlobal(Offset.zero);
-    // If close to the left edge, move focus to navigation
-    if (position.dx < 150) {
-      _navigationFocusNode.requestFocus();
-      return true;
-    }
-  }
-  return false; // Let other handlers process the event
-}
+          event.logicalKey == LogicalKeyboardKey.arrowLeft &&
+          ref.read(selectedIndexProvider) == 0) { // Only for Home page
+        // Check if we're at the left edge of content
+        final RenderBox? renderBox = currentFocus?.context?.findRenderObject() as RenderBox?;
+        if (renderBox != null) {
+          final position = renderBox.localToGlobal(Offset.zero);
+          // If close to the left edge, move focus to navigation
+          if (position.dx < 150) {
+            _navigationFocusNode.requestFocus();
+            return true;
+          }
+        }
+        return false; // Let other handlers process the event
+      }
 
       // Handle filter items as before
       if (_isWithinFilterItems(currentFocus)) {
@@ -193,8 +182,9 @@ class _ResponsiveNavigationState extends ConsumerState<ResponsiveNavigation> {
     super.dispose();
   }
 
-  // Screens corresponding to navigation items
+  // Screens corresponding to navigation items - MODIFIED FOR TV SPECIFIC PAGES
   List<Widget> _getScreens(bool isTV) => [
+        // For Home, use TVHomePage on TV devices, regular HomePage otherwise
         HomePage(),
         isTV ? TVSearchPage() : DownloadsPage(),
         MyRentalPage(),
@@ -246,15 +236,12 @@ class _ResponsiveNavigationState extends ConsumerState<ResponsiveNavigation> {
       }
     }
 
-    // In the build method of _ResponsiveNavigationState
-
     if (isTV) {
       // For TV layout
       return WillPopScope(
         onWillPop: _onWillPop,
         child: Scaffold(
           body: FocusTraversalGroup(
-            // policy: DirectionalFocusTraversalPolicy(),
             child: Row(
               children: [
                 // Navigation menu
@@ -273,7 +260,6 @@ class _ResponsiveNavigationState extends ConsumerState<ResponsiveNavigation> {
                 // Main content area with explicit traversal scope
                 Expanded(
                   child: FocusTraversalGroup(
-                    // policy: ,
                     child: Focus(
                       focusNode: contentFocusNode,
                       key: _contentKey,
@@ -356,9 +342,9 @@ class _ResponsiveNavigationState extends ConsumerState<ResponsiveNavigation> {
         return KeyEventResult.ignored;
       },
       child: InkWell(
-onTap: () {
-  ref.read(isNavigationExpandedProvider.notifier).state = true;
-},
+        onTap: () {
+          ref.read(isNavigationExpandedProvider.notifier).state = true;
+        },
         child: Container(
           width: 60,
           color: _navigationFocusNode.hasFocus

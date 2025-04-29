@@ -168,19 +168,6 @@ showDialog(
                             decoration: BoxDecoration(
                               color: hasFocus && isTv ? isdark? Colors.white:Colors.black:Colors.transparent,
                               borderRadius: BorderRadius.circular(12),
-                              // border: hasFocus 
-                              //   ? Border.all(color: Colors.black, width: 2) 
-                              //   : null,
-                              // Show glow effect when focused
-                              // boxShadow: hasFocus 
-                              //   ? [
-                              //       BoxShadow(
-                              //         color: Colors.black.withOpacity(0.8),
-                              //         blurRadius: 8,
-                              //         spreadRadius: 2,
-                              //       )
-                              //     ] 
-                              //   : null,
                             ),
                             padding: const EdgeInsets.symmetric(
                               horizontal: 24, 
@@ -206,18 +193,10 @@ showDialog(
                       ActivateIntent: CallbackAction<ActivateIntent>(
                         onInvoke: (intent) async {
                           Navigator.of(context).pop();
-                          
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => const LoginScreen())
-                          );
-                          
                           await Future.delayed(const Duration(milliseconds: 300));
                           try {
-                            final result = await authService.logout();
-                            print('Logout message: $result');
+                            await authService.logout();
                             
-                            Navigator.pushReplacementNamed(context, '/login');
                           } catch (e) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text('Logout failed: $e')),
@@ -238,17 +217,18 @@ showDialog(
                           onTap: () async {
                             Navigator.of(context).pop();
                             
-                            Navigator.pushReplacement(
+                            Navigator.push(
                               context,
                               MaterialPageRoute(builder: (context) => const LoginScreen())
                             );
                             
                             await Future.delayed(const Duration(milliseconds: 300));
                             try {
-                              final result = await authService.logout();
-                              print('Logout message: $result');
+                              await authService.logout();
                               
-                              Navigator.pushReplacementNamed(context, '/login');
+                              ref.invalidate(authUserProvider);
+                              
+                         
                             } catch (e) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(content: Text('Logout failed: $e')),
@@ -260,19 +240,6 @@ showDialog(
                             decoration: BoxDecoration(
                               color: hasFocus? isdark ? Colors.white:Colors.black:Colors.transparent,
                               borderRadius: BorderRadius.circular(12),
-                              // border: hasFocus 
-                              //   ? Border.all(color: Colors.black, width: 2) 
-                              //   : null,
-                              // Show glow effect when focused
-                              // boxShadow: hasFocus 
-                              //   ? [
-                              //       BoxShadow(
-                              //         color: Colors.black.withOpacity(0.8),
-                              //         blurRadius: 8,
-                              //         spreadRadius: 2,
-                              //       )
-                              //     ] 
-                              //   : null,
                             ),
                             padding: const EdgeInsets.symmetric(
                               horizontal: 24, 

@@ -3,7 +3,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nandiott_flutter/app/widgets/custombottombar.dart';
+// import 'package:nandiott_flutter/app/widgets/custombottombar.dart';
 import 'package:nandiott_flutter/features/auth/signup_page.dart';
 import 'package:nandiott_flutter/providers/otp_provider.dart';
 import 'package:nandiott_flutter/services/auth_service.dart';
@@ -43,43 +43,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final int _uuidRefreshInterval = 300; // Refresh UUID every 5 minutes (300 seconds)
   int _uuidTimeLeft = 300;
 
-Future<void> getToken() async{
-  String? token=await FirebaseMessaging.instance.getToken();
-  if(token!=null){
-setState(() {
-  print("the device token is ${token}");
-  deviceToken=token;
-});
+  Future<void> getToken() async{
+    String? token=await FirebaseMessaging.instance.getToken();
+    if(token!=null){
+      setState(() {
+        print("the device token is ${token}");
+        deviceToken=token;
+      });
+    }
   }
-}
   
-Future<void> isqrLoginCompleted() async {
+  Future<void> isqrLoginCompleted() async {
+    final loginStatus = AuthService();
 
-  final loginStatus = AuthService();
+    while (true) {
+      try {
+        final response = await loginStatus.tvLoginStatus(code: _sessionUuid);
 
-  while (true) {
-    try {
-      final response = await loginStatus.tvLoginStatus(code: _sessionUuid);
-
-      if (response['success'] == true) {
-        print("✅ Login successful!");
-Navigator.of(context).pop(true);
-
-        break; // Exit the loop
-        
+        if (response['success'] == true) {
+          print("✅ Login successful!");
+          Navigator.of(context).pop(true);
+          break; // Exit the loop
+        }
+      } catch (e) {
+        print("⚠️ API call failed: $e");
+        // We ignore the error and just try again
       }
 
-    } catch (e) {
-      print("⚠️ API call failed: $e");
-      // We ignore the error and just try again
+      await Future.delayed(Duration(seconds: 2));
     }
-
-    await Future.delayed(Duration(seconds: 2));
   }
-
-  // Continue with navigation or success handling
-}
-
 
   @override
   void initState() {
@@ -88,20 +81,20 @@ Navigator.of(context).pop(true);
     _generateNewUuid();
     _startUuidRefreshTimer();
     getToken();
-
   }
-String? _deviceType;
+  
+  String? _deviceType;
+  
   @override
   void didChangeDependencies() {
-    // TODO: implement didChangeDependencies
     super.didChangeDependencies();
-     if (_deviceType == null) { // Prevent re-running if dependencies change
-     _deviceType = AppSizes.getDeviceType(context);
-         if (_deviceType == DeviceType.tv) {
-      print("🟢 isqrLoginCompleted() starting...");
-      isqrLoginCompleted();
+    if (_deviceType == null) { // Prevent re-running if dependencies change
+      _deviceType = AppSizes.getDeviceType(context);
+      if (_deviceType == DeviceType.tv) {
+        print("🟢 isqrLoginCompleted() starting...");
+        isqrLoginCompleted();
+      }
     }
-     }
   }
 
   @override
@@ -122,7 +115,6 @@ String? _deviceType;
     setState(() {
       _sessionUuid = _uuid.v4();
       _uuidTimeLeft = _uuidRefreshInterval;
-      print("the uuid is ${_sessionUuid}");
     });
     // Here you would also send this UUID to your backend to associate it with this TV session
     // _registerUuidWithBackend();
@@ -138,6 +130,14 @@ String? _deviceType;
         } else {
           // Time to generate a new UUID
           _generateNewUuid();
+          
+          // Show a brief notification that QR was refreshed
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('QR Code automatically refreshed with new login code'),
+              duration: Duration(seconds: 2),
+            ),
+          );
         }
       });
     });
@@ -272,7 +272,7 @@ String? _deviceType;
       final parameter = VerifyOtpParameter(
         phone: _phoneController.text,
         otp: _otpController.text,
-        deviceToken:deviceToken
+        deviceToken: deviceToken
       );
 
       try {
@@ -293,12 +293,7 @@ String? _deviceType;
         // In real app, you would navigate to home screen here
         // Add a delay for showing success message before navigating
         Future.delayed(const Duration(seconds: 2), () {
-          // Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => HomeScreen()));
-        //   Navigator.of(context).pushAndRemoveUntil(
-        //       MaterialPageRoute(builder: (_) => ResponsiveNavigation()),
-        //       (route) => false);
-        Navigator.of(context).pop(true);
-
+          Navigator.of(context).pop(true);
         });
       } catch (error) {
         setState(() {
@@ -315,22 +310,9 @@ String? _deviceType;
       );
     }
   }
-  
-  // Method to manually refresh the UUID
-  void _refreshUuid() {
-    _generateNewUuid();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('QR Code refreshed with new login code')),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
-    //     ref.invalidate(authUserProvider);
-    // ref.invalidate(rentalProvider);
-    // ref.invalidate(rentPaymentProvider);
-    // ref.invalidate(subsciptionPaymentProvider);
-    // ref.invalidate(movieDetailProvider);
     final isTv = AppSizes.getDeviceType(context) == DeviceType.tv;
 
     // Build the QR code data URL with the UUID
@@ -430,17 +412,6 @@ String? _deviceType;
                                 version: QrVersions.auto,
                                 size: 200,
                                 backgroundColor: Colors.white
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            // Add a refresh button
-                            ElevatedButton.icon(
-                              onPressed: _refreshUuid,
-                              icon: Icon(Icons.refresh),
-                              label: Text('Refresh QR Code'),
-                              style: ElevatedButton.styleFrom(
-                                foregroundColor: Colors.white,
-                                backgroundColor: Colors.amber.shade600,
                               ),
                             ),
                             const SizedBox(height: 24),
@@ -726,31 +697,27 @@ String? _deviceType;
                                         ),
                                       ),
                                     ),
-                                    if(_isOtpSent == false)
-                                  TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context).push(
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  const ResponsiveNavigation(),
-                                            ),
-                                          );
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          // backgroundColor: Theme.of(context).primaryColorDark.wit,
-                                          side:  BorderSide(
-                                              color: Theme.of(context).primaryColorDark),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                          ),
-                                        ),
-                                        child:  Text(
-                                          'Continue without login',
-                                          style: TextStyle(color: Theme.of(context).primaryColorDark),
-                                        ),
-                                      ),
-                                   
+
+                                  // if(_isOtpSent == false)
+                                  // TextButton(
+                                  //       onPressed: () {
+                                  //         Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=>ResponsiveNavigation()), (route)=>false);
+                                         
+                                  //       },
+                                  //       style: ElevatedButton.styleFrom(
+                                  //         // backgroundColor: Theme.of(context).primaryColorDark.wit,
+                                  //         side:  BorderSide(
+                                  //             color: Theme.of(context).primaryColorDark),
+                                  //         shape: RoundedRectangleBorder(
+                                  //           borderRadius:
+                                  //               BorderRadius.circular(10),
+                                  //         ),
+                                  //       ),
+                                  //       child:  Text(
+                                  //         'Continue without login',
+                                  //         style: TextStyle(color: Theme.of(context).primaryColorDark),
+                                  //       ),
+                                  //     ),
                                 ],
                               ),
                             ),

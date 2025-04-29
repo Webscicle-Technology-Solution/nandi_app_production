@@ -10,7 +10,7 @@ import 'package:nandiott_flutter/app/theme/dark_theme.dart';
 import 'package:nandiott_flutter/app/widgets/custombottombar.dart';
 import 'package:nandiott_flutter/features/auth/loginpage_tv.dart';
 import 'package:nandiott_flutter/features/auth/signup_page.dart';
-import 'package:nandiott_flutter/features/home/home_page.dart';
+import 'package:nandiott_flutter/features/home/pages/home_page.dart';
 import 'package:nandiott_flutter/features/profile/provider/quailty_provider.dart';
 import 'package:nandiott_flutter/pages/notification_second_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';

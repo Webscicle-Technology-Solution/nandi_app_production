@@ -6,8 +6,6 @@ import 'package:nandiott_flutter/app/widgets/film_card_widget.dart';
 import 'package:nandiott_flutter/models/movie_model.dart';
 import 'package:nandiott_flutter/pages/detail_page.dart';
 import 'package:nandiott_flutter/providers/search_provider.dart';
-import 'package:nandiott_flutter/utils/appstyle.dart';
-import 'package:nandiott_flutter/utils/Device_size.dart';
 
 // Providers
 final searchQueryProvider = StateProvider<String>((ref) => '');

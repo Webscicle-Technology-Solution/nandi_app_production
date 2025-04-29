@@ -361,7 +361,7 @@ class OtpPage extends ConsumerStatefulWidget {
 
 class _OtpPageState extends ConsumerState<OtpPage> {
   bool isButtonDisabled=true;
-  int secondsRemainig=120;
+  int secondsRemainig=60;
   Timer? timer;
   String? deviceToken;
   final _otpController = TextEditingController();
@@ -426,7 +426,7 @@ setState(() {
 void startTimer(){
   setState(() {
     isButtonDisabled=true;
-    secondsRemainig=120;
+    secondsRemainig=60;
   });
   timer=Timer.periodic(Duration(seconds: 1), (timer){
 if(secondsRemainig==0){
@@ -567,7 +567,7 @@ if(secondsRemainig==0){
               TextButton(
                 onPressed: isButtonDisabled?null: () async {
                   startTimer();
-                    final otpResponse = await ref.watch(
+                    final otpResponse = await ref.refresh(
                                             sentOtpProvider(OtpDetailParameter(
                                                     phone:phoneController.text
                                                        ))

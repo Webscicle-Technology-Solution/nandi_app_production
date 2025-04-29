@@ -6,7 +6,7 @@ final otpServiceProvider = Provider((ref) => AuthService());
 
 //Provider for send otp
 final sentOtpProvider =
-    FutureProvider.family<String?, OtpDetailParameter>((ref, params) async {
+    FutureProvider.family.autoDispose<String?, OtpDetailParameter>((ref, params) async {
   final otpService = ref.watch(otpServiceProvider);
 
   // Call the API with movieId and redirectUrl

@@ -364,6 +364,7 @@ Future<void> getToken() async{
   String? token=await FirebaseMessaging.instance.getToken();
   if(token!=null){
 setState(() {
+  print("the device token is ${deviceToken}") ;
   deviceToken=token;
 });
   }
@@ -388,6 +389,7 @@ setState(() {
             final otp = match.group(0)!;
             setState(() {
               _otpController.text = otp;
+              print("permission granted is $permissionsGranted and otp is $otp");
             });
 
             // Optionally auto-submit when OTP is detected

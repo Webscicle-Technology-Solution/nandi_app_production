@@ -192,7 +192,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                                         final otpResponse = await ref.read(
                                             sentOtpProvider(OtpDetailParameter(
                                                     phone:
-                                                        phoneController.text,email: emailController.text))
+                                                        phoneController.text))
                                                 .future);
 
                                         if (otpResponse ==

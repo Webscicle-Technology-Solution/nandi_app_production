@@ -10,7 +10,9 @@ final sentOtpProvider =
   final otpService = ref.watch(otpServiceProvider);
 
   // Call the API with movieId and redirectUrl
-  final response = await otpService.sendOtpRegister(phone: params.phone!,email: params.email!);
+  final response = await otpService.sendOtpRegister(phone: params.phone!,
+  //email: params.email!
+  );
 
   if (response!['success'] == true) {
     print("✅🔔 otp provider Response: ${response}");
@@ -37,12 +39,16 @@ final sentOtpProviderLogin =
 
 class OtpDetailParameter extends Equatable {
   final String? phone;
-  final String? email;
+ // final String? email;
 
-  const OtpDetailParameter({this.phone,this.email});
+  const OtpDetailParameter({this.phone,
+  //this.email
+  });
 
   @override
-  List<Object?> get props => [phone,email];
+  List<Object?> get props => [phone,
+ // email
+  ];
 }
 
 final verifyOtpProviderLogin =

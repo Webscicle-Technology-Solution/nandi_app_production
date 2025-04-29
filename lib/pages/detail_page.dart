@@ -44,6 +44,7 @@ class MovieDetailPage extends ConsumerStatefulWidget {
 }
 
 class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
+
   final baseUrl = dotenv.env['API_BASE_URL'];
 
   double currentRating = 0.0;
@@ -51,7 +52,10 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
   late FocusNode watchButtonFocusNode;
   late FocusNode favoriteButtonFocusNode;
   late FocusNode downloadButtonFocusNode;
-  
+  // Function to fetch and set the initial rating
+
+
+
   void _resetRating() {
     setState(() {
       currentRating = 0.0;
@@ -66,7 +70,7 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
   @override
   void initState() {
     super.initState();
-    
+
     // Initialize focus nodes
     watchButtonFocusNode = FocusNode(debugLabel: 'watchButton');
     favoriteButtonFocusNode = FocusNode(debugLabel: 'favoriteButton');
@@ -89,6 +93,8 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
 
   @override
   void didChangeDependencies() {
+
+
     super.didChangeDependencies();
     // ✅ Refresh provider on page load
     ref.invalidate(authUserProvider);
@@ -104,6 +110,8 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
     ref.invalidate(movieDetailProvider);
     ref.invalidate(tvSeriesWatchProgressProvider);
     ref.invalidate(watchHistoryProvider);
+    print("mediatype and mediaid before rated is ${mediaType},$movieId");
+    ref.invalidate(ratedMovieProvider(MovieDetailParameter(movieId: widget.movieId, mediaType: widget.mediaType)));
   }
 
   @override
@@ -121,7 +129,12 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+
     ref.watch(rentalProvider);
+   //     ref.watch(ratedMovieProvider(MovieDetailParameter(movieId: widget.movieId, mediaType: widget.mediaType)));
+
+
+
 
     final Map<String, String> mediaTypeMapbanner = {
       'videosong': 'videosong',
@@ -2388,40 +2401,58 @@ void _handleEpisodeTap(
   //   );
   // }
 
-  Widget _buildRatingBar(BuildContext context, String contentType, String contentId) {
-    return _buildFocusableBox(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Text(
-            "Rate the Movie",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          RatingBar.builder(
-            initialRating: currentRating,
-            minRating: 1,
-            direction: Axis.horizontal,
-            allowHalfRating: false,
-            itemCount: 5,
-            itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
-            itemBuilder: (context, _) => Icon(
-              Icons.star,
-              color: Colors.amber,
-            ),
-            onRatingUpdate: (newRating) {
-              // Store the rating temporarily
-              setState(() {
-                currentRating = newRating;
-              });
+Widget _buildRatingBar(BuildContext context, String contentType, String contentId) {
+  // Fetch the async value (assuming ratedMoviesProvider is a FutureProvider or StreamProvider)
+  final ratedMovieAsyncValue =ref.watch (ratedMovieProvider(MovieDetailParameter(movieId: widget.movieId, mediaType: widget.mediaType)));
 
-              // Show the confirmation dialog
-              _showRatingConfirmationDialog(context, currentRating, contentType, contentId);
-            },
-          ),
-        ],
-      ),
-    );
-  }
+  return ratedMovieAsyncValue.when(
+    data: (data) {  
+    //  print();
+      // Handle the data state, for example, showing the rating bar
+      return _buildFocusableBox(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              "Rate the Movie",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            RatingBar.builder(
+initialRating: (data?['userRating'] as num?)?.toDouble() ?? 0.0,
+              minRating:  (data?['userRating'] as num?)?.toDouble() ?? 0.0,
+              direction: Axis.horizontal,
+              allowHalfRating: false,
+              itemCount: 5,
+              itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
+              itemBuilder: (context, _) => Icon(
+                Icons.star,
+                color: Colors.amber,
+              ),
+              onRatingUpdate: (newRating) {
+                // Store the rating temporarily
+                setState(() {
+                  currentRating = newRating;
+                });
+
+                // Show the confirmation dialog
+                _showRatingConfirmationDialog(context, currentRating, widget.mediaType, widget.movieId);
+              },
+            ),
+          ],
+        ),
+      );
+    },
+    loading: () {
+      // Handle loading state, maybe show a loading indicator
+      return Center(child: CircularProgressIndicator());
+    },
+    error: (error, stackTrace) {
+      // Handle error state, show a message
+      return Center(child: Text('Error: $error'));
+    },
+  );
+}
+
 
   void _showRatingConfirmationDialog(BuildContext context, double currentRating, String contentType, String contentId) {
 showDialog(
@@ -2458,7 +2489,7 @@ showDialog(
             RatingBar.builder(
               unratedColor: Colors.grey,
               initialRating: currentRating,
-              minRating: 1,
+              minRating: currentRating,
               direction: Axis.horizontal,
               allowHalfRating: false,
               itemCount: 5,

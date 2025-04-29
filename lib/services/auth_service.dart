@@ -245,12 +245,16 @@ class AuthService {
   }
 
   Future<Map<String, dynamic>?> sendOtpRegister(
-      {required String phone, required String email}) async {
+      {required String phone,
+    //   required String email
+       }) async {
     final url = '$baseUrl/auth/register/otp-generate';
     try {
-      print("phonenumber in otp api is ${phone}, email is $email");
+      print("phonenumber in otp api is ${phone}, email is email");
       final response =
-          await dio.post(url, data: {"phone": phone, "email": email});
+          await dio.post(url, data: {"phone": phone,
+        //   "email": email
+           });
 
       print("OTP API RESPONS ${response.data}");
 

@@ -240,7 +240,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final parameter = OtpDetailParameter(phone: _phoneController.text);
 
     try {
-      await ref.read(sentOtpProviderLogin(parameter).future);
+      await ref.refresh(sentOtpProviderLogin(parameter).future);
 
       _otpController.clear();
       _startOtpTimer();

@@ -37,23 +37,34 @@ class _SignupPageState extends ConsumerState<SignupPage> {
     final authState = ref.watch(authProvider); // Watch the auth state
 
     // Automatic navigation when OTP is successfully sent
-    if (authState.successMessage != null) {
-      Future.delayed(Duration.zero, () {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (context) => OtpPage(
-              email: emailController.text,
-              name: nameController.text,
-              phone: phoneController.text,
-              state: stateController.text,
-              city: cityController.text,
-              pincode: pincodeController.text,
-            ),
-          ),
-          (route) => false, // Remove all previous routes from the stack
-        );
-      });
-    }
+    // if (authState.successMessage != null) {
+    //   Future.delayed(Duration.zero, () {
+    //     Navigator.push(context, MaterialPageRoute(builder: (context)=>
+    //     OtpPage(
+    //           email: emailController.text,
+    //           name: nameController.text,
+    //           phone: phoneController.text,
+    //           state: stateController.text,
+    //           city: cityController.text,
+    //           pincode: pincodeController.text,
+    //         ),
+        
+    //     ));
+    //     // Navigator.of(context).pushAndRemoveUntil(
+    //     //   MaterialPageRoute(
+    //     //     builder: (context) => OtpPage(
+    //     //       email: emailController.text,
+    //     //       name: nameController.text,
+    //     //       phone: phoneController.text,
+    //     //       state: stateController.text,
+    //     //       city: cityController.text,
+    //     //       pincode: pincodeController.text,
+    //     //     ),
+    //     //   ),
+    //     //   (route) => false, // Remove all previous routes from the stack
+    //     // );
+    //   });
+    // }
 
     return Scaffold(
       body: Center(
@@ -210,7 +221,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                                                 pincode: pincodeController.text,
                                               ),
                                             ),
-                                             // Remove all previous routes from the stack
+
                                           );
                                         } else {
                                           // Handle OTP failed case (optional)

@@ -324,6 +324,8 @@
 
 
 
+import 'dart:async';
+
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -331,6 +333,8 @@ import 'package:nandiott_flutter/app/widgets/customappbar.dart';
 import 'package:nandiott_flutter/app/widgets/custombottombar.dart';
 import 'package:nandiott_flutter/app/widgets/customerror_message.dart';
 import 'package:nandiott_flutter/features/auth/providers/auth_provider.dart';
+import 'package:nandiott_flutter/features/auth/signup_page.dart';
+import 'package:nandiott_flutter/providers/otp_provider.dart';
 import 'package:telephony/telephony.dart';
 
 class OtpPage extends ConsumerStatefulWidget {
@@ -356,6 +360,9 @@ class OtpPage extends ConsumerStatefulWidget {
 }
 
 class _OtpPageState extends ConsumerState<OtpPage> {
+  bool isButtonDisabled=true;
+  int secondsRemainig=60;
+  Timer? timer;
   String? deviceToken;
   final _otpController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -371,6 +378,7 @@ setState(() {
 }
   @override
   void initState() {
+    startTimer();
     getToken();
     super.initState();
     _listenForSms();
@@ -414,7 +422,27 @@ setState(() {
       );
     }
   }
+//Resend opt timer setting
+void startTimer(){
+  setState(() {
+    isButtonDisabled=true;
+    secondsRemainig=60;
+  });
+  timer=Timer.periodic(Duration(seconds: 1), (timer){
+if(secondsRemainig==0){
+  timer.cancel();
+  setState(() {
+    isButtonDisabled=false;
+  });
+ 
+} else{
+  setState(() {
+      secondsRemainig--;
 
+  });
+}
+  });
+}
   @override
   void dispose() {
     //telephony.removeListener();  // Unregister SMS listener to avoid leaks
@@ -485,7 +513,25 @@ setState(() {
                 Column(
                   children: [
                     const SizedBox(height: 20),
-                    ErrorText(errorMessage: authState.errorMessage!),
+                    Row(
+                      children: [
+                        ErrorText(errorMessage: authState.errorMessage!),
+                        TextButton(onPressed: (){
+                          Navigator.pop(context);
+                        }, child: Text("Go Back",
+                          style: TextStyle(
+                    color: Colors.amber,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                        
+                        
+                        ))
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+
                   ],
                 ),
               ElevatedButton(
@@ -519,15 +565,30 @@ setState(() {
               ),
               const SizedBox(height: 20),
               TextButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                onPressed: isButtonDisabled?null: () async {
+                  startTimer();
+                    final otpResponse = await ref.refresh(
+                                            sentOtpProvider(OtpDetailParameter(
+                                                    phone:phoneController.text
+                                                       ))
+                                                .future);
+
+                                                           if (otpResponse ==
+                                            'Otp sent successfully') {
+                                                                ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('OTP Resent')),
                   );
+                                            }
+                                            else{
+      ScaffoldMessenger.of(context).showSnackBar( SnackBar(content: Text('Unable to send Otp. Please try again later')));                               
+                                            }
+
+
                 },
                 child: Text(
-                  'Resend OTP',
+                  isButtonDisabled?'Resend in $secondsRemainig sec': 'Resend OTP ?',
                   style: TextStyle(
-                    color: Colors.amber,
+                    color: isButtonDisabled? Colors.grey : Colors.amber,
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),

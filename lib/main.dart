@@ -3,16 +3,11 @@ import 'dart:convert';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nandiott_flutter/app/theme/dark_theme.dart';
 import 'package:nandiott_flutter/app/widgets/custombottombar.dart';
-import 'package:nandiott_flutter/features/auth/loginpage_tv.dart';
-import 'package:nandiott_flutter/features/auth/signup_page.dart';
-import 'package:nandiott_flutter/features/home/pages/home_page.dart';
 import 'package:nandiott_flutter/features/profile/provider/quailty_provider.dart';
-import 'package:nandiott_flutter/pages/notification_second_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'app/theme/theme_provider.dart';
 // import 'package:flutter_downloader/flutter_downloader.dart';
@@ -120,7 +115,7 @@ class MyApp extends ConsumerWidget {
               ? ThemeMode.dark
               : ThemeMode.light,
               
-    home: ResponsiveNavigation()
+    home: const ResponsiveNavigation()
 
           );
   }

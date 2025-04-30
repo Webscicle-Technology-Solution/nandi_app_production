@@ -8,6 +8,7 @@ import 'package:nandiott_flutter/pages/detail_page.dart';
 import 'package:nandiott_flutter/providers/checkauth_provider.dart';
 import 'package:nandiott_flutter/providers/payment_provider.dart';
 import 'package:nandiott_flutter/providers/rental_provider.dart';
+import 'package:nandiott_flutter/providers/subscription_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class RentalPaymentRedirectPage extends ConsumerStatefulWidget {
@@ -39,7 +40,19 @@ String userId='';
       ));
     });
   }
-
+@override
+  void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+    super.didChangeDependencies();
+        ref.refresh(subscriptionProvider(
+        SubscriptionDetailParameter(userId: userId)));
+      ref.refresh(rentalProvider);
+      ref.refresh(authUserProvider);
+      ref.refresh(rentPaymentProvider(
+        PaymentDetailParameter(movieId: widget.movieId, redirectUrl: widget.redirectUrl),
+      ));
+    
+  }
   @override
   Widget build(BuildContext context) {
  ref.watch(rentalProvider);

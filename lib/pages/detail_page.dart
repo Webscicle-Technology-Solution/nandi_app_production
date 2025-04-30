@@ -2222,7 +2222,8 @@ showDialog(
                 );
 
                 try {
-                  final result = await ref.read(movieRateProvider(params).future);
+                  final result = await ref.refresh(movieRateProvider(params).future);
+                 await ref.refresh(ratedMovieProvider(MovieDetailParameter(movieId: widget.movieId, mediaType: widget.mediaType)));
                   Fluttertoast.showToast(
                     msg: result!,
                     toastLength: Toast.LENGTH_SHORT,

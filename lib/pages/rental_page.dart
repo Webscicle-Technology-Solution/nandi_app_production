@@ -73,7 +73,7 @@ if(response == true){
     final isTV = MediaQuery.of(context).size.width > 600;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('My Rentals')),
+    ///  appBar: AppBar(title: const Text('My Rentals')),
       body: authUser.when(
         data: (user) {
           if (user == null) {
@@ -156,7 +156,6 @@ if(response == true){
               ),
             );
           }
-
           return rentalAsyncValue.when(
             data: (rentalData) {
               if (rentalData.isEmpty) {
@@ -333,7 +332,10 @@ if(response == true){
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, stack) => Center(
+            error: (error, stack) { 
+              ref.refresh(rentalProvider);
+
+              Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -350,7 +352,7 @@ if(response == true){
                   ),
                 ],
               ),
-            ),
+            );}
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),

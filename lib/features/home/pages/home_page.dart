@@ -618,3 +618,433 @@ bool isSectionVisible(AsyncValue<Map<String, dynamic>?> sectionVisibilityAsync, 
   );
 }
 }
+
+// import 'package:flutter/material.dart';
+// import 'package:flutter_riverpod/flutter_riverpod.dart';
+// import 'package:nandiott_flutter/app/widgets/favFilm_card_widget.dart';
+// import 'package:nandiott_flutter/app/widgets/film_card_widget.dart';
+// import 'package:nandiott_flutter/app/widgets/filterSelector_widget.dart';
+// import 'package:nandiott_flutter/app/widgets/skeltonLoader/filmSkelton.dart';
+// import 'package:nandiott_flutter/features/home/featured-movie/new_carousel.dart';
+// import 'package:nandiott_flutter/features/home/provider/getContiuneMedia.dart';
+// import 'package:nandiott_flutter/features/home/provider/getMedia.dart';
+// import 'package:nandiott_flutter/features/profile/watchHistory/historyCard_widget.dart';
+// import 'package:nandiott_flutter/models/movie_model.dart';
+// import 'package:nandiott_flutter/pages/detail_page.dart';
+// import 'package:nandiott_flutter/providers/checkauth_provider.dart';
+// import 'package:nandiott_flutter/providers/filter_fav_provider.dart';
+// import 'package:nandiott_flutter/providers/filter_provider.dart';
+// import 'package:nandiott_flutter/utils/Device_size.dart';
+
+// class HomePage extends ConsumerStatefulWidget {
+//   const HomePage({super.key});
+
+//   @override
+//   _HomePageState createState() => _HomePageState();
+// }
+
+// class _HomePageState extends ConsumerState<HomePage> {
+//   late String userId;
+  
+//   @override
+//   void initState() {
+//     super.initState();
+//     userId = "";
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final isTV = AppSizes.getDeviceType(context) == DeviceType.tv;
+    
+//     // Watch the selected filter state
+//     final selectedFilter = ref.watch(selectedFilterProvider);
+    
+//     // Get API media type for the selected filter
+//     final mediaType = getApiMediaType(selectedFilter);
+    
+//     // Watch section visibility settings for the selected filter
+//     final sectionVisibilityAsync = ref.watch(homeSectionVisibilityProvider(selectedFilter));
+    
+//     // Watch media data based on the selected filter
+//     final latestMediaAsync = ref.watch(latestMediaProvider(selectedFilter));
+//     final freeMediaAsync = ref.watch(freeMediaProvider(selectedFilter));
+
+//     // Get user for continue watching
+//     final userAsyncValue = ref.watch(authUserProvider);
+  
+//     // Build list of visible sections
+//     final visibleSections = <String>[];
+//     if (isSectionVisible(sectionVisibilityAsync, 'isHistoryVisible')) {
+//       visibleSections.add('continueWatching');
+//     }
+//     if (isSectionVisible(sectionVisibilityAsync, 'isLatestVisible')) {
+//       visibleSections.add('newReleases');
+//     }
+//     if (freeMediaAsync is AsyncData && freeMediaAsync.value?.isNotEmpty == true) {
+//       visibleSections.add('freeToWatch');
+//     }
+//     if (isSectionVisible(sectionVisibilityAsync, 'isFavoritesVisible')) {
+//       visibleSections.add('favorites');
+//     }
+    
+//     final continueWatchingState = userAsyncValue.when(
+//       data: (user) {
+//         if (user != null) {
+//           setState(() {
+//             userId = user.id;
+//           });
+//           return ref.watch(continueWatchingProvider);
+//         } else {
+//           return AsyncValue.data([]);
+//         }
+//       },
+//       loading: () => AsyncValue.loading(),
+//       error: (error, stack) => AsyncValue.error(error, stack),
+//     );
+
+//     return Scaffold(
+//       body: SafeArea(
+//         child: SingleChildScrollView(
+//           child: Column(
+//             crossAxisAlignment: CrossAxisAlignment.start,
+//             children: [
+//               // Dynamic Filter Selector based on API response
+//               FilterSelector(
+//                 onFilterSelected: (filter) {
+//                   ref.read(selectedFilterProvider.notifier).state = filter;
+//                 },
+//               ),
+              
+//               SizedBox(height: 5),
+
+//               // Featured Carousel Section
+//               Container(
+//                 margin: EdgeInsets.only(top: 10),
+//                 child: SimpleFeaturedCarousel(filter: selectedFilter)
+//               ),
+              
+//               // Continue Watching Section - Show only if isHistoryVisible is true
+//               if (visibleSections.contains('continueWatching'))
+//                 buildContinueWatchingSection(selectedFilter),
+
+//               // New Releases Section - Show only if isLatestVisible is true
+//               if (visibleSections.contains('newReleases'))
+//                 Column(
+//                   crossAxisAlignment: CrossAxisAlignment.start,
+//                   children: [
+//                     Padding(
+//                       padding: const EdgeInsets.all(8.0),
+//                       child: Text('New Releases', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+//                     ),
+//                     buildMediaSection(
+//                       mediaAsync: latestMediaAsync,
+//                       mediaType: getApiMediaType(selectedFilter),
+//                     ),
+//                   ],
+//                 ),
+
+//               if (visibleSections.contains('freeToWatch'))
+//                 Column(
+//                   crossAxisAlignment: CrossAxisAlignment.start,
+//                   children: [
+//                     Padding(
+//                       padding: const EdgeInsets.all(8.0),
+//                       child: Text('Free to Watch', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+//                     ),
+//                     buildMediaSection(
+//                       mediaAsync: freeMediaAsync,
+//                       mediaType: getApiMediaType(selectedFilter),
+//                     ),
+//                   ],
+//                 ),
+                  
+//               // Favorites Section - Show only if isFavoritesVisible is true
+//               if (isSectionVisible(sectionVisibilityAsync, 'isFavoritesVisible'))
+//                 _buildFavoritesSection(selectedFilter, mediaType)
+//             ],
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+  
+// Widget buildMediaSection({
+//   required AsyncValue<List<Movie>?> mediaAsync,
+//   required String mediaType,
+// }) {
+//   return mediaAsync.when(
+//     data: (movies) {
+//       if (movies == null || movies.isEmpty) return const SizedBox.shrink();
+
+//       return SizedBox(
+//         height: 160,
+//         child: ListView.builder(
+//           scrollDirection: Axis.horizontal,
+//           padding: const EdgeInsets.only(top: 8.0, left: 15),
+//           itemCount: movies.length,
+//           itemBuilder: (context, index) {
+//             final movie = movies[index];
+            
+//             return GestureDetector(
+//               onTap: () => _navigateToMovieDetails(
+//                 movie,
+//                 mediaType,
+//                 userId,
+//                 context,
+//               ),
+//               child: FilmCard(
+//                 film: movie,
+//                 mediaType: mediaType,
+//                 index: index,
+//                 hasFocus: false, // Removed focus handling
+//               ),
+//             );
+//           },
+//         ),
+//       );
+//     },
+//     loading: () => Column(
+//       crossAxisAlignment: CrossAxisAlignment.start,
+//       children: [
+//         SingleChildScrollView(
+//           scrollDirection: Axis.horizontal,
+//           child: Padding(
+//             padding: const EdgeInsets.only(left: 10),
+//             child: Row(
+//               children: List.generate(5, (index) {
+//                 return const Padding(
+//                   padding: EdgeInsets.only(right: 10.0),
+//                   child: SkeletonLoader(),
+//                 );
+//               }),
+//             ),
+//           ),
+//         ),
+//       ],
+//     ),
+//     error: (error, stack) => Padding(
+//       padding: const EdgeInsets.all(15.0),
+//       child: Center(child: Text('Failed to load: $error')),
+//     ),
+//   );
+// }
+
+// Widget buildContinueWatchingSection(String selectedFilter) {
+//   // Use the provider that checks if there are items for this filter
+//   final hasContinueWatchingAsync = ref.watch(hasContinueWatchingForContentTypeProvider(selectedFilter));
+  
+//   // If we're still loading the check, show nothing to prevent flicker
+//   if (hasContinueWatchingAsync is AsyncLoading) {
+//     return const SizedBox.shrink();
+//   }
+  
+//   // If there was an error or we know there are no items, show nothing
+//   if (hasContinueWatchingAsync is AsyncError || 
+//       (hasContinueWatchingAsync is AsyncData && hasContinueWatchingAsync.value == false)) {
+//     return const SizedBox.shrink();
+//   }
+  
+//   // We know there are items, so get the filtered list
+//   final filteredContinueWatchingAsync = ref.watch(filteredContinueWatchingProvider(selectedFilter));
+  
+//   // If we're still loading the filtered list, show a loading indicator
+//   if (filteredContinueWatchingAsync is AsyncLoading) {
+//     return Column(
+//       crossAxisAlignment: CrossAxisAlignment.start,
+//       children: [
+//         Padding(
+//           padding: const EdgeInsets.only(top: 5.0, left: 5.0, bottom: 5),
+//           child: Text('Continue Watching'),
+//         ),
+//         SingleChildScrollView(
+//           scrollDirection: Axis.horizontal,
+//           child: Padding(
+//             padding: const EdgeInsets.only(left: 10),
+//             child: Row(
+//               children: List.generate(5, (index) {
+//                 return const SkeletonLoader(); // Use skeleton loader
+//               }),
+//             ),
+//           ),
+//         ),
+//       ],
+//     );
+//   }
+  
+//   // If there was an error, show an error message
+//   if (filteredContinueWatchingAsync is AsyncError) {
+//     return Padding(
+//       padding: const EdgeInsets.all(15.0),
+//       child: Center(child: Text('Failed to load: ${filteredContinueWatchingAsync.error}')),
+//     );
+//   }
+  
+//   // We have data, so show the list
+//   final watchHistoryItems = (filteredContinueWatchingAsync as AsyncData).value;
+  
+//   if (watchHistoryItems.isEmpty) {
+//     return const SizedBox.shrink();
+//   }
+
+//   return Column(
+//     crossAxisAlignment: CrossAxisAlignment.start,
+//     children: [
+//       const Padding(
+//         padding: EdgeInsets.only(top: 10.0, left: 10.0, bottom: 5),
+//         child: Text(
+//           'Continue Watching',
+//           style: TextStyle(fontWeight: FontWeight.bold),
+//         ),
+//       ),
+//       SizedBox(
+//         height: 160,
+//         child: ListView.builder(
+//           scrollDirection: Axis.horizontal,
+//           padding: const EdgeInsets.only(top: 8.0, left: 15),
+//           itemCount: watchHistoryItems.length,
+//           itemBuilder: (context, index) {
+//             final item = watchHistoryItems[index];
+//             return HistorycardWidget(
+//               historyItem: item,
+//               index: index,
+//               hasFocus: false, // Removed focus handling
+//             );
+//           },
+//         ),
+//       ),
+//     ],
+//   );
+// }
+  
+// Widget _buildFavoritesSection(String selectedFilter, String mediaType) {
+//   // Check if the user has favorites of this content type
+//   final hasFavoritesAsync = ref.watch(hasFavoritesForContentTypeProvider(selectedFilter));
+  
+//   return hasFavoritesAsync.when(
+//     data: (hasFavorites) {
+//       if (!hasFavorites) {
+//         return SizedBox.shrink(); // Don't show section if no favorites of this type
+//       }
+      
+//       // Fetch the filtered favorites
+//       final filteredFavoritesAsync = ref.watch(filteredFavoritesProvider(selectedFilter));
+      
+//       return filteredFavoritesAsync.when(
+//         data: (favoriteDetails) {
+//           if (favoriteDetails.isEmpty) {
+//             return SizedBox.shrink();
+//           }
+          
+//           return Column(
+//             crossAxisAlignment: CrossAxisAlignment.start,
+//             children: [
+//               const Padding(
+//                 padding: EdgeInsets.only(top: 10.0, left: 10.0, bottom: 5),
+//                 child: Text(
+//                   'My Wishlist',
+//                   style: TextStyle(fontWeight: FontWeight.bold),
+//                 ),
+//               ),
+//               SizedBox(
+//                 height: 160,  // Adjust based on your card size
+//                 child: ListView.builder(
+//                   scrollDirection: Axis.horizontal,
+//                   padding: const EdgeInsets.only(top: 8.0, left: 15),
+//                   itemCount: favoriteDetails.length,
+//                   itemBuilder: (context, index) {
+//                     final item = favoriteDetails[index];
+//                     final favorite = item['favorite'];
+//                     final movieDetail = item['movieDetail'];
+                    
+//                     return GestureDetector(
+//                       onTap: () => _navigateToMovieDetails(
+//                         movieDetail,
+//                         favorite.contentType,
+//                         userId,
+//                         context,
+//                       ),
+//                       child: Padding(
+//                         padding: const EdgeInsets.only(right: 10.0),
+//                         child: FavFilmCard(
+//                           film: movieDetail,
+//                           mediaType: favorite.contentType,
+//                         ),
+//                       ),
+//                     );
+//                   },
+//                 ),
+//               ),
+//             ],
+//           );
+//         },
+//         loading: () => Column(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             const Padding(
+//               padding: EdgeInsets.only(top: 10.0, left: 10.0, bottom: 5),
+//               child: Text(
+//                 'My Wishlist',
+//                 style: TextStyle(fontWeight: FontWeight.bold),
+//               ),
+//             ),
+//             SingleChildScrollView(
+//               scrollDirection: Axis.horizontal,
+//               child: Padding(
+//                 padding: const EdgeInsets.only(left: 10),
+//                 child: Row(
+//                   children: List.generate(5, (index) {
+//                     return const Padding(
+//                       padding: EdgeInsets.only(right: 10.0),
+//                       child: SkeletonLoader(),
+//                     );
+//                   }),
+//                 ),
+//               ),
+//             ),
+//           ],
+//         ),
+//         error: (error, stack) => Padding(
+//           padding: const EdgeInsets.all(15.0),
+//           child: Center(child: Text('Failed to load wishlist: $error')),
+//         ),
+//       );
+//     },
+//     loading: () => SizedBox.shrink(), // Don't show while checking
+//     error: (_, __) => SizedBox.shrink(), // Don't show on error
+//   );
+// }
+
+// void _navigateToMovieDetails(dynamic movie, String mediaType, String userId, BuildContext context) {
+//   Navigator.of(context).push(MaterialPageRoute(
+//     builder: (context) => MovieDetailPage(
+//       movieId: movie.id,
+//       mediaType: mediaType,
+//       userId: userId,
+//     ),
+//   ));
+// }
+
+// // Helper function to get the appropriate media type for API calls
+// String getApiMediaType(String filter) {
+//   switch (filter) {
+//     case 'Movies': return 'movie';
+//     case 'Series': return 'tvseries';
+//     case 'Short Film': return 'shortfilm';
+//     case 'Documentary': return 'documentary';
+//     case 'Music': return 'videosong';
+//     default: return 'movie';
+//   }
+// }
+
+// // Helper function to check if a section should be visible
+// bool isSectionVisible(AsyncValue<Map<String, dynamic>?> sectionVisibilityAsync, String sectionKey) {
+//   return sectionVisibilityAsync.when(
+//     data: (visibilityMap) {
+//       if (visibilityMap == null) return false;
+//       return visibilityMap[sectionKey] ?? false;
+//     },
+//     loading: () => false, // Default to false while loading
+//     error: (_, __) => false, // Default to false on error
+//   );
+// }
+// }

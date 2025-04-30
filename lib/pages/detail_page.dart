@@ -2179,7 +2179,7 @@ showDialog(
              CircleAvatar(
               radius: 30,
               backgroundColor: Colors.transparent,
-              child: Image.asset("assets/logo/main-logo.png")
+              child: Image.asset("")
             ),
             const SizedBox(height: 10),
              Text(

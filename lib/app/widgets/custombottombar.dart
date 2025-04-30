@@ -1,4 +1,3 @@
-
 import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -7,14 +6,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nandiott_flutter/app/widgets/customappbar.dart';
 import 'package:nandiott_flutter/features/home/filter_container_widget.dart';
-// Import your existing pages
 import 'package:nandiott_flutter/features/home/pages/home_page.dart';
-import 'package:nandiott_flutter/features/home/pages/tv_home_page.dart';
-// Import the new TV Home Page
+import 'package:nandiott_flutter/features/home/tvhome/tv_home_page.dart';
 import 'package:nandiott_flutter/features/profile/profile_page.dart';
 import 'package:nandiott_flutter/features/rental_download/download_page.dart';
 import 'package:nandiott_flutter/pages/rental_page.dart';
-import 'package:nandiott_flutter/pages/search_page.dart';
 import 'package:nandiott_flutter/pages/tv_searchPage.dart';
 import 'package:nandiott_flutter/utils/Device_size.dart';
 
@@ -260,7 +256,7 @@ final connectivityProvider = StreamProvider<ConnectivityResult>((ref) {
   // Screens corresponding to navigation items - MODIFIED FOR TV SPECIFIC PAGES
   List<Widget> _getScreens(bool isTV) => [
         // For Home, use TVHomePage on TV devices, regular HomePage otherwise
-        HomePage(),
+       isTV?PrimeTVHomePage() : HomePage(),
         isTV ? TVSearchPage() : DownloadsPage(),
         MyRentalPage(),
         ProfilePage(),

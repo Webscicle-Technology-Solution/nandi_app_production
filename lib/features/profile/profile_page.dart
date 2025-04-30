@@ -14,6 +14,7 @@ import 'package:nandiott_flutter/providers/checkauth_provider.dart';
 import 'package:nandiott_flutter/providers/favourite_provider.dart';
 import 'package:nandiott_flutter/services/auth_service.dart';
 import 'package:nandiott_flutter/utils/Device_size.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
@@ -286,6 +287,29 @@ showDialog(
   error: (e, _) => Text("Error: $e"),
 ),
             const SizedBox(height: 20),
+
+                        YellowborderContainer(
+              title: 'Privacy Policy',
+              onPressed: ()async{
+                Uri url=Uri.parse("https://movie.nandipictures.com/privacy-policy/");
+                if(await canLaunchUrl(url)){
+                  await launchUrl(url,mode: LaunchMode.inAppBrowserView);
+                }else{
+                  throw 'Could not launch $url';
+                }
+              },
+            ),
+
+
+
+
+
+             const SizedBox(height: 20),
+
+
+
+
+            
           ],
         ),
       ),

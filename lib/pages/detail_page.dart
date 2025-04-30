@@ -326,7 +326,8 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
                 _buildCastSection(movie.castDetails, context),
 
                 const SizedBox(height: 20),
-                userId != "" ? Center(child: _buildRatingBar(context, widget.mediaType, movie.id)) : const Text(""),
+                // If rating wanted, uncomment this
+                // userId != "" ? Center(child: _buildRatingBar(context, widget.mediaType, movie.id)) : const Text(""),
                 const SizedBox(height: 20),
               ],
             ),

@@ -5,7 +5,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 // import 'package:nandiott_flutter/app/widgets/custombottombar.dart';
 import 'package:nandiott_flutter/features/auth/signup_page.dart';
+import 'package:nandiott_flutter/providers/checkauth_provider.dart';
 import 'package:nandiott_flutter/providers/otp_provider.dart';
+import 'package:nandiott_flutter/providers/rental_provider.dart';
 import 'package:nandiott_flutter/services/auth_service.dart';
 import 'package:nandiott_flutter/utils/Device_size.dart';
 import 'package:nandiott_flutter/utils/appstyle.dart';
@@ -284,7 +286,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           _isLoading = false;
         });
         _otpTimer?.cancel();
-
+              ref.refresh(authUserProvider);
+              ref.refresh(rentalProvider);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               content: Text('Login successful! Redirecting...')),

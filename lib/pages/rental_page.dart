@@ -333,14 +333,15 @@ if(response == true){
             },
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (error, stack) { 
+              ref.refresh(authUserProvider);
               ref.refresh(rentalProvider);
 
-              Center(
+            return  Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'Error: Failed to fetch rentals... Please refresh',
+                    'Error: Failed to fetch rentals...$error',
                     style: const TextStyle(color: Colors.red, fontSize: 16),
                   ),
                   const SizedBox(height: 20),

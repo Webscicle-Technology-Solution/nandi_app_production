@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,6 +12,7 @@ import 'package:nandiott_flutter/providers/rental_provider.dart';
 import 'package:nandiott_flutter/services/auth_service.dart';
 import 'package:nandiott_flutter/utils/Device_size.dart';
 import 'package:nandiott_flutter/utils/appstyle.dart';
+import 'package:nandiott_flutter/utils/checkConnectivity_util.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:uuid/uuid.dart'; // Import UUID package
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -79,6 +81,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   void initState() {
     super.initState();
+
+
     _numPadFocusNode.requestFocus();
     _generateNewUuid();
     _startUuidRefreshTimer();
@@ -181,6 +185,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void _sendOtp() async {
+  final connectivityResults = await Connectivity().checkConnectivity();
+final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
+    if (!hasInternet)
+    ConnectivityUtils.showNoConnectionDialog(context);
+    print("continue button clicked");
     if (_phoneController.text.length == 10) {
       setState(() {
         _isLoading = true;
@@ -234,6 +243,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void _resendOtp() async {
+      final connectivityResults = await Connectivity().checkConnectivity();
+final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
+    if (!hasInternet)
+    ConnectivityUtils.showNoConnectionDialog(context);
     setState(() {
       _isLoading = true;
     });
@@ -265,6 +278,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void _verifyOtp() async {
+      final connectivityResults = await Connectivity().checkConnectivity();
+final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
+    if (!hasInternet)
+    ConnectivityUtils.showNoConnectionDialog(context);
     if (_otpController.text.length == 6) {
       setState(() {
         _isLoading = true;
@@ -288,6 +305,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         _otpTimer?.cancel();
               ref.refresh(authUserProvider);
               ref.refresh(rentalProvider);
+              
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               content: Text('Login successful! Redirecting...')),

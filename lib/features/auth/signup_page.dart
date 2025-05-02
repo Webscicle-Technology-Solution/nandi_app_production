@@ -1,3 +1,4 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,6 +11,7 @@ import 'package:nandiott_flutter/features/auth/providers/auth_provider.dart';
 import 'package:nandiott_flutter/pages/otp_page.dart';
 import 'package:nandiott_flutter/providers/otp_provider.dart';
 import 'package:nandiott_flutter/utils/appstyle.dart';
+import 'package:nandiott_flutter/utils/checkConnectivity_util.dart';
 import 'package:nandiott_flutter/utils/validators.dart';
 
 final TextEditingController nameController = TextEditingController();
@@ -198,6 +200,10 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                                       ),
                                     ),
                                     onPressed: () async {
+                                            final connectivityResults = await Connectivity().checkConnectivity();
+final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
+    if (!hasInternet)
+    ConnectivityUtils.showNoConnectionDialog(context);
                                       if (formKey.currentState!.validate()) {
                                         // Trigger the OTP provider directly using `ref.read` and not `ref.watch`
                                         final otpResponse = await ref.read(

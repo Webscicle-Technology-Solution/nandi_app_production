@@ -1,6 +1,7 @@
 
 import 'dart:async';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -34,6 +35,76 @@ class _ResponsiveNavigationState extends ConsumerState<ResponsiveNavigation> {
   final FocusNode _navigationFocusNode = FocusNode();
   final GlobalKey _navigationKey = GlobalKey(debugLabel: 'navigationMenuKey');
   final GlobalKey _contentKey = GlobalKey(debugLabel: 'contentAreaKey');
+bool _isDialogVisible = false;
+
+
+
+
+
+void _showNoConnectionDialog(BuildContext context, WidgetRef ref) {
+  if (_isDialogVisible) return;
+
+  _isDialogVisible = true;
+print("retry");
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => AlertDialog(
+      title: Text("No Internet Connection"),
+      content: Text("You are offline. Please check your connection."),
+      actions: [
+TextButton(
+  onPressed: () async {
+    Navigator.of(context).pop(); // Close the current dialog
+
+    // Delay to ensure dialog is fully closed before proceeding
+    await Future.delayed(Duration(milliseconds: 300));
+
+    // Check connectivity
+    final connectivityResultList = await Connectivity().checkConnectivity();
+       print("Connectivity result list: $connectivityResultList");
+ 
+    // Get the first element of the list
+    final connectivityResult = connectivityResultList.isNotEmpty ? connectivityResultList[0] : ConnectivityResult.none;
+
+    print("Connectivity result: $connectivityResult");
+
+    if (connectivityResult == ConnectivityResult.none) {
+      print("Still no connection, showing dialog again...");
+      _isDialogVisible = false;
+      _showNoConnectionDialog(context, ref);
+    } else {
+
+      print("Connection restored.");
+      _isDialogVisible = false;
+            // Trigger a page reload by navigating away and back to the same screen
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const ResponsiveNavigation()), // Your current page widget
+        (Route<dynamic> route) => false, // Removes all previous routes, reloading the page
+      );
+    }
+  },
+  child: Text("Retry"),
+),
+
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+            ref.read(selectedIndexProvider.notifier).state = 1;
+            _isDialogVisible = false;
+          },
+          child: Text("Go to Downloads"),
+        ),
+      ],
+    ),
+  ).then((_) {
+    // Safety net: reset flag when dialog is dismissed
+    _isDialogVisible = false;
+  });
+}
+
+
+
 
   @override
   void initState() {
@@ -47,7 +118,11 @@ class _ResponsiveNavigationState extends ConsumerState<ResponsiveNavigation> {
       _setupDirectionalFocus();
     });
   }
-
+final connectivityProvider = StreamProvider<ConnectivityResult>((ref) {
+  return Connectivity()
+      .onConnectivityChanged
+      .map((eventList) => eventList.first); // Extract the first result
+});
   void _onNavigationFocusChange() {
     // This only updates the UI when navigation gets/loses focus
     // but doesn't auto-expand
@@ -208,6 +283,21 @@ class _ResponsiveNavigationState extends ConsumerState<ResponsiveNavigation> {
     final isNavigationExpanded = ref.watch(isNavigationExpandedProvider);
     final isTV = AppSizes.getDeviceType(context) == DeviceType.tv;
     final navigationItems = _getNavigationItems(isTV);
+
+
+final connectivityStatus = ref.watch(connectivityProvider);
+WidgetsBinding.instance.addPostFrameCallback((_) {
+  final currentScreen = _getScreens(isTV)[selectedIndex];
+
+  final isDownloads = currentScreen is DownloadsPage;
+
+  if (connectivityStatus.value == ConnectivityResult.none && !isDownloads) {
+    _showNoConnectionDialog(context, ref);
+  }
+});
+
+
+
 
     // Create a focus node for the main content area
     final contentFocusNode = FocusNode(debugLabel: 'contentArea');

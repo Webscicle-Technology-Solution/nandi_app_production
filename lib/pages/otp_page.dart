@@ -326,6 +326,7 @@
 
 import 'dart:async';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -335,6 +336,7 @@ import 'package:nandiott_flutter/app/widgets/customerror_message.dart';
 import 'package:nandiott_flutter/features/auth/providers/auth_provider.dart';
 import 'package:nandiott_flutter/features/auth/signup_page.dart';
 import 'package:nandiott_flutter/providers/otp_provider.dart';
+import 'package:nandiott_flutter/utils/checkConnectivity_util.dart';
 import 'package:telephony/telephony.dart';
 
 class OtpPage extends ConsumerStatefulWidget {
@@ -535,7 +537,12 @@ if(secondsRemainig==0){
                   ],
                 ),
               ElevatedButton(
-                onPressed: () {
+                onPressed: ()async {
+                        final connectivityResults = await Connectivity().checkConnectivity();
+final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
+    if (!hasInternet)
+    ConnectivityUtils.showNoConnectionDialog(context);
+    
                   if (_formKey.currentState!.validate()) {
                     ref.read(authProvider.notifier).registerUser(
                       widget.name,
@@ -566,6 +573,10 @@ if(secondsRemainig==0){
               const SizedBox(height: 20),
               TextButton(
                 onPressed: isButtonDisabled?null: () async {
+                        final connectivityResults = await Connectivity().checkConnectivity();
+final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
+    if (!hasInternet)
+    ConnectivityUtils.showNoConnectionDialog(context);
                   startTimer();
                     final otpResponse = await ref.refresh(
                                             sentOtpProvider(OtpDetailParameter(

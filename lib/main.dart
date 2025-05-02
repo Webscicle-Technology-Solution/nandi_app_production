@@ -43,7 +43,7 @@ Future<void> main() async {
 
   runApp(const ProviderScope(child: MyApp()));
 }
-
+// permission for notification
 Future<void>requestPermission()async{
   final messaging=FirebaseMessaging.instance;
 
@@ -115,7 +115,8 @@ class MyApp extends ConsumerWidget {
               ? ThemeMode.dark
               : ThemeMode.light,
               
-    home: const ResponsiveNavigation()
+    home: const ResponsiveNavigation(),
+    
 
           );
   }

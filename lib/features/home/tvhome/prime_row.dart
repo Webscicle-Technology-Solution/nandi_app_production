@@ -364,13 +364,11 @@ Widget build(BuildContext context) {
           return KeyEventResult.handled;
         } else {
           // At first item, allow focus to move to side menu
-          print("LEFT EDGE: Moving focus to menu from content row");
+          print("CONTENT_ROW: At left edge, moving focus to menu");
           if (widget.onLeftEdgeFocus != null) {
             widget.onLeftEdgeFocus!();
           }
-          
-          // CRITICAL: Do not handle the event - allow it to propagate up
-          return KeyEventResult.ignored;
+          return KeyEventResult.ignored; // Let focus transfer happen
         }
       } else if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
         if (_focusedItemIndex < items.length - 1) {

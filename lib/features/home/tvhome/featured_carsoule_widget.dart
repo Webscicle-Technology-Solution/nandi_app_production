@@ -350,7 +350,7 @@ class _PrimeFeaturedSectionState extends State<PrimeFeaturedSection> with Single
       return Center(
         child: Text(
           'No featured ${widget.filter} available',
-          style: TextStyle(color: Colors.white, fontSize: 18),
+          style: TextStyle(color: Theme.of(context).primaryColorDark, fontSize: 18),
         ),
       );
     }
@@ -361,67 +361,43 @@ class _PrimeFeaturedSectionState extends State<PrimeFeaturedSection> with Single
     if (event is RawKeyDownEvent) {
       _handleUserInteraction();
       
-      // Handle horizontal navigation
       if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
         if (_currentIndex < _featuredItems.length - 1) {
           _pageController.nextPage(
             duration: Duration(milliseconds: 400),
             curve: Curves.easeOutCubic,
           );
-          // Existing code for callback notifications
-          // ...
+          return KeyEventResult.handled;
         } else {
-          // Already at last item, prevent focus from leaving
+          // Last item - prevent focus leaving
           if (widget.onRightEdgeFocus != null) {
             widget.onRightEdgeFocus!();
           }
+          return KeyEventResult.handled;
         }
-        return KeyEventResult.handled;
       } else if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
         if (_currentIndex > 0) {
+          // Not at first item - stay within carousel
           _pageController.previousPage(
             duration: Duration(milliseconds: 400),
             curve: Curves.easeOutCubic,
           );
-          // Existing code for callback notifications
-          // ...
-        } else {
-          // Already at first item, allow navigation to side menu
-          if (widget.onLeftEdgeFocus != null) {
-            widget.onLeftEdgeFocus!();
-            // Let the event propagate to allow focus to transfer to menu
-          }
-        }
-            return KeyEventResult.ignored;
-
-      }else if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-        if (_currentIndex > 0) {
-          _pageController.previousPage(
-            duration: Duration(milliseconds: 400),
-            curve: Curves.easeOutCubic,
-          );
-          // Existing code for callback notifications
           return KeyEventResult.handled;
-        }else {
-          // Already at first item, move focus to side menu
-          print("LEFT EDGE: Moving focus to menu from featured section");
+        } else {
+          // First item - move to menu
+          print("FEATURED: At first item, moving focus to menu");
           if (widget.onLeftEdgeFocus != null) {
             widget.onLeftEdgeFocus!();
           }
-          // CRITICAL: Return ignored to allow focus to transfer
-          return KeyEventResult.ignored;
+          return KeyEventResult.ignored; // Match your content row behavior
         }
-      }
-      
-      else if (event.logicalKey == LogicalKeyboardKey.select ||
+      } else if (event.logicalKey == LogicalKeyboardKey.select ||
           event.logicalKey == LogicalKeyboardKey.enter) {
-        // Navigate to movie details page
         _navigateToMovieDetails();
-      } else if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-        // Allow down navigation to content rows
-        return KeyEventResult.ignored;
-      } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
-        // Allow up navigation to filter bar
+        return KeyEventResult.handled;
+      } else if (event.logicalKey == LogicalKeyboardKey.arrowDown ||
+                event.logicalKey == LogicalKeyboardKey.arrowUp) {
+        // Allow vertical navigation
         return KeyEventResult.ignored;
       }
     }
@@ -451,7 +427,7 @@ class _PrimeFeaturedSectionState extends State<PrimeFeaturedSection> with Single
               physics: const PageScrollPhysics(),
               itemBuilder: (context, index) {
                 final item = _featuredItems[index];
-                final bannerUrl = index < _bannerUrls.length ? _bannerUrls[index] : '';
+                // final bannerUrl = index < _bannerUrls.length ? _bannerUrls[index] : '';
                 final title = item['contentId']['title'] ?? 'No Title';
                 final description = item['contentId']['description'] ?? 'No description available';
                 
@@ -480,37 +456,16 @@ class _PrimeFeaturedSectionState extends State<PrimeFeaturedSection> with Single
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    if (widget.isExpanded) ...[
-                                      Container(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 10,
-                                          vertical: 4,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.amber,
-                                          borderRadius: BorderRadius.circular(5),
-                                        ),
-                                        child: Text(
-                                          'FEATURED',
-                                          style: TextStyle(
-                                            color: Colors.black,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(height: 15),
-                                    ],
-                                    
+                                
                                     Text(
                                       title,
                                       style: TextStyle(
-                                        color: Colors.white,
+                                        color: Theme.of(context).primaryColorDark,
                                         fontSize: widget.isExpanded ? 44 : 30,
                                         fontWeight: FontWeight.bold,
                                         shadows: [
                                           Shadow(
-                                            color: Colors.black,
+                                            color: Theme.of(context).primaryColorLight,
                                             blurRadius: 10,
                                           ),
                                         ],
@@ -522,11 +477,11 @@ class _PrimeFeaturedSectionState extends State<PrimeFeaturedSection> with Single
                                       Text(
                                         description,
                                         style: TextStyle(
-                                          color: Colors.white.withOpacity(0.9),
+                                          color: Theme.of(context).primaryColorDark.withOpacity(0.9),
                                           fontSize: 16,
                                           shadows: [
                                             Shadow(
-                                              color: Colors.black,
+                                              color: Theme.of(context).primaryColorLight,
                                               blurRadius: 5,
                                             ),
                                           ],
@@ -547,7 +502,7 @@ class _PrimeFeaturedSectionState extends State<PrimeFeaturedSection> with Single
                                             ),
                                             style: ElevatedButton.styleFrom(
                                               backgroundColor: Colors.amber,
-                                              foregroundColor: Colors.black,
+                                              foregroundColor: Theme.of(context).primaryColorLight,
                                               padding: EdgeInsets.symmetric(
                                                 horizontal: 25,
                                                 vertical: 15,
@@ -560,8 +515,8 @@ class _PrimeFeaturedSectionState extends State<PrimeFeaturedSection> with Single
                                             icon: Icon(Icons.info_outline),
                                             label: Text('Details'),
                                             style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.black54,
-                                              foregroundColor: Colors.white,
+                                              backgroundColor: Theme.of(context).primaryColorLight,
+                                              foregroundColor: Theme.of(context).primaryColorDark,
                                               padding: EdgeInsets.symmetric(
                                                 horizontal: 20,
                                                 vertical: 15,
@@ -578,7 +533,7 @@ class _PrimeFeaturedSectionState extends State<PrimeFeaturedSection> with Single
                                         label: Text('Watch'),
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: Colors.amber,
-                                          foregroundColor: Colors.black,
+                                          foregroundColor: Theme.of(context).primaryColorLight,
                                           padding: EdgeInsets.symmetric(
                                             horizontal: 15,
                                             vertical: 8,
@@ -600,7 +555,7 @@ class _PrimeFeaturedSectionState extends State<PrimeFeaturedSection> with Single
                                     child: Container(
                                       padding: EdgeInsets.all(8),
                                       decoration: BoxDecoration(
-                                        color: Colors.black.withOpacity(0.6),
+                                        color: Theme.of(context).primaryColorLight.withOpacity(0.6),
                                         shape: BoxShape.circle,
                                       ),
                                       child: Icon(
@@ -619,7 +574,7 @@ class _PrimeFeaturedSectionState extends State<PrimeFeaturedSection> with Single
                                     child: Container(
                                       padding: EdgeInsets.all(8),
                                       decoration: BoxDecoration(
-                                        color: Colors.black.withOpacity(0.6),
+                                        color: Theme.of(context).primaryColorLight.withOpacity(0.6),
                                         shape: BoxShape.circle,
                                       ),
                                       child: Icon(

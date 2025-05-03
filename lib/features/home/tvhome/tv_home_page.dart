@@ -5,7 +5,7 @@ import 'package:nandiott_flutter/app/widgets/custombottombar.dart';
 import 'package:nandiott_flutter/features/home/tvhome/featured_carsoule_widget.dart';
 import 'package:nandiott_flutter/features/home/tvhome/prime_row.dart';
 import 'package:nandiott_flutter/features/home/tvhome/tvfilter_selector_widget.dart';
-import 'package:nandiott_flutter/pages/detail_page.dart';
+// import 'package:nandiott_flutter/pages/detail_page.dart';
 import 'package:nandiott_flutter/providers/filter_provider.dart';
 import 'package:nandiott_flutter/features/home/provider/getMedia.dart';
 import 'package:nandiott_flutter/features/home/provider/getContiuneMedia.dart';
@@ -105,9 +105,9 @@ class _PrimeTVHomePageState extends ConsumerState<PrimeTVHomePage> {
     }
 
     // Set initial focus to featured section
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _sectionFocusNodes['featured']?.requestFocus();
-    });
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   _sectionFocusNodes['featured']?.requestFocus();
+    // });
   }
 
   void _updateActiveSection(String section) {
@@ -320,27 +320,23 @@ class _PrimeTVHomePageState extends ConsumerState<PrimeTVHomePage> {
     );
 
     return RawKeyboardListener(
-      focusNode: _pageFocusNode,
-      onKey: (RawKeyEvent event) {
-        // Only handle key down events
-        if (event is RawKeyDownEvent) {
-          // Check if left arrow was pressed
-          if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-            // Check which section is active
-            if (_activeSection == 'filter' || 
-                _activeSection == 'featured' || 
-                expandedCard.isNotEmpty && (expandedCard['index'] == 0)) {
-              
-              // If we're at the left edge, call the callback
-              if (widget.onLeftEdgeFocus != null) {
-                widget.onLeftEdgeFocus!();
-              }
-            }
-          }
-        }
-      },
+  focusNode: _pageFocusNode,
+  onKey: (RawKeyEvent event) {
+    // Only handle key down events
+    if (event is RawKeyDownEvent) {
+      // ONLY handle up/down navigation between sections
+      if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+        _handleVerticalNavigation(true); // Move up
+      } else if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+        _handleVerticalNavigation(false); // Move down
+      }
+      
+      // DO NOT handle left/right navigation here
+      // Let each component handle its own left/right navigation
+    }
+  },
       child: Scaffold(
-        backgroundColor: Colors.black,
+
         body: Stack(
           children: [
             // Dynamic background that changes based on focused content
@@ -379,31 +375,26 @@ class _PrimeTVHomePageState extends ConsumerState<PrimeTVHomePage> {
       
             // Main content
             FocusScope(
-      onFocusChange: (hasFocus) {
-        if (!hasFocus && mounted) {
-      // final isNavFocus = ref.read(navigationIsFocusedProvider);
-      // if (isNavFocus) {
-      //   debugPrint("Home lost focus but navigation has it. Skipping reclaim.");
-      //   return;
-      // }
+  onFocusChange: (hasFocus) {
+    if (!hasFocus && mounted) {
+      // Check if navigation has focus using the provider
+      final isMenuFocused = ref.read(isMenuFocusedProvider);
       
-      // Avoid reclaiming focus if some other component has taken over
-      final newFocus = FocusManager.instance.primaryFocus;
-      if (newFocus != null &&
-          newFocus.debugLabel != null &&
-          newFocus.debugLabel!.contains('navigation')) {
+      // Don't reclaim focus if menu is focused
+      if (isMenuFocused) {
+        print("HOME: Navigation has focus, not reclaiming");
         return;
       }
       
-      // Reclaim focus only if no other valid component owns it
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_sectionFocusNodes[_activeSection]?.canRequestFocus ?? false) {
+      // Add a delay to prevent focus conflicts
+      Future.delayed(Duration(milliseconds: 100), () {
+        if (mounted && !isMenuFocused && 
+            (_sectionFocusNodes[_activeSection]?.canRequestFocus ?? false)) {
           _sectionFocusNodes[_activeSection]!.requestFocus();
         }
       });
-        }
-      },
-      
+    }
+  },
       
               onKey: (FocusNode node, RawKeyEvent event) {
                 if (event is RawKeyDownEvent) {
@@ -641,259 +632,209 @@ class _PrimeTVHomePageState extends ConsumerState<PrimeTVHomePage> {
               ),
             ),
       
-            // Expanded card overlay (when a card is focused)
-            if (expandedCard.isNotEmpty)
-              _buildExpandedCardOverlay(expandedCard, context),
+          //   // Expanded card overlay (when a card is focused)
+          //   if (expandedCard.isNotEmpty)
+          //     _buildExpandedCardOverlay(expandedCard, context),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildExpandedCardOverlay(
-      Map<String, dynamic> cardData, BuildContext context) {
-    final posterUrl = cardData['posterUrl'] ?? '';
-    final bannerUrl = cardData['bannerUrl'] ?? '';
-    final title = cardData['title'] ?? 'No Title';
-    final description = cardData['description'] ?? '';
-    final mediaType = cardData['mediaType'] ?? '';
-    final contentId = cardData['contentId'] ?? '';
+  // Widget _buildExpandedCardOverlay(
+  //     Map<String, dynamic> cardData, BuildContext context) {
+  //   final posterUrl = cardData['posterUrl'] ?? '';
+  //   final bannerUrl = cardData['bannerUrl'] ?? '';
+  //   final title = cardData['title'] ?? 'No Title';
+  //   final description = cardData['description'] ?? '';
+  //   final mediaType = cardData['mediaType'] ?? '';
+  //   final contentId = cardData['contentId'] ?? '';
 
-    return Positioned(
-      left: 0,
-      right: 0,
-      bottom: 0,
-      child: Container(
-        height: MediaQuery.of(context).size.height * 0.4,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Colors.transparent,
-              Colors.black.withOpacity(0.7),
-              Colors.black,
-            ],
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Poster
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: Container(
-                  width: 200,
-                  height: 300,
-                  decoration: BoxDecoration(
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.5),
-                        blurRadius: 10,
-                        spreadRadius: 5,
-                      ),
-                    ],
-                  ),
-                  child: posterUrl.isNotEmpty
-                      ? Image.network(
-                          posterUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, _, __) => Container(
-                            color: Colors.grey[900],
-                            child: const Icon(
-                              Icons.image_not_supported,
-                              color: Colors.white54,
-                              size: 40,
-                            ),
-                          ),
-                        )
-                      : Container(
-                          color: Colors.grey[900],
-                          child: const Icon(
-                            Icons.image_not_supported,
-                            color: Colors.white54,
-                            size: 40,
-                          ),
-                        ),
-                ),
-              ),
+  //   return Positioned(
+  //     left: 0,
+  //     right: 0,
+  //     bottom: 0,
+  //     child: Container(
+  //       height: MediaQuery.of(context).size.height * 0.4,
+  //       decoration: BoxDecoration(
+  //         gradient: LinearGradient(
+  //           begin: Alignment.topCenter,
+  //           end: Alignment.bottomCenter,
+  //           colors: [
+  //             Colors.transparent,
+  //             Colors.black.withOpacity(0.7),
+  //             Colors.black,
+  //           ],
+  //         ),
+  //       ),
+  //       child: Padding(
+  //         padding: const EdgeInsets.all(20.0),
+  //         child: Row(
+  //           crossAxisAlignment: CrossAxisAlignment.center,
+  //           children: [
+  //             // Poster
+  //             ClipRRect(
+  //               borderRadius: BorderRadius.circular(10),
+  //               child: Container(
+  //                 width: 200,
+  //                 height: 300,
+  //                 decoration: BoxDecoration(
+  //                   boxShadow: [
+  //                     BoxShadow(
+  //                       color: Colors.black.withOpacity(0.5),
+  //                       blurRadius: 10,
+  //                       spreadRadius: 5,
+  //                     ),
+  //                   ],
+  //                 ),
+  //                 child: posterUrl.isNotEmpty
+  //                     ? Image.network(
+  //                         posterUrl,
+  //                         fit: BoxFit.cover,
+  //                         errorBuilder: (context, _, __) => Container(
+  //                           color: Colors.grey[900],
+  //                           child: const Icon(
+  //                             Icons.image_not_supported,
+  //                             color: Colors.white54,
+  //                             size: 40,
+  //                           ),
+  //                         ),
+  //                       )
+  //                     : Container(
+  //                         color: Colors.grey[900],
+  //                         child: const Icon(
+  //                           Icons.image_not_supported,
+  //                           color: Colors.white54,
+  //                           size: 40,
+  //                         ),
+  //                       ),
+  //               ),
+  //             ),
 
-              // Content details
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 30.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 36,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 15),
+  //             // Content details
+  //             Expanded(
+  //               child: Padding(
+  //                 padding: const EdgeInsets.only(left: 30.0),
+  //                 child: Column(
+  //                   crossAxisAlignment: CrossAxisAlignment.start,
+  //                   mainAxisAlignment: MainAxisAlignment.center,
+  //                   children: [
+  //                     Text(
+  //                       title,
+  //                       style:  TextStyle(
+  //                         color: Theme.of(context).primaryColorDark,
+  //                         fontSize: 36,
+  //                         fontWeight: FontWeight.bold,
+  //                       ),
+  //                     ),
+  //                     const SizedBox(height: 15),
+                     
+  //                     const SizedBox(height: 20),
 
-                      // Content metadata
-                      Row(
-                        children: [
-                          // Content type badge
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: Colors.amber,
-                              borderRadius: BorderRadius.circular(5),
-                            ),
-                            child: Text(
-                              mediaType == 'movie'
-                                  ? 'Movie'
-                                  : mediaType == 'tvseries'
-                                      ? 'TV Series'
-                                      : mediaType == 'shortfilm'
-                                          ? 'Short Film'
-                                          : mediaType == 'documentary'
-                                              ? 'Documentary'
-                                              : 'Music',
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 15),
+  //                     // Description
+  //                     Text(
+  //                       "descriptionDGCHSHCSSJVJSJV;OSJ",
+  //                       style: const TextStyle(
+  //                         color: Colors.white70,
+  //                         fontSize: 16,
+  //                       ),
+  //                       maxLines: 3,
+  //                       overflow: TextOverflow.ellipsis,
+  //                     ),
 
-                          // Rating if available
-                          if (cardData['rating'] != null) ...[
-                            const Icon(Icons.star,
-                                color: Colors.amber, size: 20),
-                            const SizedBox(width: 5),
-                            Text(
-                              cardData['rating'].toString(),
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            const SizedBox(width: 15),
-                          ],
+  //                     const SizedBox(height: 25),
 
-                          // Year if available
-                          if (cardData['year'] != null)
-                            Text(
-                              cardData['year'].toString(),
-                              style: TextStyle(color: Colors.white),
-                            ),
-                        ],
-                      ),
+  //                     // Action buttons
+  //                     Row(
+  //                       children: [
+  //                         ElevatedButton.icon(
+  //                           onPressed: () {
+  //                             Navigator.of(context).push(MaterialPageRoute(
+  //                               builder: (context) => MovieDetailPage(
+  //                                 movieId: contentId,
+  //                                 mediaType: mediaType,
+  //                                 userId: _userId,
+  //                               ),
+  //                             ));
+  //                           },
+  //                           icon: const Icon(Icons.play_arrow, size: 30),
+  //                           label: const Text(
+  //                             'Watch Now',
+  //                             style: TextStyle(fontSize: 18),
+  //                           ),
+  //                           style: ElevatedButton.styleFrom(
+  //                             backgroundColor: Colors.amber,
+  //                             foregroundColor: Colors.black,
+  //                             padding: const EdgeInsets.symmetric(
+  //                               horizontal: 25,
+  //                               vertical: 15,
+  //                             ),
+  //                           ),
+  //                         ),
+  //                         const SizedBox(width: 15),
+  //                         ElevatedButton.icon(
+  //                           onPressed: () {
+  //                             Navigator.of(context).push(MaterialPageRoute(
+  //                               builder: (context) => MovieDetailPage(
+  //                                 movieId: contentId,
+  //                                 mediaType: mediaType,
+  //                                 userId: _userId,
+  //                               ),
+  //                             ));
+  //                           },
+  //                           icon: const Icon(Icons.info_outline),
+  //                           label: const Text('Details'),
+  //                           style: ElevatedButton.styleFrom(
+  //                             backgroundColor: Colors.black54,
+  //                             foregroundColor: Colors.white,
+  //                             padding: const EdgeInsets.symmetric(
+  //                               horizontal: 20,
+  //                               vertical: 15,
+  //                             ),
+  //                           ),
+  //                         ),
+  //                       ],
+  //                     ),
+  //                   ],
+  //                 ),
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
-                      const SizedBox(height: 20),
+  // Widget _buildFavoritesRow(String selectedFilter, String mediaType) {
+  //   // Check if user has favorites of this content type
+  //   final hasFavoritesAsync =
+  //       ref.watch(hasFavoritesForContentTypeProvider(selectedFilter));
 
-                      // Description
-                      Text(
-                        description,
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 16,
-                        ),
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+  //   return hasFavoritesAsync.when(
+  //     data: (hasFavorites) {
+  //       if (!hasFavorites) {
+  //         return const SizedBox.shrink();
+  //       }
 
-                      const SizedBox(height: 25),
+  //       // Get the filtered favorites
+  //       final filteredFavoritesAsync =
+  //           ref.watch(filteredFavoritesProvider(selectedFilter));
 
-                      // Action buttons
-                      Row(
-                        children: [
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              Navigator.of(context).push(MaterialPageRoute(
-                                builder: (context) => MovieDetailPage(
-                                  movieId: contentId,
-                                  mediaType: mediaType,
-                                  userId: _userId,
-                                ),
-                              ));
-                            },
-                            icon: const Icon(Icons.play_arrow, size: 30),
-                            label: const Text(
-                              'Watch Now',
-                              style: TextStyle(fontSize: 18),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.amber,
-                              foregroundColor: Colors.black,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 25,
-                                vertical: 15,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 15),
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              Navigator.of(context).push(MaterialPageRoute(
-                                builder: (context) => MovieDetailPage(
-                                  movieId: contentId,
-                                  mediaType: mediaType,
-                                  userId: _userId,
-                                ),
-                              ));
-                            },
-                            icon: const Icon(Icons.info_outline),
-                            label: const Text('Details'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.black54,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 15,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFavoritesRow(String selectedFilter, String mediaType) {
-    // Check if user has favorites of this content type
-    final hasFavoritesAsync =
-        ref.watch(hasFavoritesForContentTypeProvider(selectedFilter));
-
-    return hasFavoritesAsync.when(
-      data: (hasFavorites) {
-        if (!hasFavorites) {
-          return const SizedBox.shrink();
-        }
-
-        // Get the filtered favorites
-        final filteredFavoritesAsync =
-            ref.watch(filteredFavoritesProvider(selectedFilter));
-
-        return PrimeContentRow(
-          title: 'My Wishlist',
-          mediaAsync: filteredFavoritesAsync,
-          rowType: 'favorites',
-          mediaType: mediaType,
-          hasFocus: _activeSection == 'favorites',
-          userId: _userId,
-          onBackgroundImageChanged: _updateBackgroundImage,
-        );
-      },
-      loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
-    );
-  }
+  //       return PrimeContentRow(
+  //         title: 'My Wishlist',
+  //         mediaAsync: filteredFavoritesAsync,
+  //         rowType: 'favorites',
+  //         mediaType: mediaType,
+  //         hasFocus: _activeSection == 'favorites',
+  //         userId: _userId,
+  //         onBackgroundImageChanged: _updateBackgroundImage,
+  //       );
+  //     },
+  //     loading: () => const SizedBox.shrink(),
+  //     error: (_, __) => const SizedBox.shrink(),
+  //   );
+  // }
 
   void _handleVerticalNavigation(bool moveUp) {
     // Only consider visible sections in navigation

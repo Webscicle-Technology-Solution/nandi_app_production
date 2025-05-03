@@ -16,6 +16,7 @@ import 'package:nandiott_flutter/utils/Device_size.dart';
 
 final selectedIndexProvider = StateProvider<int>((ref) => 0);
 final isNavigationExpandedProvider = StateProvider<bool>((ref) => false);
+final isMenuFocusedProvider = StateProvider<bool>((ref) => false);
 
 // Add this provider to track whether we're at the left edge of content
 final isAtContentLeftEdgeProvider = StateProvider<bool>((ref) => false);
@@ -125,84 +126,185 @@ final connectivityProvider = StreamProvider<ConnectivityResult>((ref) {
     setState(() {});
   }
 
-  void _setupDirectionalFocus() {
-    FocusManager.instance.highlightStrategy =
-        FocusHighlightStrategy.alwaysTraditional;
+ void _setupDirectionalFocus() {
+  FocusManager.instance.highlightStrategy = FocusHighlightStrategy.alwaysTraditional;
 
-    ServicesBinding.instance?.keyboard.addHandler((KeyEvent event) {
-      if (event is! RawKeyDownEvent) return false;
+  // Add a listener to focus manager to detect focus changes
+  FocusManager.instance.addListener(() {
+    final currentFocus = FocusManager.instance.primaryFocus;
+    if (currentFocus != null) {
+      print("FOCUS CHANGED TO: ${currentFocus.debugLabel}");
+    }
+  });
 
-      final currentFocus = FocusManager.instance.primaryFocus;
+  ServicesBinding.instance?.keyboard.addHandler((KeyEvent event) {
+    if (event is! RawKeyDownEvent) return false;
 
-      // When exiting navigation menu, check if we're on MyRentalPage and user is null
-      if (_isWithinNavigation(currentFocus) &&
-          event.logicalKey == LogicalKeyboardKey.arrowRight) {
-        // We're going from navigation to content
-        final selectedIndex = ref.read(selectedIndexProvider);
-        final isTV = AppSizes.getDeviceType(context) == DeviceType.tv;
-        final screens = _getScreens(isTV);
+    final currentFocus = FocusManager.instance.primaryFocus;
+    final bool isInNavigation = _isWithinNavigation(currentFocus);
+    final isMenuFocused = ref.read(isMenuFocusedProvider);
 
-        // If we're going to MyRentalsPage, check after a slight delay
-        if (screens[selectedIndex] is MyRentalPage) {
-          // Let navigation handle the right arrow key, but also schedule a login button focus check
-          Future.delayed(Duration(milliseconds: 100), () {
-            // Find login_button focus node
-            FocusNode? loginButton;
-            FocusManager.instance.rootScope.descendants.forEach((node) {
-              if (node.debugLabel == 'login_button') {
-                loginButton = node;
-              }
-            });
-
-            // If login button exists, focus it
-            if (loginButton != null) {
-              loginButton!.requestFocus();
-            }
-          });
-        }
-      }
-
-      // Skip the rest of the navigation handler for login button
-      if (currentFocus?.debugLabel == 'login_button') {
-        if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-          return false; // Let normal focus handling work
-        }
-        return false; // Let the login button handle other keys
-      }
-
-      // If we're in the content area and press Left at the edge,
-      // Special handling for MyRentalPage login button
-      if (currentFocus?.debugLabel == 'login_button') {
-        // Let the login button handle its own focus
-        return false;
+      if (isMenuFocused && !_isWithinNavigation(currentFocus)) {
+    print("KEYBOARD HANDLER: Menu should have focus, forcing it back");
+    FocusScope.of(context).requestFocus(_navigationFocusNode);
+    return true; // Handle this event
+  }
+    
+    // If navigation has focus and left arrow is pressed
+    if (isInNavigation && event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+      // Always keep focus on navigation for left arrow
+      print("NAVIGATION: Keeping focus on navigation for left arrow");
+      return true; // Handled, don't allow other handlers
+    }
+    
+    // When navigation is focused and user presses right, handle transition to content
+    if (isInNavigation && event.logicalKey == LogicalKeyboardKey.arrowRight) {
+      // We're going from navigation to content
+      final selectedIndex = ref.read(selectedIndexProvider);
+      final isTV = AppSizes.getDeviceType(context) == DeviceType.tv;
+      final screens = _getScreens(isTV);
+      
+      // Collapse navigation menu if expanded
+      if (ref.read(isNavigationExpandedProvider)) {
+        ref.read(isNavigationExpandedProvider.notifier).state = false;
       }
       
-      if (_isWithinContent(currentFocus) && 
-          event.logicalKey == LogicalKeyboardKey.arrowLeft &&
-          ref.read(selectedIndexProvider) == 0) { // Only for Home page
-        // Check if we're at the left edge of content
-        final RenderBox? renderBox = currentFocus?.context?.findRenderObject() as RenderBox?;
-        if (renderBox != null) {
-          final position = renderBox.localToGlobal(Offset.zero);
-          // If close to the left edge, move focus to navigation
-          if (position.dx < 150) {
-            _navigationFocusNode.requestFocus();
-            return true;
+      print("NAVIGATION: Moving focus from menu to content");
+      
+      // If we're going to MyRentalsPage, check after a slight delay
+      if (screens[selectedIndex] is MyRentalPage) {
+        // Let navigation handle the right arrow key, but also schedule a login button focus check
+        Future.delayed(Duration(milliseconds: 100), () {
+          // Find login_button focus node
+          FocusNode? loginButton;
+          FocusManager.instance.rootScope.descendants.forEach((node) {
+            if (node.debugLabel == 'login_button') {
+              loginButton = node;
+            }
+          });
+
+          // If login button exists, focus it
+          if (loginButton != null) {
+            loginButton!.requestFocus();
           }
-        }
-        return false; // Let other handlers process the event
-      }
+        });
+      } else if (screens[selectedIndex] is PrimeTVHomePage) {
+        // For TV home page, focus the featured section
+        Future.delayed(Duration(milliseconds: 100), () {
+          FocusNode? featuredSection;
+          FocusManager.instance.rootScope.descendants.forEach((node) {
+            if (node.debugLabel == 'featured_section') {
+              featuredSection = node;
+            }
+          });
 
-      // Handle filter items as before
-      if (_isWithinFilterItems(currentFocus)) {
-        // Your existing code for filter items
-        return false;
+          if (featuredSection != null) {
+            print("NAVIGATION: Focusing featured section");
+            featuredSection!.requestFocus();
+          }
+        });
       }
+      
+      return true; // We've handled this event
+    }
 
-      // Don't interfere with any other events
+    // Skip the rest of the navigation handler for login button
+    if (currentFocus?.debugLabel == 'login_button') {
+      if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+        return false; // Let normal focus handling work
+      }
+      return false; // Let the login button handle other keys
+    }
+
+    // If we're in the content area and press Left at the edge,
+    // Special handling for MyRentalPage login button
+    if (currentFocus?.debugLabel == 'login_button') {
+      // Let the login button handle its own focus
       return false;
+    }
+    
+    if (_isWithinContent(currentFocus) && 
+        event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+      print("KEYBOARD HANDLER: Left arrow in content detected");
+      
+      // Determine if we're at the left edge of a component
+      bool isAtLeftEdge = false;
+      
+      // Check by position
+      final RenderBox? renderBox = currentFocus?.context?.findRenderObject() as RenderBox?;
+      if (renderBox != null) {
+        final position = renderBox.localToGlobal(Offset.zero);
+        // If close to the left edge, consider it a left edge
+        if (position.dx < 150) {
+          isAtLeftEdge = true;
+        }
+      }
+      
+      // Check by focus node debug label (more reliable for specifically marked nodes)
+      if (currentFocus?.debugLabel != null) {
+        final String debugLabel = currentFocus!.debugLabel!;
+        if (debugLabel.contains('filter_section') || 
+            debugLabel.contains('featured_section') || 
+            debugLabel.contains('first_item')) {
+          isAtLeftEdge = true;
+        }
+      }
+      
+      if (isAtLeftEdge) {
+  print("KEYBOARD HANDLER: At left edge, moving focus to navigation");
+  
+  // Set the provider state
+  ref.read(isMenuFocusedProvider.notifier).state = true;
+  
+  // Use both approaches for reliability
+  FocusScope.of(context).requestFocus(_navigationFocusNode);
+  _navigationFocusNode.requestFocus();
+  
+  return true; // We've handled this event
+}
+    }
+
+    // Handle filter items
+    if (_isWithinFilterItems(currentFocus)) {
+      // Your existing code for filter items
+      return false;
+    }
+
+    // Don't interfere with any other events
+    return false;
+  });
+}
+
+void _handleContentLeftEdge() {
+  print("NAVIGATION: Handling left edge focus from content");
+  
+  if (mounted) {
+    // Break the focus cycle by disabling auto-focus in the home page
+    // You'll need to add this provider:
+    ref.read(isMenuFocusedProvider.notifier).state = true;
+    
+    // Request focus using FocusScope for priority
+    FocusScope.of(context).unfocus(); // First unfocus everything
+    
+    // Use a longer delay to ensure other focus operations complete first
+    Future.delayed(Duration(milliseconds: 200), () {
+      if (mounted && _navigationFocusNode.canRequestFocus) {
+        print("NAVIGATION: Requesting focus on menu with strong priority");
+        
+        // Force focus to the navigation menu
+        FocusScope.of(context).requestFocus(_navigationFocusNode);
+        
+        // Set a flag to maintain focus for a period
+        Future.delayed(Duration(milliseconds: 500), () {
+          if (mounted && !_navigationFocusNode.hasFocus) {
+            print("NAVIGATION: Focus was lost, requesting again");
+            FocusScope.of(context).requestFocus(_navigationFocusNode);
+          }
+        });
+      }
     });
   }
+}
 
   bool _isWithinFilterItems(FocusNode? node) {
     if (node == null) return false;
@@ -256,7 +358,11 @@ final connectivityProvider = StreamProvider<ConnectivityResult>((ref) {
   // Screens corresponding to navigation items - MODIFIED FOR TV SPECIFIC PAGES
   List<Widget> _getScreens(bool isTV) => [
         // For Home, use TVHomePage on TV devices, regular HomePage otherwise
-       isTV?PrimeTVHomePage() : HomePage(),
+        isTV
+            ? PrimeTVHomePage(
+                onLeftEdgeFocus: _handleContentLeftEdge,
+              )
+            : HomePage(),
         isTV ? TVSearchPage() : DownloadsPage(),
         MyRentalPage(),
         ProfilePage(),
@@ -380,110 +486,136 @@ WidgetsBinding.instance.addPostFrameCallback((_) {
   }
 
   Widget _buildCollapsedNavigation(BuildContext context) {
-    return Focus(
-      focusNode: _navigationFocusNode,
-      canRequestFocus: true,
-      debugLabel: 'navigation_collapsed_button',
-      onFocusChange: (hasFocus) {
-        if (mounted) setState(() {});
-      },
-      onKey: (node, event) {
-        // Only expand when OK/Enter/Select is pressed
-        if (event is RawKeyDownEvent) {
-          if (event.logicalKey == LogicalKeyboardKey.select ||
-              event.logicalKey == LogicalKeyboardKey.enter) {
-            ref.read(isNavigationExpandedProvider.notifier).state = true;
-            return KeyEventResult.handled;
-          }
-
-          // Allow right arrow to navigate back to login button when on MyRentalPage
-          if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-            final selectedIndex = ref.read(selectedIndexProvider);
-            final screens =
-                _getScreens(AppSizes.getDeviceType(context) == DeviceType.tv);
-
-            if (screens[selectedIndex] is MyRentalPage) {
-              // Try to find and focus the login button
-              FocusNode? loginButton;
-              FocusManager.instance.rootScope.descendants.forEach((node) {
-                if (node.debugLabel == 'login_button') {
-                  loginButton = node;
-                }
-              });
-
-              if (loginButton != null) {
-                loginButton!.requestFocus();
-                return KeyEventResult.handled;
-              }
+  return Focus(
+    focusNode: _navigationFocusNode,
+    canRequestFocus: true,
+    debugLabel: 'navigation_collapsed_button',
+    onFocusChange: (hasFocus) {
+      print("NAVIGATION FOCUS: $hasFocus");
+      
+      if (mounted) {
+        setState(() {});
+        
+        // Update the provider state
+        ref.read(isMenuFocusedProvider.notifier).state = hasFocus;
+        
+        if (hasFocus) {
+          // When we get focus, make sure we keep it for a moment
+          // This helps break focus cycles
+          Future.delayed(Duration(milliseconds: 300), () {
+            if (mounted && !_navigationFocusNode.hasFocus && 
+                ref.read(isMenuFocusedProvider)) {
+              print("NAVIGATION: Focus was stolen, reclaiming");
+              FocusScope.of(context).requestFocus(_navigationFocusNode);
             }
-          }
-
-          // Prevent loss of focus with other keys
-          if (event.logicalKey == LogicalKeyboardKey.arrowLeft ||
-              event.logicalKey == LogicalKeyboardKey.arrowUp ||
-              event.logicalKey == LogicalKeyboardKey.arrowDown) {
-            return KeyEventResult.handled;
+          });
+        } else {
+          // When we lose focus naturally (like from user pressing right)
+          // Update the provider to let other components know
+          if (ref.read(isMenuFocusedProvider)) {
+            Future.delayed(Duration(milliseconds: 100), () {
+              ref.read(isMenuFocusedProvider.notifier).state = false;
+            });
           }
         }
-        return KeyEventResult.ignored;
-      },
-      child: InkWell(
-        onTap: () {
+      }
+    },
+    onKey: (node, event) {
+      // Only expand when OK/Enter/Select is pressed
+      if (event is RawKeyDownEvent) {
+        if (event.logicalKey == LogicalKeyboardKey.select ||
+            event.logicalKey == LogicalKeyboardKey.enter) {
           ref.read(isNavigationExpandedProvider.notifier).state = true;
-        },
-        child: Container(
-          width: 60,
-          color: _navigationFocusNode.hasFocus
-              ? Theme.of(context).scaffoldBackgroundColor.withOpacity(1)
-              : Theme.of(context).scaffoldBackgroundColor.withOpacity(0.9),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(30),
-                  border: Border.all(
-                    color: _navigationFocusNode.hasFocus
-                        ? Colors.amber
-                        : Colors.grey.withOpacity(0.5),
-                    width: _navigationFocusNode.hasFocus ? 3 : 1,
-                  ),
-                ),
-                child: Icon(
-                  Icons.menu,
+          return KeyEventResult.handled;
+        }
+        
+        // Block left arrow to prevent focus from leaving the menu
+        if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+          return KeyEventResult.handled;
+        }
+        
+        // Allow right arrow to navigate to content
+        if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+          // Let right key be handled to move to content
+          return KeyEventResult.ignored;
+        }
+        
+        // For up/down arrows, keep focus on this node
+        if (event.logicalKey == LogicalKeyboardKey.arrowUp ||
+            event.logicalKey == LogicalKeyboardKey.arrowDown) {
+          return KeyEventResult.handled;
+        }
+
+        // Prevent loss of focus with other keys
+        if (event.logicalKey == LogicalKeyboardKey.arrowLeft ||
+            event.logicalKey == LogicalKeyboardKey.arrowUp ||
+            event.logicalKey == LogicalKeyboardKey.arrowDown) {
+          return KeyEventResult.handled;
+        }
+      
+      return KeyEventResult.ignored;
+        
+      }
+      
+      return KeyEventResult.ignored;
+    },
+    child: InkWell(
+      onTap: () {
+        ref.read(isNavigationExpandedProvider.notifier).state = true;
+      },
+      child: Container(
+        width: 60,
+        color: _navigationFocusNode.hasFocus
+            ? Theme.of(context).scaffoldBackgroundColor.withOpacity(1)
+            : Theme.of(context).scaffoldBackgroundColor.withOpacity(0.9),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(
                   color: _navigationFocusNode.hasFocus
                       ? Colors.amber
-                      : Theme.of(context).primaryColorDark,
-                  size: 30,
+                      : Colors.grey.withOpacity(0.5),
+                  width: _navigationFocusNode.hasFocus ? 3 : 1,
                 ),
               ),
-              SizedBox(height: 10),
-              if (_navigationFocusNode.hasFocus)
-                Column(
-                  children: [
-                    Icon(
-                      Icons.keyboard_arrow_right,
+              child: Icon(
+                Icons.menu,
+                color: _navigationFocusNode.hasFocus
+                    ? Colors.amber
+                    : Theme.of(context).primaryColorDark,
+                size: 30,
+              ),
+            ),
+            SizedBox(height: 10),
+            if (_navigationFocusNode.hasFocus)
+              Column(
+                children: [
+                  Icon(
+                    Icons.keyboard_arrow_right,
+                    color: Colors.amber,
+                    size: 24,
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    "Press OK",
+                    style: TextStyle(
                       color: Colors.amber,
-                      size: 24,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
                     ),
-                    SizedBox(height: 8),
-                    Text(
-                      "Press OK",
-                      style: TextStyle(
-                        color: Colors.amber,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-            ],
-          ),
+                  ),
+                ],
+              ),
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildExpandedNavigation(BuildContext context, int selectedIndex,
       Function(int) onTap, List<NavigationItem> navigationItems) {

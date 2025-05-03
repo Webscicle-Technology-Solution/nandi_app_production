@@ -101,23 +101,23 @@ class _PrimeContentCardState extends State<PrimeContentCard> with SingleTickerPr
   Future<void> _loadImages() async {
     try {
       // Determine the correct content ID and media type based on row type
-      String contentId;
-      String contentType;
+      String contentId=widget.item.id;
+      // String contentType;
       
-      if (widget.rowType == 'favorites') {
-        contentId = widget.item.id;
-        contentType = widget.item.genre??"movies";
-      } else if (widget.rowType == 'history') {
-        contentId = widget.item.id;
-        contentType = widget.item.genre??"movies";
-      } else {
-        contentId = widget.item.id;
-        contentType = widget.mediaType;
-      }
+      // if (widget.rowType == 'favorites') {
+      //   contentId = widget.item.id;
+      //   contentType = ;
+      // } else if (widget.rowType == 'history') {
+      //   contentId = widget.item.id;
+      //   contentType = widget.item.genre??"movies";
+      // } else {
+      //   contentId = widget.item.id;
+      //   contentType = widget.mediaType;
+      // }
       
       // Get poster image
       final posterResponse = await _getBannerPosterService.getPoster(
-        mediaType: contentType,
+        mediaType: widget.mediaType,
         mediaId: contentId,
       );
       
@@ -129,7 +129,7 @@ class _PrimeContentCardState extends State<PrimeContentCard> with SingleTickerPr
       
       // Get banner image
       final bannerResponse = await _getBannerPosterService.getBanner(
-        mediaType: contentType,
+        mediaType: widget.mediaType,
         mediaId: contentId,
       );
       
@@ -254,8 +254,8 @@ return Focus(
               scale: _scaleAnimation.value,
               child: Container(
                 margin: EdgeInsets.symmetric(horizontal: 10),
-                width: 160,
-                height: 240,
+                width: 180,
+                height: 30,
                 child: Stack(
                   children: [
                     // Poster image
@@ -388,7 +388,7 @@ return Focus(
                             borderRadius: BorderRadius.circular(3),
                           ),
                           child: Text(
-                            'FREE',
+                            widget.mediaType,
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 8,

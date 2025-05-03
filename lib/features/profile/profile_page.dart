@@ -12,6 +12,7 @@ import 'package:nandiott_flutter/features/profile/wishlist_widget.dart';
 import 'package:nandiott_flutter/features/profile/yellowBorder_container.dart';
 import 'package:nandiott_flutter/providers/checkauth_provider.dart';
 import 'package:nandiott_flutter/providers/favourite_provider.dart';
+import 'package:nandiott_flutter/providers/rental_provider.dart';
 import 'package:nandiott_flutter/services/auth_service.dart';
 import 'package:nandiott_flutter/utils/Device_size.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -30,11 +31,19 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     // TODO: implement didChangeDependencies
     super.didChangeDependencies();
     ref.invalidate(authUserProvider);
+     ref.refresh(authUserProvider);
+    ref.refresh(rentalProvider);
   }
-
+@override
+  void initState() {
+         ref.refresh(authUserProvider);
+    ref.refresh(rentalProvider);
+    // TODO: implement initState
+    super.initState();
+  }
   @override
   Widget build(BuildContext context) {
-
+    ref.watch(rentalProvider);
     final isdark = Theme.of(context).brightness == Brightness.dark;
 
       final authUser=ref.watch(authUserProvider);

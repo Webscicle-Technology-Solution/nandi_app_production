@@ -200,7 +200,7 @@ final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
 
       try {
         // This will trigger the API call
-        await ref.read(sentOtpProviderLogin(parameter).future);
+        await ref.refresh(sentOtpProviderLogin(parameter).future);
 
         setState(() {
           _isOtpSent = true;
@@ -296,7 +296,7 @@ final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
 
       try {
         final response =
-            await ref.read(verifyOtpProviderLogin(parameter).future);
+            await ref.refresh(verifyOtpProviderLogin(parameter).future);
 
         setState(() {
           _isOtpVerified = true;

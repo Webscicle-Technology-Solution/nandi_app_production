@@ -356,79 +356,77 @@ class _PrimeFeaturedSectionState extends State<PrimeFeaturedSection> with Single
     }
     
     return Focus(
-      focusNode: _focusNode,
-      onKey: (FocusNode node, RawKeyEvent event) {
-        if (event is RawKeyDownEvent) {
-          _handleUserInteraction();
-          
-          // Handle horizontal navigation
-          if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-            if (_currentIndex < _featuredItems.length - 1) {
-              _pageController.nextPage(
-                duration: Duration(milliseconds: 400),
-                curve: Curves.easeOutCubic,
-              );
-              if (_currentIndex == _featuredItems.length - 2 && widget.onRightEdgeFocus != null) {
-                // Will be at last item after animation, notify parent
-                Future.delayed(Duration(milliseconds: 400), () {
-                  if (widget.onRightEdgeFocus != null) {
-                    widget.onRightEdgeFocus!();
-                  }
-                });
-              } else if (widget.onContentFocus != null) {
-                // Moving to middle item
-                Future.delayed(Duration(milliseconds: 400), () {
-                  if (widget.onContentFocus != null) {
-                    widget.onContentFocus!();
-                  }
-                });
-              }
-            } else {
-              // Already at last item, prevent focus from leaving
-              if (widget.onRightEdgeFocus != null) {
-                widget.onRightEdgeFocus!();
-              }
-              return KeyEventResult.handled;
-            }
-            return KeyEventResult.handled;
-          } else if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-            if (_currentIndex > 0) {
-              _pageController.previousPage(
-                duration: Duration(milliseconds: 400),
-                curve: Curves.easeOutCubic,
-              );
-              if (_currentIndex == 1 && widget.onLeftEdgeFocus != null) {
-                // Will be at first item after animation, notify parent
-                Future.delayed(Duration(milliseconds: 400), () {
-                  if (widget.onLeftEdgeFocus != null) {
-                    widget.onLeftEdgeFocus!();
-                  }
-                });
-              } else if (widget.onContentFocus != null) {
-                // Moving to middle item
-                Future.delayed(Duration(milliseconds: 400), () {
-                  if (widget.onContentFocus != null) {
-                    widget.onContentFocus!();
-                  }
-                });
-              }
-            } else {
-              // Already at first item, allow navigation to side menu
-              if (widget.onLeftEdgeFocus != null) {
-                widget.onLeftEdgeFocus!();
-              }
-              return KeyEventResult.ignored;
-            }
-            return KeyEventResult.handled;
-          } else if (event.logicalKey == LogicalKeyboardKey.select ||
-              event.logicalKey == LogicalKeyboardKey.enter) {
-            // Navigate to movie details page
-            _navigateToMovieDetails();
-            return KeyEventResult.handled;
+  focusNode: _focusNode,
+  onKey: (FocusNode node, RawKeyEvent event) {
+    if (event is RawKeyDownEvent) {
+      _handleUserInteraction();
+      
+      // Handle horizontal navigation
+      if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+        if (_currentIndex < _featuredItems.length - 1) {
+          _pageController.nextPage(
+            duration: Duration(milliseconds: 400),
+            curve: Curves.easeOutCubic,
+          );
+          // Existing code for callback notifications
+          // ...
+        } else {
+          // Already at last item, prevent focus from leaving
+          if (widget.onRightEdgeFocus != null) {
+            widget.onRightEdgeFocus!();
           }
         }
+        return KeyEventResult.handled;
+      } else if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+        if (_currentIndex > 0) {
+          _pageController.previousPage(
+            duration: Duration(milliseconds: 400),
+            curve: Curves.easeOutCubic,
+          );
+          // Existing code for callback notifications
+          // ...
+        } else {
+          // Already at first item, allow navigation to side menu
+          if (widget.onLeftEdgeFocus != null) {
+            widget.onLeftEdgeFocus!();
+            // Let the event propagate to allow focus to transfer to menu
+          }
+        }
+            return KeyEventResult.ignored;
+
+      }else if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+        if (_currentIndex > 0) {
+          _pageController.previousPage(
+            duration: Duration(milliseconds: 400),
+            curve: Curves.easeOutCubic,
+          );
+          // Existing code for callback notifications
+          return KeyEventResult.handled;
+        }else {
+          // Already at first item, move focus to side menu
+          print("LEFT EDGE: Moving focus to menu from featured section");
+          if (widget.onLeftEdgeFocus != null) {
+            widget.onLeftEdgeFocus!();
+          }
+          // CRITICAL: Return ignored to allow focus to transfer
+          return KeyEventResult.ignored;
+        }
+      }
+      
+      else if (event.logicalKey == LogicalKeyboardKey.select ||
+          event.logicalKey == LogicalKeyboardKey.enter) {
+        // Navigate to movie details page
+        _navigateToMovieDetails();
+      } else if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+        // Allow down navigation to content rows
         return KeyEventResult.ignored;
-      },
+      } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+        // Allow up navigation to filter bar
+        return KeyEventResult.ignored;
+      }
+    }
+    return KeyEventResult.ignored;
+  },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 400),
         curve: Curves.easeOutCubic,

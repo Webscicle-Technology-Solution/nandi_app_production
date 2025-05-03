@@ -44,6 +44,14 @@ class _PrimeContentCardState extends State<PrimeContentCard> with SingleTickerPr
   void initState() {
     super.initState();
     _isFocused = widget.hasFocus;
+
+    widget.focusNode.addListener(() {
+    if (widget.focusNode.hasFocus) {
+      print("CARD FOCUS: Card ${widget.index} in row ${widget.rowType} gained focus");
+    } else {
+      print("CARD FOCUS: Card ${widget.index} in row ${widget.rowType} lost focus");
+    }
+  }); 
     
     // Initialize animations
     _animationController = AnimationController(
@@ -210,28 +218,34 @@ class _PrimeContentCardState extends State<PrimeContentCard> with SingleTickerPr
   @override
   Widget build(BuildContext context) {
     // Get title based on row type
-    String title = '';
-    if (widget.rowType == 'favorites') {
-      title = widget.item.title;
-    } else if (widget.rowType == 'history') {
-      title = widget.item.title ?? 'Unknown';
-    } else {
-      title = widget.item.title ?? 'Unknown';
-    }
+      String title = '';
+  if (widget.rowType == 'favorites') {
+    title = widget.item.title;
+  } else if (widget.rowType == 'history') {
+    title = widget.item.title ?? 'Unknown';
+  } else {
+    title = widget.item.title ?? 'Unknown';
+  }
     
-    return Focus(
-      focusNode: widget.focusNode,
-      onKey: (node, event) {
-        if (event is RawKeyDownEvent) {
-          if (event.logicalKey == LogicalKeyboardKey.select ||
-              event.logicalKey == LogicalKeyboardKey.enter) {
-            widget.onTap();
-            return KeyEventResult.handled;
-          }
+return Focus(
+    focusNode: widget.focusNode,
+    onKey: (node, event) {
+      if (event is RawKeyDownEvent) {
+        if (event.logicalKey == LogicalKeyboardKey.select ||
+            event.logicalKey == LogicalKeyboardKey.enter) {
+          widget.onTap();
+          return KeyEventResult.handled;
         }
-        return KeyEventResult.ignored;
-      },
-      child: GestureDetector(
+        
+        // Allow vertical navigation to propagate to parent handlers
+        if (event.logicalKey == LogicalKeyboardKey.arrowUp ||
+            event.logicalKey == LogicalKeyboardKey.arrowDown) {
+          return KeyEventResult.ignored;
+        }
+      }
+      return KeyEventResult.ignored;
+    },
+    child: GestureDetector(
         onTap: widget.onTap,
         child: AnimatedBuilder(
           animation: _animationController,

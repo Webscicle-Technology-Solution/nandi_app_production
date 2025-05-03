@@ -1,907 +1,7 @@
-// import 'package:flutter/material.dart';
-// import 'package:flutter/services.dart';
-// import 'package:flutter_riverpod/flutter_riverpod.dart';
-// import 'package:nandiott_flutter/features/home/provider/getContiuneMedia.dart';
-// import 'package:nandiott_flutter/features/home/provider/getMedia.dart';
-// import 'package:nandiott_flutter/models/movie_model.dart';
-// import 'package:nandiott_flutter/pages/detail_page.dart';
-// import 'package:nandiott_flutter/providers/checkauth_provider.dart';
-// import 'package:nandiott_flutter/providers/filter_fav_provider.dart';
-// import 'package:nandiott_flutter/providers/filter_provider.dart';
-
-// // Import your existing providers
-// // The below are just placeholders - use your actual imports
-// // import 'package:nandiott_flutter/utils/Device_size.dart';
-// // import 'package:nandiott_flutter/features/home/providers/providers.dart';
-// // import 'package:nandiott_flutter/features/movie_detail/movie_detail_page.dart';
-
-// class TVHomePage extends ConsumerStatefulWidget {
-//   const TVHomePage({super.key});
-
-//   @override
-//   _TVHomePageState createState() => _TVHomePageState();
-// }
-
-// class _TVHomePageState extends ConsumerState<TVHomePage> {
-//   // Track the currently focused content
-//   Movie? _featuredContent;
-//   String userId = "";
-  
-//   // Focus management
-//   Map<String, FocusNode> _sectionFocusNodes = {};
-//   Map<String, List<FocusNode>> _itemFocusNodes = {};
-  
-//   // Track visible sections
-//   List<String> _visibleSections = [];
-  
-//   @override
-//   void initState() {
-//     super.initState();
-    
-//     // Initialize section focus nodes
-//     _sectionFocusNodes = {
-//       'continueWatching': FocusNode(),
-//       'newReleases': FocusNode(),
-//       'freeToWatch': FocusNode(),
-//       'favorites': FocusNode(),
-//     };
-    
-//     // Initialize empty lists for item focus nodes
-//     _itemFocusNodes = {
-//       'continueWatching': [],
-//       'newReleases': [],
-//       'freeToWatch': [],
-//       'favorites': [],
-//     };
-    
-//     // Set initial focus after the first frame is rendered
-//     WidgetsBinding.instance.addPostFrameCallback((_) {
-//       _setupVisibleSections();
-//       _setInitialFocus();
-//     });
-//   }
-  
-//   @override
-//   void dispose() {
-//     // Dispose all focus nodes
-//     _sectionFocusNodes.values.forEach((node) => node.dispose());
-//     _itemFocusNodes.forEach((key, nodes) {
-//       for (var node in nodes) {
-//         node.dispose();
-//       }
-//     });
-//     super.dispose();
-//   }
-
-//   // Setup visible sections based on data availability
-//   void _setupVisibleSections() {
-//     final selectedFilter = ref.read(selectedFilterProvider);
-//     final sectionVisibility = ref.read(homeSectionVisibilityProvider(selectedFilter));
-    
-//     setState(() {
-//       _visibleSections = [];
-      
-//       // Add sections that should be visible
-//       if (isSectionVisible(sectionVisibility, 'isHistoryVisible')) {
-//         _visibleSections.add('continueWatching');
-//       }
-      
-//       if (isSectionVisible(sectionVisibility, 'isLatestVisible')) {
-//         _visibleSections.add('newReleases');
-//       }
-      
-//       final freeMediaState = ref.read(freeMediaProvider(selectedFilter));
-//       if (freeMediaState is AsyncData && 
-//           (freeMediaState as AsyncData).value?.isNotEmpty == true) {
-//         _visibleSections.add('freeToWatch');
-//       }
-      
-//       if (isSectionVisible(sectionVisibility, 'isFavoritesVisible')) {
-//         _visibleSections.add('favorites');
-//       }
-//     });
-//   }
-  
-//   // Set initial focus to the first item in the first visible section
-//   void _setInitialFocus() {
-//     if (_visibleSections.isNotEmpty) {
-//       final firstSection = _visibleSections.first;
-      
-//       // Request focus for the section
-//       final sectionNode = _sectionFocusNodes[firstSection];
-//       if (sectionNode != null && sectionNode.canRequestFocus) {
-//         sectionNode.requestFocus();
-//       }
-      
-//       // If there are items in this section, focus the first one
-//       if (_itemFocusNodes[firstSection]!.isNotEmpty) {
-//         final firstItemNode = _itemFocusNodes[firstSection]![0];
-//         if (firstItemNode.canRequestFocus) {
-//           firstItemNode.requestFocus();
-//         }
-//       }
-//     }
-//   }
-  
-//   // Update featured content when a new item is focused
-//   void _updateFeaturedContent(Movie movie) {
-//     setState(() {
-//       _featuredContent = movie;
-//     });
-//   }
-  
-//   @override
-//   Widget build(BuildContext context) {
-//     // Watch the selected filter state - using your existing provider
-//     final selectedFilter = ref.watch(selectedFilterProvider);
-    
-//     // Get API media type for the selected filter
-//     final mediaType = getApiMediaType(selectedFilter);
-    
-//     // Watch section visibility settings for the selected filter
-//     final sectionVisibilityAsync = ref.watch(homeSectionVisibilityProvider(selectedFilter));
-    
-//     // Watch media data based on the selected filter
-//     final latestMediaAsync = ref.watch(latestMediaProvider(selectedFilter));
-//     final freeMediaAsync = ref.watch(freeMediaProvider(selectedFilter));
-    
-//     // Get user for continue watching
-//     final userAsyncValue = ref.watch(authUserProvider);
-    
-//     // Get continue watching data
-//     final continueWatchingState = userAsyncValue.when(
-//       data: (user) {
-//         if (user != null) {
-//           setState(() {
-//             userId = user.id;
-//           });
-//           return ref.watch(filteredContinueWatchingProvider(selectedFilter));
-//         } else {
-//           return AsyncValue.data([]);
-//         }
-//       },
-//       loading: () => AsyncValue.loading(),
-//       error: (error, stack) => AsyncValue.error(error, stack),
-//     );
-    
-//     // Rebuild visible sections when data changes
-//     if (_visibleSections.isEmpty) {
-//       WidgetsBinding.instance.addPostFrameCallback((_) {
-//         _setupVisibleSections();
-//       });
-//     }
-    
-//     return Scaffold(
-//       backgroundColor: Colors.black,
-//       body: SafeArea(
-//         child: Column(
-//           children: [
-//             // Featured content hero banner
-//             _buildHeroBanner(),
-            
-//             // Content sections
-//             Expanded(
-//               child: SingleChildScrollView(
-//                 child: Column(
-//                   crossAxisAlignment: CrossAxisAlignment.start,
-//                   children: [
-//                     // Continue Watching Section
-//                     if (_visibleSections.contains('continueWatching'))
-//                       _buildContinueWatchingSection(continueWatchingState, selectedFilter),
-                    
-//                     // New Releases Section
-//                     if (_visibleSections.contains('newReleases'))
-//                       _buildMediaSection(
-//                         title: 'New Releases', 
-//                         sectionKey: 'newReleases',
-//                         mediaAsync: latestMediaAsync, 
-//                         mediaType: mediaType
-//                       ),
-                    
-//                     // Free to Watch Section
-//                     if (_visibleSections.contains('freeToWatch'))
-//                       _buildMediaSection(
-//                         title: 'Free to Watch', 
-//                         sectionKey: 'freeToWatch',
-//                         mediaAsync: freeMediaAsync, 
-//                         mediaType: mediaType
-//                       ),
-                    
-//                     // Favorites Section
-//                     if (_visibleSections.contains('favorites'))
-//                       _buildFavoritesSection(selectedFilter, mediaType),
-//                   ],
-//                 ),
-//               ),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-  
-//   Widget _buildHeroBanner() {
-//     if (_featuredContent == null) {
-//       // Default banner when no content is focused
-//       return Container(
-//         height: 350,
-//         width: double.infinity,
-//         color: Colors.black45,
-//         child: const Center(
-//           child: Text(
-//             'Welcome to Nandi OTT',
-//             style: TextStyle(
-//               color: Colors.white,
-//               fontSize: 32,
-//               fontWeight: FontWeight.bold,
-//             ),
-//           ),
-//         ),
-//       );
-//     }
-    
-//     // Banner with featured content
-//     return Container(
-//       height: 350,
-//       width: double.infinity,
-//       decoration: BoxDecoration(
-//         image: DecorationImage(
-//           image: NetworkImage( ''),
-//           fit: BoxFit.cover,
-//           colorFilter: ColorFilter.mode(
-//             Colors.black.withOpacity(0.4),
-//             BlendMode.darken,
-//           ),
-//         ),
-//       ),
-//       child: Padding(
-//         padding: const EdgeInsets.all(24.0),
-//         child: Column(
-//           mainAxisAlignment: MainAxisAlignment.end,
-//           crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-//             Text(
-//               _featuredContent!.title ?? 'Unknown Title',
-//               style: const TextStyle(
-//                 color: Colors.white,
-//                 fontSize: 32,
-//                 fontWeight: FontWeight.bold,
-//               ),
-//             ),
-//             const SizedBox(height: 8),
-//             Row(
-//               children: [
-//                 Text(
-//                   '',
-//                   style: const TextStyle(color: Colors.white70),
-//                 ),
-//                 const SizedBox(width: 16),
-//                 Container(
-//                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-//                   decoration: BoxDecoration(
-//                     border: Border.all(color: Colors.white70),
-//                     borderRadius: BorderRadius.circular(4),
-//                   ),
-//                   child: Text(
-//                     'U/A',
-//                     style: const TextStyle(color: Colors.white70),
-//                   ),
-//                 ),
-//                 const SizedBox(width: 16),
-//                 const Icon(Icons.star, color: Colors.amber, size: 16),
-//                 const SizedBox(width: 4),
-//                 Text(
-//                   '0',
-//                   style: const TextStyle(color: Colors.white70),
-//                 ),
-//               ],
-//             ),
-//             const SizedBox(height: 12),
-//             Text(
-//               'No description available',
-//               maxLines: 2,
-//               overflow: TextOverflow.ellipsis,
-//               style: const TextStyle(color: Colors.white70),
-//             ),
-//             const SizedBox(height: 24),
-//             Row(
-//               children: [
-//                 ElevatedButton.icon(
-//                   style: ElevatedButton.styleFrom(
-//                     foregroundColor: Colors.black,
-//                     backgroundColor: Colors.white,
-//                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-//                   ),
-//                   icon: const Icon(Icons.play_arrow),
-//                   label: const Text('Play'),
-//                   onPressed: () {
-//                     // Navigate to play the content
-//                     if (_featuredContent != null) {
-//                       Navigator.push(
-//                         context,
-//                         MaterialPageRoute(
-//                           builder: (context) => MovieDetailPage(
-//                             movieId: _featuredContent!.id,
-//                             mediaType: getApiMediaType(ref.read(selectedFilterProvider)),
-//                             userId: userId,
-//                           ),
-//                         ),
-//                       );
-//                     }
-//                   },
-//                 ),
-//                 const SizedBox(width: 16),
-//                 OutlinedButton.icon(
-//                   style: OutlinedButton.styleFrom(
-//                     foregroundColor: Colors.white,
-//                     side: const BorderSide(color: Colors.white),
-//                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-//                   ),
-//                   icon: const Icon(Icons.add),
-//                   label: const Text('Watchlist'),
-//                   onPressed: () {
-//                     // Add to watchlist functionality
-//                   },
-//                 ),
-//               ],
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-  
-//   Widget _buildMediaSection({
-//     required String title,
-//     required String sectionKey,
-//     required AsyncValue<List<Movie>?> mediaAsync,
-//     required String mediaType,
-//   }) {
-//     final sectionIndex = _visibleSections.indexOf(sectionKey);
-//     final upSection = sectionIndex > 0 ? _visibleSections[sectionIndex - 1] : null;
-//     final downSection = sectionIndex < _visibleSections.length - 1
-//         ? _visibleSections[sectionIndex + 1]
-//         : null;
-        
-//     return mediaAsync.when(
-//       data: (movies) {
-//         if (movies == null || movies.isEmpty) {
-//           return const SizedBox.shrink();
-//         }
-        
-//         // Create focus nodes for each item if not already created
-//         if (_itemFocusNodes[sectionKey]!.length != movies.length) {
-//           _itemFocusNodes[sectionKey] = List.generate(
-//             movies.length, 
-//             (i) => FocusNode(debugLabel: '$sectionKey-item-$i')
-//           );
-//         }
-        
-//         return Column(
-//           crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-//             Padding(
-//               padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
-//               child: Text(
-//                 title,
-//                 style: const TextStyle(
-//                   color: Colors.white,
-//                   fontSize: 20,
-//                   fontWeight: FontWeight.bold,
-//                 ),
-//               ),
-//             ),
-//             SizedBox(
-//               height: 200,
-//               child: ListView.builder(
-//                 key: PageStorageKey('$sectionKey-list'),
-//                 scrollDirection: Axis.horizontal,
-//                 padding: const EdgeInsets.only(left: 24),
-//                 itemCount: movies.length,
-//                 itemBuilder: (context, index) {
-//                   final movie = movies[index];
-//                   final focusNode = _itemFocusNodes[sectionKey]![index];
-                  
-//                   // Set up directional focus handling
-//                   focusNode.onKeyEvent = (node, event) {
-//                     if (event is RawKeyDownEvent) {
-//                       if (event.logicalKey == LogicalKeyboardKey.arrowUp && upSection != null) {
-//                         // Try to find an appropriate node in the section above
-//                         if (_itemFocusNodes[upSection]!.isNotEmpty) {
-//                           final upIndex = index < _itemFocusNodes[upSection]!.length 
-//                               ? index 
-//                               : _itemFocusNodes[upSection]!.length - 1;
-//                           _itemFocusNodes[upSection]![upIndex].requestFocus();
-//                           return KeyEventResult.handled;
-//                         }
-//                       } else if (event.logicalKey == LogicalKeyboardKey.arrowDown && downSection != null) {
-//                         // Try to find an appropriate node in the section below
-//                         if (_itemFocusNodes[downSection]!.isNotEmpty) {
-//                           final downIndex = index < _itemFocusNodes[downSection]!.length 
-//                               ? index 
-//                               : _itemFocusNodes[downSection]!.length - 1;
-//                           _itemFocusNodes[downSection]![downIndex].requestFocus();
-//                           return KeyEventResult.handled;
-//                         }
-//                       }
-//                     }
-//                     return KeyEventResult.ignored;
-//                   };
-                  
-//                   return Padding(
-//                     padding: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
-//                     child: Focus(
-//                       focusNode: focusNode,
-//                       onFocusChange: (hasFocus) {
-//                         if (hasFocus) {
-//                           _updateFeaturedContent(movie);
-//                         }
-//                       },
-//                       child: Builder(
-//                         builder: (context) {
-//                           final isFocused = Focus.of(context).hasFocus;
-                          
-//                           return GestureDetector(
-//                             onTap: () => _navigateToMovieDetails(movie, mediaType),
-//                             child: AnimatedContainer(
-//                               duration: const Duration(milliseconds: 200),
-//                               width: 130,
-//                               height: 180,
-//                               margin: EdgeInsets.only(
-//                                 top: isFocused ? 0 : 10,
-//                                 bottom: isFocused ? 10 : 0,
-//                               ),
-//                               decoration: BoxDecoration(
-//                                 borderRadius: BorderRadius.circular(8),
-//                                 boxShadow: isFocused
-//                                     ? [
-//                                         BoxShadow(
-//                                           color: Colors.amber.withOpacity(0.6),
-//                                           spreadRadius: 2,
-//                                           blurRadius: 8,
-//                                         )
-//                                       ]
-//                                     : [],
-//                                 border: isFocused
-//                                     ? Border.all(color: Colors.amber, width: 3)
-//                                     : null,
-//                                 image: DecorationImage(
-//                                   image: NetworkImage( ''),
-//                                   fit: BoxFit.cover,
-//                                 ),
-//                               ),
-//                             ),
-//                           );
-//                         },
-//                       ),
-//                     ),
-//                   );
-//                 },
-//               ),
-//             ),
-//           ],
-//         );
-//       },
-//       loading: () => _buildLoadingSection(title),
-//       error: (error, stack) => Padding(
-//         padding: const EdgeInsets.all(24.0),
-//         child: Center(
-//           child: Text(
-//             'Failed to load $title: $error',
-//             style: const TextStyle(color: Colors.white70),
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-  
-//   Widget _buildContinueWatchingSection(AsyncValue continueWatchingState, String selectedFilter) {
-//     final sectionKey = 'continueWatching';
-//     final sectionIndex = _visibleSections.indexOf(sectionKey);
-//     final downSection = sectionIndex < _visibleSections.length - 1
-//         ? _visibleSections[sectionIndex + 1]
-//         : null;
-    
-//     return continueWatchingState.when(
-//       data: (watchHistoryItems) {
-//         if (watchHistoryItems == null || watchHistoryItems.isEmpty) {
-//           return const SizedBox.shrink();
-//         }
-        
-//         // Create focus nodes for each item if not already created
-//         if (_itemFocusNodes[sectionKey]!.length != watchHistoryItems.length) {
-//           _itemFocusNodes[sectionKey] = List.generate(
-//             watchHistoryItems.length, 
-//             (i) => FocusNode(debugLabel: '$sectionKey-item-$i')
-//           );
-//         }
-        
-//         return Column(
-//           crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-//             const Padding(
-//               padding: EdgeInsets.fromLTRB(24, 16, 24, 8),
-//               child: Text(
-//                 'Continue Watching',
-//                 style: TextStyle(
-//                   color: Colors.white,
-//                   fontSize: 20,
-//                   fontWeight: FontWeight.bold,
-//                 ),
-//               ),
-//             ),
-//             SizedBox(
-//               height: 200,
-//               child: ListView.builder(
-//                 key: PageStorageKey('continue-watching-list'),
-//                 scrollDirection: Axis.horizontal,
-//                 padding: const EdgeInsets.only(left: 24),
-//                 itemCount: watchHistoryItems.length,
-//                 itemBuilder: (context, index) {
-//                   final item = watchHistoryItems[index];
-//                   final focusNode = _itemFocusNodes[sectionKey]![index];
-//                   final progress = item.playbackPosition / item.duration;
-//                   final movie = item.movieDetail;
-                  
-//                   // Set up directional focus handling
-//                   focusNode.onKeyEvent = (node, event) {
-//                     if (event is RawKeyDownEvent) {
-//                       if (event.logicalKey == LogicalKeyboardKey.arrowDown && downSection != null) {
-//                         // Try to find an appropriate node in the section below
-//                         if (_itemFocusNodes[downSection]!.isNotEmpty) {
-//                           final downIndex = index < _itemFocusNodes[downSection]!.length 
-//                               ? index 
-//                               : _itemFocusNodes[downSection]!.length - 1;
-//                           _itemFocusNodes[downSection]![downIndex].requestFocus();
-//                           return KeyEventResult.handled;
-//                         }
-//                       }
-//                     }
-//                     return KeyEventResult.ignored;
-//                   };
-                  
-//                   return Padding(
-//                     padding: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
-//                     child: Focus(
-//                       focusNode: focusNode,
-//                       onFocusChange: (hasFocus) {
-//                         if (hasFocus) {
-//                           _updateFeaturedContent(movie);
-//                         }
-//                       },
-//                       child: Builder(
-//                         builder: (context) {
-//                           final isFocused = Focus.of(context).hasFocus;
-                          
-//                           return GestureDetector(
-//                             onTap: () => _navigateToMovieDetails(movie, item.contentType),
-//                             child: AnimatedContainer(
-//                               duration: const Duration(milliseconds: 200),
-//                               width: 200,
-//                               height: 180,
-//                               margin: EdgeInsets.only(
-//                                 top: isFocused ? 0 : 10,
-//                                 bottom: isFocused ? 10 : 0,
-//                               ),
-//                               decoration: BoxDecoration(
-//                                 borderRadius: BorderRadius.circular(8),
-//                                 boxShadow: isFocused
-//                                     ? [
-//                                         BoxShadow(
-//                                           color: Colors.amber.withOpacity(0.6),
-//                                           spreadRadius: 2,
-//                                           blurRadius: 8,
-//                                         )
-//                                       ]
-//                                     : [],
-//                                 border: isFocused
-//                                     ? Border.all(color: Colors.amber, width: 3)
-//                                     : null,
-//                                 image: DecorationImage(
-//                                   image: NetworkImage(movie.posterPath ?? ''),
-//                                   fit: BoxFit.cover,
-//                                 ),
-//                               ),
-//                               child: Column(
-//                                 mainAxisAlignment: MainAxisAlignment.end,
-//                                 crossAxisAlignment: CrossAxisAlignment.start,
-//                                 children: [
-//                                   Container(
-//                                     decoration: BoxDecoration(
-//                                       gradient: LinearGradient(
-//                                         begin: Alignment.topCenter,
-//                                         end: Alignment.bottomCenter,
-//                                         colors: [
-//                                           Colors.transparent,
-//                                           Colors.black.withOpacity(0.7),
-//                                         ],
-//                                       ),
-//                                     ),
-//                                     padding: const EdgeInsets.all(8),
-//                                     child: Column(
-//                                       crossAxisAlignment: CrossAxisAlignment.start,
-//                                       children: [
-//                                         Text(
-//                                           movie.title ?? 'Unknown',
-//                                           style: const TextStyle(
-//                                             color: Colors.white,
-//                                             fontWeight: FontWeight.bold,
-//                                           ),
-//                                           maxLines: 1,
-//                                           overflow: TextOverflow.ellipsis,
-//                                         ),
-//                                         const SizedBox(height: 4),
-//                                         // Progress indicator
-//                                         LinearProgressIndicator(
-//                                           value: progress,
-//                                           backgroundColor: Colors.grey[800],
-//                                           valueColor: const AlwaysStoppedAnimation<Color>(Colors.amber),
-//                                         ),
-//                                         const SizedBox(height: 4),
-//                                         Text(
-//                                           '${_formatDuration(item.playbackPosition)} / ${_formatDuration(item.duration)}',
-//                                           style: const TextStyle(
-//                                             color: Colors.white70,
-//                                             fontSize: 12,
-//                                           ),
-//                                         ),
-//                                       ],
-//                                     ),
-//                                   ),
-//                                 ],
-//                               ),
-//                             ),
-//                           );
-//                         },
-//                       ),
-//                     ),
-//                   );
-//                 },
-//               ),
-//             ),
-//           ],
-//         );
-//       },
-//       loading: () => _buildLoadingSection('Continue Watching'),
-//       error: (error, stack) => Padding(
-//         padding: const EdgeInsets.all(24.0),
-//         child: Center(
-//           child: Text(
-//             'Failed to load continue watching: $error',
-//             style: const TextStyle(color: Colors.white70),
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-  
-//   Widget _buildFavoritesSection(String selectedFilter, String mediaType) {
-//     final sectionKey = 'favorites';
-//     final sectionIndex = _visibleSections.indexOf(sectionKey);
-//     final upSection = sectionIndex > 0 ? _visibleSections[sectionIndex - 1] : null;
-    
-//     // Check if the user has favorites of this content type
-//     final hasFavoritesAsync = ref.watch(hasFavoritesForContentTypeProvider(selectedFilter));
-    
-//     return hasFavoritesAsync.when(
-//       data: (hasFavorites) {
-//         if (!hasFavorites) {
-//           return const SizedBox.shrink();
-//         }
-        
-//         // Fetch the filtered favorites
-//         final filteredFavoritesAsync = ref.watch(filteredFavoritesProvider(selectedFilter));
-        
-//         return filteredFavoritesAsync.when(
-//           data: (favoriteDetails) {
-//             if (favoriteDetails.isEmpty) {
-//               return const SizedBox.shrink();
-//             }
-            
-//             // Create focus nodes for each item if not already created
-//             if (_itemFocusNodes[sectionKey]!.length != favoriteDetails.length) {
-//               _itemFocusNodes[sectionKey] = List.generate(
-//                 favoriteDetails.length, 
-//                 (i) => FocusNode(debugLabel: '$sectionKey-item-$i')
-//               );
-//             }
-            
-//             return Column(
-//               crossAxisAlignment: CrossAxisAlignment.start,
-//               children: [
-//                 const Padding(
-//                   padding: EdgeInsets.fromLTRB(24, 16, 24, 8),
-//                   child: Text(
-//                     'My Watchlist',
-//                     style: TextStyle(
-//                       color: Colors.white,
-//                       fontSize: 20,
-//                       fontWeight: FontWeight.bold,
-//                     ),
-//                   ),
-//                 ),
-//                 SizedBox(
-//                   height: 200,
-//                   child: ListView.builder(
-//                     key: PageStorageKey('favorites-list'),
-//                     scrollDirection: Axis.horizontal,
-//                     padding: const EdgeInsets.only(left: 24),
-//                     itemCount: favoriteDetails.length,
-//                     itemBuilder: (context, index) {
-//                       final item = favoriteDetails[index];
-//                       final favorite = item['favorite'];
-//                       final movie = item['movieDetail'];
-//                       final focusNode = _itemFocusNodes[sectionKey]![index];
-                      
-//                       // Set up directional focus handling
-//                       focusNode.onKeyEvent = (node, event) {
-//                         if (event is RawKeyDownEvent) {
-//                           if (event.logicalKey == LogicalKeyboardKey.arrowUp && upSection != null) {
-//                             // Try to find an appropriate node in the section above
-//                             if (_itemFocusNodes[upSection]!.isNotEmpty) {
-//                               final upIndex = index < _itemFocusNodes[upSection]!.length 
-//                                   ? index 
-//                                   : _itemFocusNodes[upSection]!.length - 1;
-//                               _itemFocusNodes[upSection]![upIndex].requestFocus();
-//                               return KeyEventResult.handled;
-//                             }
-//                           }
-//                         }
-//                         return KeyEventResult.ignored;
-//                       };
-                      
-//                       return Padding(
-//                         padding: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
-//                         child: Focus(
-//                           focusNode: focusNode,
-//                           onFocusChange: (hasFocus) {
-//                             if (hasFocus) {
-//                               _updateFeaturedContent(movie);
-//                             }
-//                           },
-//                           child: Builder(
-//                             builder: (context) {
-//                               final isFocused = Focus.of(context).hasFocus;
-                              
-//                               return GestureDetector(
-//                                 onTap: () => _navigateToMovieDetails(movie, favorite.contentType),
-//                                 child: AnimatedContainer(
-//                                   duration: const Duration(milliseconds: 200),
-//                                   width: 130,
-//                                   height: 180,
-//                                   margin: EdgeInsets.only(
-//                                     top: isFocused ? 0 : 10,
-//                                     bottom: isFocused ? 10 : 0,
-//                                   ),
-//                                   decoration: BoxDecoration(
-//                                     borderRadius: BorderRadius.circular(8),
-//                                     boxShadow: isFocused
-//                                         ? [
-//                                             BoxShadow(
-//                                               color: Colors.amber.withOpacity(0.6),
-//                                               spreadRadius: 2,
-//                                               blurRadius: 8,
-//                                             )
-//                                           ]
-//                                         : [],
-//                                     border: isFocused
-//                                         ? Border.all(color: Colors.amber, width: 3)
-//                                         : null,
-//                                     image: DecorationImage(
-//                                       image: NetworkImage(movie.posterPath ?? ''),
-//                                       fit: BoxFit.cover,
-//                                     ),
-//                                   ),
-//                                 ),
-//                               );
-//                             },
-//                           ),
-//                         ),
-//                       );
-//                     },
-//                   ),
-//                 ),
-//               ],
-//             );
-//           },
-//           loading: () => _buildLoadingSection('My Watchlist'),
-//           error: (error, stack) => Padding(
-//             padding: const EdgeInsets.all(24.0),
-//             child: Center(
-//               child: Text(
-//                 'Failed to load watchlist: $error',
-//                 style: const TextStyle(color: Colors.white70),
-//               ),
-//             ),
-//           ),
-//         );
-//       },
-//       loading: () => const SizedBox.shrink(),
-//       error: (_, __) => const SizedBox.shrink(),
-//     );
-//   }
-  
-//   Widget _buildLoadingSection(String title) {
-//     return Column(
-//       crossAxisAlignment: CrossAxisAlignment.start,
-//       children: [
-//         Padding(
-//           padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
-//           child: Text(
-//             title,
-//             style: const TextStyle(
-//               color: Colors.white,
-//               fontSize: 20,
-//               fontWeight: FontWeight.bold,
-//             ),
-//           ),
-//         ),
-//         SizedBox(
-//           height: 200,
-//           child: ListView.builder(
-//             scrollDirection: Axis.horizontal,
-//             padding: const EdgeInsets.only(left: 24),
-//             itemCount: 5,
-//             itemBuilder: (context, index) {
-//               return const Padding(
-//                 padding: EdgeInsets.only(right: 16),
-//                 child: SkeletonLoader(width: 130, height: 180),
-//               );
-//             },
-//           ),
-//         ),
-//       ],
-//     );
-//   }
-  
-//   void _navigateToMovieDetails(dynamic movie, String mediaType) {
-//     Navigator.push(
-//       context,
-//       MaterialPageRoute(
-//         builder: (context) => MovieDetailPage(
-//           movieId: movie.id,
-//           mediaType: mediaType,
-//           userId: userId,
-//         ),
-//       ),
-//     );
-//   }
-  
-//   // Helper method to format duration in MM:SS format
-//   String _formatDuration(int seconds) {
-//     final minutes = seconds ~/ 60;
-//     final remainingSeconds = seconds % 60;
-//     return '$minutes:${remainingSeconds.toString().padLeft(2, '0')}';
-//   }
-// }
-
-// // Simple skeleton loader for TV UI
-// class SkeletonLoader extends StatelessWidget {
-//   final double width;
-//   final double height;
-  
-//   const SkeletonLoader({
-//     Key? key,
-//     this.width = 130,
-//     this.height = 180,
-//   }) : super(key: key);
-  
-//   @override
-//   Widget build(BuildContext context) {
-//     return Container(
-//       width: width,
-//       height: height,
-//       decoration: BoxDecoration(
-//         color: Colors.grey[800],
-//         borderRadius: BorderRadius.circular(8),
-//       ),
-//     );
-//   }
-// }
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nandiott_flutter/app/widgets/custombottombar.dart';
 import 'package:nandiott_flutter/features/home/tvhome/featured_carsoule_widget.dart';
 import 'package:nandiott_flutter/features/home/tvhome/prime_row.dart';
 import 'package:nandiott_flutter/features/home/tvhome/tvfilter_selector_widget.dart';
@@ -920,7 +20,7 @@ class PrimeTVHomePage extends ConsumerStatefulWidget {
   final VoidCallback? onLeftEdgeFocus;
   final VoidCallback? onRightEdgeFocus;
   final VoidCallback? onContentFocus;
-  
+
   const PrimeTVHomePage({
     Key? key,
     this.onLeftEdgeFocus,
@@ -935,34 +35,66 @@ class PrimeTVHomePage extends ConsumerStatefulWidget {
 class _PrimeTVHomePageState extends ConsumerState<PrimeTVHomePage> {
   // Main focus node for the entire page
   final _pageFocusNode = FocusNode();
-  
+
+  final ScrollController _mainScrollController = ScrollController();
+
   // Individual section focus nodes
   final Map<String, FocusNode> _sectionFocusNodes = {};
-  
+
   // Current active section
   String _activeSection = 'featured';
-  
+
   // Controls if the featured section is expanded (full-screen) or compact
   bool _featuredExpanded = true;
-  
+
   // User ID for API calls
   String _userId = '';
-  
+
   // Background image for the focused content
   String _backgroundImage = '';
-  
+
   @override
   void initState() {
     super.initState();
-    
-    // Initialize focus nodes
+    void _setupFocusLogging(String name, FocusNode node) {
+      node.addListener(() {
+        if (node.hasFocus) {
+          print("FOCUS: $name has received focus");
+        } else {
+          print("FOCUS: $name has lost focus");
+        }
+      });
+    }
+
+    // // Initialize focus nodes
+    // _sectionFocusNodes['filter'] = FocusNode(debugLabel: 'filter_section');
+    // _sectionFocusNodes['featured'] = FocusNode(debugLabel: 'featured_section');
+    // _sectionFocusNodes['continueWatching'] = FocusNode(debugLabel: 'continue_section');
+    // _sectionFocusNodes['newReleases'] = FocusNode(debugLabel: 'new_releases_section');
+    // _sectionFocusNodes['freeToWatch'] = FocusNode(debugLabel: 'free_section');
+    // _sectionFocusNodes['favorites'] = FocusNode(debugLabel: 'favorites_section');
     _sectionFocusNodes['filter'] = FocusNode(debugLabel: 'filter_section');
+    _setupFocusLogging('filter', _sectionFocusNodes['filter']!);
+
     _sectionFocusNodes['featured'] = FocusNode(debugLabel: 'featured_section');
-    _sectionFocusNodes['continueWatching'] = FocusNode(debugLabel: 'continue_section');
-    _sectionFocusNodes['newReleases'] = FocusNode(debugLabel: 'new_releases_section');
+    _setupFocusLogging('featured', _sectionFocusNodes['featured']!);
+
+    _sectionFocusNodes['continueWatching'] =
+        FocusNode(debugLabel: 'continue_section');
+    _setupFocusLogging(
+        'continueWatching', _sectionFocusNodes['continueWatching']!);
+
+    _sectionFocusNodes['newReleases'] =
+        FocusNode(debugLabel: 'new_releases_section');
+    _setupFocusLogging('newReleases', _sectionFocusNodes['newReleases']!);
+
     _sectionFocusNodes['freeToWatch'] = FocusNode(debugLabel: 'free_section');
-    _sectionFocusNodes['favorites'] = FocusNode(debugLabel: 'favorites_section');
-    
+    _setupFocusLogging('freeToWatch', _sectionFocusNodes['freeToWatch']!);
+
+    _sectionFocusNodes['favorites'] =
+        FocusNode(debugLabel: 'favorites_section');
+    _setupFocusLogging('favorites', _sectionFocusNodes['favorites']!);
+
     // Set up focus listeners
     for (final entry in _sectionFocusNodes.entries) {
       entry.value.addListener(() {
@@ -971,18 +103,18 @@ class _PrimeTVHomePageState extends ConsumerState<PrimeTVHomePage> {
         }
       });
     }
-    
+
     // Set initial focus to featured section
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _sectionFocusNodes['featured']?.requestFocus();
     });
   }
-  
+
   void _updateActiveSection(String section) {
     if (_activeSection != section) {
       setState(() {
         _activeSection = section;
-        
+
         // Collapse featured section when focus moves to content rows
         if (section != 'featured' && section != 'filter') {
           _featuredExpanded = false;
@@ -990,17 +122,17 @@ class _PrimeTVHomePageState extends ConsumerState<PrimeTVHomePage> {
           _featuredExpanded = true;
         }
       });
-      
+
       // Update the global focused section
       ref.read(focusedSectionProvider.notifier).state = section;
-      
+
       // Clear expanded card data when moving between major sections
       if (section == 'filter' || section == 'featured') {
         ref.read(expandedCardProvider.notifier).state = {};
       }
     }
   }
-  
+
   void _updateBackgroundImage(String imageUrl) {
     if (_backgroundImage != imageUrl) {
       setState(() {
@@ -1018,19 +150,27 @@ class _PrimeTVHomePageState extends ConsumerState<PrimeTVHomePage> {
     _pageFocusNode.dispose();
     super.dispose();
   }
-  
+
   String _getApiMediaType(String filter) {
     switch (filter) {
-      case 'Movies': return 'movie';
-      case 'Series': return 'tvseries';
-      case 'Short Film': return 'shortfilm';
-      case 'Documentary': return 'documentary';
-      case 'Music': return 'videosong';
-      default: return 'movie';
+      case 'Movies':
+        return 'movie';
+      case 'Series':
+        return 'tvseries';
+      case 'Short Film':
+        return 'shortfilm';
+      case 'Documentary':
+        return 'documentary';
+      case 'Music':
+        return 'videosong';
+      default:
+        return 'movie';
     }
   }
-  
-  bool _isSectionVisible(AsyncValue<Map<String, dynamic>?> sectionVisibilityAsync, String sectionKey) {
+
+  bool _isSectionVisible(
+      AsyncValue<Map<String, dynamic>?> sectionVisibilityAsync,
+      String sectionKey) {
     return sectionVisibilityAsync.when(
       data: (visibilityMap) {
         if (visibilityMap == null) return false;
@@ -1041,29 +181,68 @@ class _PrimeTVHomePageState extends ConsumerState<PrimeTVHomePage> {
     );
   }
 
+  void _handleKeyEvents(RawKeyEvent event, String section) {
+    if (event is RawKeyDownEvent) {
+      if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+        // Check if we're at the leftmost item
+        bool isAtLeftEdge = false;
+        
+        if (section == 'filter') {
+          // For filter, always consider it at left edge
+          isAtLeftEdge = true;
+        } 
+        else if (section == 'featured') {
+          // For featured, check if we're at the first card
+          // final featuredProvider = ref.read(featuredMediaProvider(ref.read(selectedFilterProvider)));
+          final featuredIndex = 0;
+          
+          // If we're at the first item, consider it at left edge
+          if (featuredIndex == 0) {
+            isAtLeftEdge = true;
+          }
+        }
+        else {
+          // For other content rows, check if we're at the first item
+          final expandedCard = ref.read(expandedCardProvider);
+          if (expandedCard.isEmpty || expandedCard['index'] == 0) {
+            isAtLeftEdge = true;
+          }
+        }
+        
+        // If we're at the left edge, signal to navigate to the menu
+        if (isAtLeftEdge) {
+          if (widget.onLeftEdgeFocus != null) {
+            widget.onLeftEdgeFocus!();
+          }
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Screen dimensions
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    
+
     // Get the selected filter from Riverpod
     final selectedFilter = ref.watch(selectedFilterProvider);
     final mediaType = _getApiMediaType(selectedFilter);
-    
+
     // Get section visibility settings
-    final sectionVisibilityAsync = ref.watch(homeSectionVisibilityProvider(selectedFilter));
-    
+    final sectionVisibilityAsync =
+        ref.watch(homeSectionVisibilityProvider(selectedFilter));
+
     // Media data providers
     final latestMediaAsync = ref.watch(latestMediaProvider(selectedFilter));
     final freeMediaAsync = ref.watch(freeMediaProvider(selectedFilter));
-    
+
     // User data for continue watching
     final userAsyncValue = ref.watch(authUserProvider);
-    
+
     // Get the currently expanded card data (if any)
     final expandedCard = ref.watch(expandedCardProvider);
-    
+
     // Build list of visible sections - only include sections that should be visible based on API response
     final List<String> visibleSections = [];
     final sectionVisibility = sectionVisibilityAsync.when(
@@ -1071,45 +250,51 @@ class _PrimeTVHomePageState extends ConsumerState<PrimeTVHomePage> {
       loading: () => <String, dynamic>{},
       error: (_, __) => <String, dynamic>{},
     );
-    
+
     // Check if history section is visible and user is logged in
     final isUserLoggedIn = userAsyncValue.whenOrNull(
-      data: (user) => user != null,
-    ) ?? false;
-    
+          data: (user) => user != null,
+        ) ??
+        false;
+
     if (isUserLoggedIn && (sectionVisibility['isHistoryVisible'] ?? false)) {
       visibleSections.add('continueWatching');
     }
-    
+
     // Check other sections
     if (sectionVisibility['isLatestVisible'] ?? false) {
       visibleSections.add('newReleases');
     }
-    
+
     // Check if free media is available and visible
     final hasFreeContent = freeMediaAsync.whenOrNull(
-      data: (items) => items != null && items.isNotEmpty,
-    ) ?? false;
-    
+          data: (items) => items != null && items.isNotEmpty,
+        ) ??
+        false;
+
     if (hasFreeContent) {
       visibleSections.add('freeToWatch');
     }
-    
+
     // Check if favorites section is visible
     if (isUserLoggedIn && (sectionVisibility['isFavoritesVisible'] ?? false)) {
-      final hasFavorites = ref.watch(hasFavoritesForContentTypeProvider(selectedFilter)).whenOrNull(
-        data: (hasItems) => hasItems,
-      ) ?? false;
-      
+      final hasFavorites = ref
+              .watch(hasFavoritesForContentTypeProvider(selectedFilter))
+              .whenOrNull(
+                data: (hasItems) => hasItems,
+              ) ??
+          false;
+
       if (hasFavorites) {
         visibleSections.add('favorites');
       }
     }
-    
+
     // Initialize section focus nodes for the available sections
     for (final section in ['filter', 'featured', ...visibleSections]) {
       if (!_sectionFocusNodes.containsKey(section)) {
-        _sectionFocusNodes[section] = FocusNode(debugLabel: '${section}_section');
+        _sectionFocusNodes[section] =
+            FocusNode(debugLabel: '${section}_section');
         _sectionFocusNodes[section]!.addListener(() {
           if (_sectionFocusNodes[section]!.hasFocus && mounted) {
             _updateActiveSection(section);
@@ -1117,7 +302,7 @@ class _PrimeTVHomePageState extends ConsumerState<PrimeTVHomePage> {
         });
       }
     }
-    
+
     // Get continue watching data - only if user is logged in and section is visible
     final continueWatchingState = userAsyncValue.when(
       data: (user) {
@@ -1127,246 +312,353 @@ class _PrimeTVHomePageState extends ConsumerState<PrimeTVHomePage> {
           });
           return ref.watch(filteredContinueWatchingProvider(selectedFilter));
         } else {
-          return AsyncValue.data([]);
+          return const AsyncValue.data([]);
         }
       },
       loading: () => AsyncValue.loading(),
       error: (error, stack) => AsyncValue.error(error, stack),
     );
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          // Dynamic background that changes based on focused content
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 500),
-            child: Container(
-              key: ValueKey<String>(_backgroundImage),
-              width: screenWidth,
-              height: screenHeight,
-              decoration: BoxDecoration(
-                image: _backgroundImage.isNotEmpty
-                    ? DecorationImage(
-                        image: NetworkImage(_backgroundImage),
-                        fit: BoxFit.cover,
-                        opacity: 0.4,
-                      )
-                    : null,
-                color: Colors.black,
-              ),
+    return RawKeyboardListener(
+      focusNode: _pageFocusNode,
+      onKey: (RawKeyEvent event) {
+        // Only handle key down events
+        if (event is RawKeyDownEvent) {
+          // Check if left arrow was pressed
+          if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+            // Check which section is active
+            if (_activeSection == 'filter' || 
+                _activeSection == 'featured' || 
+                expandedCard.isNotEmpty && (expandedCard['index'] == 0)) {
+              
+              // If we're at the left edge, call the callback
+              if (widget.onLeftEdgeFocus != null) {
+                widget.onLeftEdgeFocus!();
+              }
+            }
+          }
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: Stack(
+          children: [
+            // Dynamic background that changes based on focused content
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 500),
               child: Container(
+                key: ValueKey<String>(_backgroundImage),
+                width: screenWidth,
+                height: screenHeight,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withOpacity(0.7),
-                      Colors.black,
-                    ],
-                    stops: const [0.0, 0.5, 0.8],
+                  image: _backgroundImage.isNotEmpty
+                      ? DecorationImage(
+                          image: NetworkImage(_backgroundImage),
+                          fit: BoxFit.cover,
+                          opacity: 0.4,
+                        )
+                      : null,
+                  color: Colors.black,
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withOpacity(0.7),
+                        Colors.black,
+                      ],
+                      stops: const [0.0, 0.5, 0.8],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          
-          // Main content
-          Focus(
-            focusNode: _pageFocusNode,
-            onKey: (FocusNode node, RawKeyEvent event) {
-              if (event is RawKeyDownEvent) {
-                // Global keyboard navigation between sections
-                if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
-                  _handleVerticalNavigation(true); // Move up
-                  return KeyEventResult.handled;
-                } else if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-                  _handleVerticalNavigation(false); // Move down
-                  return KeyEventResult.handled;
+      
+            // Main content
+            FocusScope(
+      onFocusChange: (hasFocus) {
+        if (!hasFocus && mounted) {
+      // final isNavFocus = ref.read(navigationIsFocusedProvider);
+      // if (isNavFocus) {
+      //   debugPrint("Home lost focus but navigation has it. Skipping reclaim.");
+      //   return;
+      // }
+      
+      // Avoid reclaiming focus if some other component has taken over
+      final newFocus = FocusManager.instance.primaryFocus;
+      if (newFocus != null &&
+          newFocus.debugLabel != null &&
+          newFocus.debugLabel!.contains('navigation')) {
+        return;
+      }
+      
+      // Reclaim focus only if no other valid component owns it
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_sectionFocusNodes[_activeSection]?.canRequestFocus ?? false) {
+          _sectionFocusNodes[_activeSection]!.requestFocus();
+        }
+      });
+        }
+      },
+      
+      
+              onKey: (FocusNode node, RawKeyEvent event) {
+                if (event is RawKeyDownEvent) {
+                  // Global keyboard navigation between sections
+                  if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+                    _handleVerticalNavigation(true); // Move up
+                    return KeyEventResult.handled;
+                  } else if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+                    _handleVerticalNavigation(false); // Move down
+                    return KeyEventResult.handled;
+                  }
                 }
-              }
-              return KeyEventResult.ignored;
-            },
-            child: SafeArea(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Filter bar at the top (completely hidden when not in focus or near focus)
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    height: _activeSection == 'filter' || _activeSection == 'featured' ? 70 : 0,
-                    child: AnimatedOpacity(
-                      duration: const Duration(milliseconds: 200),
-                      opacity: _activeSection == 'filter' || _activeSection == 'featured' ? 1.0 : 0.0,
-                      child: Focus(
-                        focusNode: _sectionFocusNodes['filter']!,
-                        child: PrimeFilterBar(
-                          onFilterSelected: (filter) {
-                            ref.read(selectedFilterProvider.notifier).state = filter;
-                          },
-                          hasFocus: _activeSection == 'filter',
-                        ),
-                      ),
-                    ),
-                  ),
-                  
-                  // Featured section (expands/collapses based on focus)
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 400),
-                    curve: Curves.easeInOutCubic,
-                    height: _featuredExpanded ? screenHeight * 0.6 : screenHeight * 0.25,
-                    child: Focus(
-                      focusNode: _sectionFocusNodes['featured']!,
-                      child: PrimeFeaturedSection(
-                        filter: selectedFilter,
-                        hasFocus: _activeSection == 'featured',
-                        isExpanded: _featuredExpanded,
-                        onBackgroundImageChanged: _updateBackgroundImage,
-                      ),
-                    ),
-                  ),
-                  
-                  // Small spacer to create separation between featured and content rows
-                  SizedBox(height: 10),
-                  
-                  // Content rows
-                  Expanded(
-                    child: visibleSections.isEmpty
-                      ? Center(
-                          child: Text(
-                            'No content available for this category',
-                            style: TextStyle(color: Colors.white70, fontSize: 16),
+                return KeyEventResult.ignored;
+              },
+              child: SafeArea(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Filter bar at the top with improved animations
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      height: _activeSection == 'filter' ||
+                              _activeSection == 'featured'
+                          ? 70
+                          : 0,
+                      child: AnimatedOpacity(
+                        duration: const Duration(milliseconds: 200),
+                        opacity: _activeSection == 'filter' ||
+                                _activeSection == 'featured'
+                            ? 1.0
+                            : 0.0,
+                        child: Focus(
+                          focusNode: _sectionFocusNodes['filter']!,
+                          child: PrimeFilterBar(
+                            onFilterSelected: (filter) {
+                              ref.read(selectedFilterProvider.notifier).state =
+                                  filter;
+                            },
+                            hasFocus: _activeSection == 'filter',
+                            onLeftEdgeFocus: () {
+                              if (widget.onLeftEdgeFocus != null) {
+                                widget.onLeftEdgeFocus!();
+                              }
+                            },
                           ),
-                        )
-                      : ListView.builder(
-                          padding: EdgeInsets.zero,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: visibleSections.length,
-                          itemBuilder: (context, index) {
-                            final section = visibleSections[index];
-                            
-                            // Build the appropriate row based on section type
-                            switch (section) {
-                              case 'continueWatching':
-                                return Focus(
-                                  focusNode: _sectionFocusNodes['continueWatching']!,
-                                  child: PrimeContentRow(
-                                    title: 'Continue Watching',
-                                    mediaAsync: continueWatchingState,
-                                    rowType: 'history',
-                                    mediaType: mediaType,
-                                    hasFocus: _activeSection == 'continueWatching',
-                                    userId: _userId,
-                                    onBackgroundImageChanged: _updateBackgroundImage,
-                                    onLeftEdgeFocus: () {
-                                      if (widget.onLeftEdgeFocus != null) widget.onLeftEdgeFocus!();
-                                    },
-                                    onRightEdgeFocus: () {
-                                      if (widget.onRightEdgeFocus != null) widget.onRightEdgeFocus!();
-                                    },
-                                    onContentFocus: () {
-                                      if (widget.onContentFocus != null) widget.onContentFocus!();
-                                    },
-                                  ),
-                                );
-                                
-                              case 'newReleases':
-                                return Focus(
-                                  focusNode: _sectionFocusNodes['newReleases']!,
-                                  child: PrimeContentRow(
-                                    title: 'New Releases',
-                                    mediaAsync: latestMediaAsync,
-                                    rowType: 'standard',
-                                    mediaType: mediaType,
-                                    hasFocus: _activeSection == 'newReleases',
-                                    userId: _userId,
-                                    onBackgroundImageChanged: _updateBackgroundImage,
-                                    onLeftEdgeFocus: () {
-                                      if (widget.onLeftEdgeFocus != null) widget.onLeftEdgeFocus!();
-                                    },
-                                    onRightEdgeFocus: () {
-                                      if (widget.onRightEdgeFocus != null) widget.onRightEdgeFocus!();
-                                    },
-                                    onContentFocus: () {
-                                      if (widget.onContentFocus != null) widget.onContentFocus!();
-                                    },
-                                  ),
-                                );
-                                
-                              case 'freeToWatch':
-                                return Focus(
-                                  focusNode: _sectionFocusNodes['freeToWatch']!,
-                                  child: PrimeContentRow(
-                                    title: 'Free to Watch',
-                                    mediaAsync: freeMediaAsync,
-                                    rowType: 'standard',
-                                    mediaType: mediaType,
-                                    hasFocus: _activeSection == 'freeToWatch',
-                                    userId: _userId,
-                                    onBackgroundImageChanged: _updateBackgroundImage,
-                                    onLeftEdgeFocus: () {
-                                      if (widget.onLeftEdgeFocus != null) widget.onLeftEdgeFocus!();
-                                    },
-                                    onRightEdgeFocus: () {
-                                      if (widget.onRightEdgeFocus != null) widget.onRightEdgeFocus!();
-                                    },
-                                    onContentFocus: () {
-                                      if (widget.onContentFocus != null) widget.onContentFocus!();
-                                    },
-                                  ),
-                                );
-                                
-                              case 'favorites':
-                                return Focus(
-                                  focusNode: _sectionFocusNodes['favorites']!,
-                                  child: PrimeContentRow(
-                                    title: 'My Wishlist',
-                                    mediaAsync: ref.watch(filteredFavoritesProvider(selectedFilter)),
-                                    rowType: 'favorites',
-                                    mediaType: mediaType,
-                                    hasFocus: _activeSection == 'favorites',
-                                    userId: _userId,
-                                    onBackgroundImageChanged: _updateBackgroundImage,
-                                    onLeftEdgeFocus: () {
-                                      if (widget.onLeftEdgeFocus != null) widget.onLeftEdgeFocus!();
-                                    },
-                                    onRightEdgeFocus: () {
-                                      if (widget.onRightEdgeFocus != null) widget.onRightEdgeFocus!();
-                                    },
-                                    onContentFocus: () {
-                                      if (widget.onContentFocus != null) widget.onContentFocus!();
-                                    },
-                                  ),
-                                );
-                                
-                              default:
-                                return SizedBox.shrink();
-                            }
+                        ),
+                      ),
+                    ),
+      
+                    // Featured section with improved collapse animation
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 400),
+                      curve: Curves.easeInOutCubic,
+                      height: _featuredExpanded
+                          ? screenHeight * 0.6
+                          : _activeSection == 'featured'
+                              ? screenHeight * 0.25
+                              : 0, // Hide completely when not in focus
+                      child: Focus(
+                        focusNode: _sectionFocusNodes['featured']!,
+                        child: PrimeFeaturedSection(
+                          filter: selectedFilter,
+                          hasFocus: _activeSection == 'featured',
+                          isExpanded: _featuredExpanded,
+                          onBackgroundImageChanged: _updateBackgroundImage,
+                          onLeftEdgeFocus: () {
+                            if (widget.onLeftEdgeFocus != null)
+                              widget.onLeftEdgeFocus!();
+                          },
+                          onRightEdgeFocus: () {
+                            if (widget.onRightEdgeFocus != null)
+                              widget.onRightEdgeFocus!();
+                          },
+                          onContentFocus: () {
+                            if (widget.onContentFocus != null)
+                              widget.onContentFocus!();
                           },
                         ),
-                  ),
-                ],
+                      ),
+                    ),
+      
+                    // Small spacer to create separation between featured and content rows
+                    // SizedBox(height: 10),
+      
+                    // Content rows
+                    Expanded(
+                      child: visibleSections.isEmpty
+                          ? Center(
+                              child: Text(
+                                'No content available for this category',
+                                style: TextStyle(
+                                    color: Colors.white70, fontSize: 16),
+                              ),
+                            )
+                          : ListView.builder(
+                              controller: _mainScrollController,
+                              padding: EdgeInsets
+                                  .zero, // Tighter padding for better scrolling
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              itemCount: visibleSections.length,
+                              itemBuilder: (context, index) {
+                                final section = visibleSections[index];
+      
+                                // Skip filter and featured sections in ListView
+                                if (section == 'filter' ||
+                                    section == 'featured') {
+                                  return SizedBox.shrink();
+                                }
+      
+                                // Build the appropriate row based on section type
+                                switch (section) {
+                                  case 'continueWatching':
+                                    return Focus(
+                                      focusNode:
+                                          _sectionFocusNodes['continueWatching']!,
+                                      child: PrimeContentRow(
+                                        title: 'Continue Watching',
+                                        mediaAsync: continueWatchingState
+                                            as AsyncValue<List<dynamic>>,
+                                        rowType: 'history',
+                                        mediaType: mediaType,
+                                        hasFocus:
+                                            _activeSection == 'continueWatching',
+                                        userId: _userId,
+                                        onBackgroundImageChanged:
+                                            _updateBackgroundImage,
+                                        onLeftEdgeFocus: () {
+                                          if (widget.onLeftEdgeFocus != null)
+                                            widget.onLeftEdgeFocus!();
+                                        },
+                                        onRightEdgeFocus: () {
+                                          if (widget.onRightEdgeFocus != null)
+                                            widget.onRightEdgeFocus!();
+                                        },
+                                        onContentFocus: () {
+                                          if (widget.onContentFocus != null)
+                                            widget.onContentFocus!();
+                                        },
+                                      ),
+                                    );
+      
+                                  case 'newReleases':
+                                    return Focus(
+                                      focusNode:
+                                          _sectionFocusNodes['newReleases']!,
+                                      child: PrimeContentRow(
+                                        title: 'New Releases',
+                                        mediaAsync: latestMediaAsync,
+                                        rowType: 'standard',
+                                        mediaType: mediaType,
+                                        hasFocus: _activeSection == 'newReleases',
+                                        userId: _userId,
+                                        onBackgroundImageChanged:
+                                            _updateBackgroundImage,
+                                        onLeftEdgeFocus: () {
+                                          if (widget.onLeftEdgeFocus != null)
+                                            widget.onLeftEdgeFocus!();
+                                        },
+                                        onRightEdgeFocus: () {
+                                          if (widget.onRightEdgeFocus != null)
+                                            widget.onRightEdgeFocus!();
+                                        },
+                                        onContentFocus: () {
+                                          if (widget.onContentFocus != null)
+                                            widget.onContentFocus!();
+                                        },
+                                      ),
+                                    );
+      
+                                  case 'freeToWatch':
+                                    return Focus(
+                                      focusNode:
+                                          _sectionFocusNodes['freeToWatch']!,
+                                      child: PrimeContentRow(
+                                        title: 'Free to Watch',
+                                        mediaAsync: freeMediaAsync,
+                                        rowType: 'standard',
+                                        mediaType: mediaType,
+                                        hasFocus: _activeSection == 'freeToWatch',
+                                        userId: _userId,
+                                        onBackgroundImageChanged:
+                                            _updateBackgroundImage,
+                                        onLeftEdgeFocus: () {
+                                          if (widget.onLeftEdgeFocus != null)
+                                            widget.onLeftEdgeFocus!();
+                                        },
+                                        onRightEdgeFocus: () {
+                                          if (widget.onRightEdgeFocus != null)
+                                            widget.onRightEdgeFocus!();
+                                        },
+                                        onContentFocus: () {
+                                          if (widget.onContentFocus != null)
+                                            widget.onContentFocus!();
+                                        },
+                                      ),
+                                    );
+      
+                                  case 'favorites':
+                                    return Focus(
+                                      focusNode: _sectionFocusNodes['favorites']!,
+                                      child: PrimeContentRow(
+                                        title: 'My Wishlist',
+                                        mediaAsync: ref.watch(
+                                            filteredFavoritesProvider(
+                                                selectedFilter)),
+                                        rowType: 'favorites',
+                                        mediaType: mediaType,
+                                        hasFocus: _activeSection == 'favorites',
+                                        userId: _userId,
+                                        onBackgroundImageChanged:
+                                            _updateBackgroundImage,
+                                        onLeftEdgeFocus: () {
+                                          if (widget.onLeftEdgeFocus != null)
+                                            widget.onLeftEdgeFocus!();
+                                        },
+                                        onRightEdgeFocus: () {
+                                          if (widget.onRightEdgeFocus != null)
+                                            widget.onRightEdgeFocus!();
+                                        },
+                                        onContentFocus: () {
+                                          if (widget.onContentFocus != null)
+                                            widget.onContentFocus!();
+                                        },
+                                      ),
+                                    );
+      
+                                  default:
+                                    return SizedBox.shrink();
+                                }
+                              },
+                            ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          
-          // Expanded card overlay (when a card is focused)
-          if (expandedCard.isNotEmpty)
-            _buildExpandedCardOverlay(expandedCard, context),
-        ],
+      
+            // Expanded card overlay (when a card is focused)
+            if (expandedCard.isNotEmpty)
+              _buildExpandedCardOverlay(expandedCard, context),
+          ],
+        ),
       ),
     );
   }
-  
-  Widget _buildExpandedCardOverlay(Map<String, dynamic> cardData, BuildContext context) {
+
+  Widget _buildExpandedCardOverlay(
+      Map<String, dynamic> cardData, BuildContext context) {
     final posterUrl = cardData['posterUrl'] ?? '';
     final bannerUrl = cardData['bannerUrl'] ?? '';
     final title = cardData['title'] ?? 'No Title';
     final description = cardData['description'] ?? '';
     final mediaType = cardData['mediaType'] ?? '';
     final contentId = cardData['contentId'] ?? '';
-    
+
     return Positioned(
       left: 0,
       right: 0,
@@ -1427,7 +719,7 @@ class _PrimeTVHomePageState extends ConsumerState<PrimeTVHomePage> {
                         ),
                 ),
               ),
-              
+
               // Content details
               Expanded(
                 child: Padding(
@@ -1445,23 +737,28 @@ class _PrimeTVHomePageState extends ConsumerState<PrimeTVHomePage> {
                         ),
                       ),
                       const SizedBox(height: 15),
-                      
+
                       // Content metadata
                       Row(
                         children: [
                           // Content type badge
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 3),
                             decoration: BoxDecoration(
                               color: Colors.amber,
                               borderRadius: BorderRadius.circular(5),
                             ),
                             child: Text(
-                              mediaType == 'movie' ? 'Movie'
-                                : mediaType == 'tvseries' ? 'TV Series'
-                                : mediaType == 'shortfilm' ? 'Short Film'
-                                : mediaType == 'documentary' ? 'Documentary'
-                                : 'Music',
+                              mediaType == 'movie'
+                                  ? 'Movie'
+                                  : mediaType == 'tvseries'
+                                      ? 'TV Series'
+                                      : mediaType == 'shortfilm'
+                                          ? 'Short Film'
+                                          : mediaType == 'documentary'
+                                              ? 'Documentary'
+                                              : 'Music',
                               style: const TextStyle(
                                 color: Colors.black,
                                 fontWeight: FontWeight.bold,
@@ -1469,10 +766,11 @@ class _PrimeTVHomePageState extends ConsumerState<PrimeTVHomePage> {
                             ),
                           ),
                           const SizedBox(width: 15),
-                          
+
                           // Rating if available
                           if (cardData['rating'] != null) ...[
-                            const Icon(Icons.star, color: Colors.amber, size: 20),
+                            const Icon(Icons.star,
+                                color: Colors.amber, size: 20),
                             const SizedBox(width: 5),
                             Text(
                               cardData['rating'].toString(),
@@ -1480,7 +778,7 @@ class _PrimeTVHomePageState extends ConsumerState<PrimeTVHomePage> {
                             ),
                             const SizedBox(width: 15),
                           ],
-                          
+
                           // Year if available
                           if (cardData['year'] != null)
                             Text(
@@ -1489,9 +787,9 @@ class _PrimeTVHomePageState extends ConsumerState<PrimeTVHomePage> {
                             ),
                         ],
                       ),
-                      
+
                       const SizedBox(height: 20),
-                      
+
                       // Description
                       Text(
                         description,
@@ -1502,9 +800,9 @@ class _PrimeTVHomePageState extends ConsumerState<PrimeTVHomePage> {
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      
+
                       const SizedBox(height: 25),
-                      
+
                       // Action buttons
                       Row(
                         children: [
@@ -1566,20 +864,22 @@ class _PrimeTVHomePageState extends ConsumerState<PrimeTVHomePage> {
       ),
     );
   }
-  
+
   Widget _buildFavoritesRow(String selectedFilter, String mediaType) {
     // Check if user has favorites of this content type
-    final hasFavoritesAsync = ref.watch(hasFavoritesForContentTypeProvider(selectedFilter));
-    
+    final hasFavoritesAsync =
+        ref.watch(hasFavoritesForContentTypeProvider(selectedFilter));
+
     return hasFavoritesAsync.when(
       data: (hasFavorites) {
         if (!hasFavorites) {
           return const SizedBox.shrink();
         }
-        
+
         // Get the filtered favorites
-        final filteredFavoritesAsync = ref.watch(filteredFavoritesProvider(selectedFilter));
-        
+        final filteredFavoritesAsync =
+            ref.watch(filteredFavoritesProvider(selectedFilter));
+
         return PrimeContentRow(
           title: 'My Wishlist',
           mediaAsync: filteredFavoritesAsync,
@@ -1594,78 +894,164 @@ class _PrimeTVHomePageState extends ConsumerState<PrimeTVHomePage> {
       error: (_, __) => const SizedBox.shrink(),
     );
   }
-  
+
   void _handleVerticalNavigation(bool moveUp) {
     // Only consider visible sections in navigation
-    final List<String> allSections = ['filter', 'featured', 'continueWatching', 'newReleases', 'freeToWatch', 'favorites'];
+    final List<String> allSections = [
+      'filter',
+      'featured',
+      'continueWatching',
+      'newReleases',
+      'freeToWatch',
+      'favorites'
+    ];
     final List<String> visibleSections = ['filter', 'featured'];
-    
-    // Add the currently active content sections based on what's visible in the UI
-    for (final section in allSections.skip(2)) { // Skip filter and featured
+
+    // Add visible sections
+    for (final section in allSections.skip(2)) {
       if (_sectionFocusNodes.containsKey(section)) {
         visibleSections.add(section);
       }
     }
-    
-    // Find current section index in visible sections
+
+    // Find current section index
     final currentIndex = visibleSections.indexOf(_activeSection);
     if (currentIndex == -1) return;
-    
+
+    print(
+        "Current section: $_activeSection, Index: $currentIndex, Moving up: $moveUp");
+
     if (moveUp) {
-      // Moving up in the UI
+      // Moving up logic
       if (currentIndex > 0) {
         final previousSection = visibleSections[currentIndex - 1];
-        
-        // Special handling when moving up from content rows to featured
-        if (currentIndex >= 2 && previousSection == 'featured') { // Going from content to featured
-          // Clear any expanded card data for smooth transition
+        print("Moving up to section: $previousSection");
+
+        // Special handling for moving to featured
+        if (previousSection == 'featured') {
+          // Clear expanded card data
           ref.read(expandedCardProvider.notifier).state = {};
-          
-          // Expand the featured section first
+
+          // Expand featured and update state
           setState(() {
             _featuredExpanded = true;
+            _activeSection = previousSection;
           });
-          
-          // Request focus with a slight delay to allow animations to complete
+
+          // Update provider state
+          ref.read(focusedSectionProvider.notifier).state = previousSection;
+
+          // Request focus after animation
           Future.delayed(Duration(milliseconds: 150), () {
-            if (mounted && _sectionFocusNodes[previousSection]!.canRequestFocus) {
+            if (mounted &&
+                _sectionFocusNodes[previousSection]!.canRequestFocus) {
               _sectionFocusNodes[previousSection]!.requestFocus();
+
+              // Scroll to top
+              if (_mainScrollController.hasClients) {
+                _mainScrollController.animateTo(0,
+                    duration: Duration(milliseconds: 300),
+                    curve: Curves.easeOutCubic);
+              }
             }
           });
         } else {
-          // Standard up navigation
+          // Regular upward navigation
+          setState(() {
+            _activeSection = previousSection;
+          });
+
+          // Update provider state
+          ref.read(focusedSectionProvider.notifier).state = previousSection;
+
+          // Request focus
           if (_sectionFocusNodes[previousSection]!.canRequestFocus) {
             _sectionFocusNodes[previousSection]!.requestFocus();
+          }
+
+          // IMPROVED: Only scroll when the section is above the fold
+          if (_mainScrollController.hasClients) {
+            // Calculate position based on section index
+            final sectionIndex = currentIndex - 1;
+            // Only sections after featured need scrolling
+            if (sectionIndex > 1) {
+              // The key improvement - scroll to the section ONLY, not past it
+              double offset = (sectionIndex - 2) * 300.0;
+              _mainScrollController.animateTo(offset,
+                  duration: Duration(milliseconds: 300),
+                  curve: Curves.easeOutCubic);
+            } else {
+              // For filter or featured, scroll to top
+              _mainScrollController.animateTo(0,
+                  duration: Duration(milliseconds: 300),
+                  curve: Curves.easeOutCubic);
+            }
           }
         }
       }
     } else {
-      // Moving down in the UI
+      // Moving down logic
       if (currentIndex < visibleSections.length - 1) {
         final nextSection = visibleSections[currentIndex + 1];
-        
-        // Special handling when moving from featured to first content row
-        if (currentIndex == 1 && _activeSection == 'featured') { // Going from featured to content
-          // Collapse featured section first
+        print("Moving down to section: $nextSection");
+
+        // Special handling for moving from featured
+        if (currentIndex == 1 && _activeSection == 'featured') {
+          // Collapse featured and update state
           setState(() {
             _featuredExpanded = false;
-            // Pre-emptively update active section to avoid focus issues
             _activeSection = nextSection;
           });
-          
-          // Update global focus state
+
+          // Update provider state
           ref.read(focusedSectionProvider.notifier).state = nextSection;
-          
-          // Request focus with a slight delay to allow animations to complete
-          Future.delayed(Duration(milliseconds: 150), () {
+
+          // CRITICAL: Adding a delay to ensure UI updates first
+          Future.delayed(Duration(milliseconds: 200), () {
             if (mounted && _sectionFocusNodes[nextSection]!.canRequestFocus) {
               _sectionFocusNodes[nextSection]!.requestFocus();
+
+              // After focus, scroll to hide featured completely
+              if (_mainScrollController.hasClients) {
+                // The 80.0 offset ensures featured is completely hidden
+                _mainScrollController.animateTo(80.0,
+                    duration: Duration(milliseconds: 300),
+                    curve: Curves.easeOutCubic);
+              }
             }
           });
         } else {
-          // Standard down navigation
+          // Regular downward navigation between content rows
+          setState(() {
+            _activeSection = nextSection;
+          });
+
+          // Update provider state
+          ref.read(focusedSectionProvider.notifier).state = nextSection;
+
+          // Request focus
           if (_sectionFocusNodes[nextSection]!.canRequestFocus) {
             _sectionFocusNodes[nextSection]!.requestFocus();
+          }
+
+          // IMPROVED: Scroll to reveal the next section ONLY when focus is already there
+          if (_mainScrollController.hasClients) {
+            // Calculate section position
+            final sectionIndex = currentIndex + 1;
+            // Only scroll content rows (after featured)
+            if (sectionIndex > 1) {
+              // This IMPROVED calculation scrolls just enough to show the newly focused row
+              // without unnecessarily showing the next row
+              double offset = (sectionIndex - 2) * 300.0;
+
+              // Add a bit more offset to ensure current row is fully visible
+              // but not so much that it shows too much of the next row
+              offset += 80.0;
+
+              _mainScrollController.animateTo(offset,
+                  duration: Duration(milliseconds: 300),
+                  curve: Curves.easeOutCubic);
+            }
           }
         }
       }

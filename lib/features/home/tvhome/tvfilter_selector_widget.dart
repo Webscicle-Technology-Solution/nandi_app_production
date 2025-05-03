@@ -6,11 +6,13 @@ import 'package:nandiott_flutter/providers/filter_provider.dart';
 class PrimeFilterBar extends ConsumerStatefulWidget {
   final Function(String) onFilterSelected;
   final bool hasFocus;
+  final VoidCallback? onLeftEdgeFocus; // Add this line
 
   const PrimeFilterBar({
     Key? key,
     required this.onFilterSelected,
     this.hasFocus = false,
+    this.onLeftEdgeFocus,
   }) : super(key: key);
 
   @override
@@ -128,28 +130,37 @@ class _PrimeFilterBarState extends ConsumerState<PrimeFilterBar> with SingleTick
         
         return Focus(
           focusNode: _mainFocusNode,
-          onKey: (node, event) {
-            if (event is RawKeyDownEvent) {
-              if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-                if (_selectedIndex < displayNames.length - 1) {
-                  setState(() {
-                    _selectedIndex++;
-                  });
-                  widget.onFilterSelected(displayNames[_selectedIndex]);
-                  return KeyEventResult.handled;
-                }
-              } else if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-                if (_selectedIndex > 0) {
-                  setState(() {
-                    _selectedIndex--;
-                  });
-                  widget.onFilterSelected(displayNames[_selectedIndex]);
-                  return KeyEventResult.handled;
-                }
-              }
-            }
-            return KeyEventResult.ignored;
-          },
+  onKey: (node, event) {
+    if (event is RawKeyDownEvent) {
+      if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+        if (_selectedIndex < displayNames.length - 1) {
+          setState(() {
+            _selectedIndex++;
+          });
+          widget.onFilterSelected(displayNames[_selectedIndex]);
+          return KeyEventResult.handled;
+        }
+      } else if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+        if (_selectedIndex > 0) {
+          setState(() {
+            _selectedIndex--;
+          });
+          widget.onFilterSelected(displayNames[_selectedIndex]);
+          return KeyEventResult.handled;
+        } else {
+          // At leftmost filter item, allow focus to move to menu
+          print("LEFT EDGE: Moving focus to menu from filter");
+          // Notify parent about left edge focus if available
+          // You'll need to add this callback to the PrimeFilterBar widget
+          if (widget.onLeftEdgeFocus != null) {
+            widget.onLeftEdgeFocus!();
+          }
+          return KeyEventResult.ignored;
+        }
+      }
+    }
+    return KeyEventResult.ignored;
+  },
           child: AnimatedBuilder(
             animation: _animationController,
             builder: (context, child) {

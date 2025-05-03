@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
-
 import 'package:nandiott_flutter/utils/Device_size.dart'; // Required for Timer
 
 // Reusable error dialog widget

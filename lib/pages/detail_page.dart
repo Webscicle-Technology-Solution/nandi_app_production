@@ -93,8 +93,6 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
 
   @override
   void didChangeDependencies() {
-
-
     super.didChangeDependencies();
     // ✅ Refresh provider on page load
     ref.invalidate(authUserProvider);
@@ -191,25 +189,34 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
                   "${mediaType[0].toUpperCase()}${mediaType.substring(1)} Details",
               showBackButton: true),
       body: SafeArea(
-        child: movieDetails.when(
-          data: (movie) => movie != null
-              ? bannerUrl.when(
-                  data: (url) => isTrailerValid.when(
-                    data: (isValid) =>
-                        _buildMovieDetails(context, movie, url, isValid),
-                    loading: () =>
-                        const MovieDetailSkeleton(), // Loading trailer validity check
-                    error: (err, _) => _buildErrorView(
-                        "Error checking trailer: $err"), // Handle error checking trailer URL
-                  ),
-                  loading: () => const Center(child: MovieDetailSkeleton()),
-                  error: (err, _) =>
-                      _buildErrorView("Error loading banner: $err"),
-                )
-              : _buildErrorView("Movie details not found"),
-          loading: () => const Center(child: Buttonskelton()),
-          error: (err, _) =>
-              _buildErrorView("Error loading movie details: $err"),
+        child: FocusScope(
+        // This traps focus within the detail page
+        onFocusChange: (hasFocus) {
+          if (!hasFocus && mounted && AppSizes.getDeviceType(context) == DeviceType.tv) {
+            print("DETAIL PAGE: Lost focus at page level, reclaiming");
+            FocusScope.of(context).requestFocus(watchButtonFocusNode);
+          };
+        },
+          child: movieDetails.when(
+            data: (movie) => movie != null
+                ? bannerUrl.when(
+                    data: (url) => isTrailerValid.when(
+                      data: (isValid) =>
+                          _buildMovieDetails(context, movie, url, isValid),
+                      loading: () =>
+                          const MovieDetailSkeleton(), // Loading trailer validity check
+                      error: (err, _) => _buildErrorView(
+                          "Error checking trailer: $err"), // Handle error checking trailer URL
+                    ),
+                    loading: () => const Center(child: MovieDetailSkeleton()),
+                    error: (err, _) =>
+                        _buildErrorView("Error loading banner: $err"),
+                  )
+                : _buildErrorView("Movie details not found"),
+            loading: () => const Center(child: Buttonskelton()),
+            error: (err, _) =>
+                _buildErrorView("Error loading movie details: $err"),
+          ),
         ),
       ),
     );

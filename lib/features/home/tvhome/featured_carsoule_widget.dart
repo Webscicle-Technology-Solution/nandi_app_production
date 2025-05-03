@@ -645,6 +645,8 @@ class _PrimeFeaturedSectionState extends State<PrimeFeaturedSection> with Single
       final item = _featuredItems[_currentIndex];
       final movieId = item['contentId']['_id'];
       final contentType = item['contentType'] ?? _getMediaType();
+     FocusScope.of(context).unfocus();
+
       
       Navigator.of(context).push(
         MaterialPageRoute(

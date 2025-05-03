@@ -282,6 +282,7 @@ class _PrimeContentRowState extends ConsumerState<PrimeContentRow> {
       contentId = item.id;
       contentType = widget.mediaType;
     }
+     FocusScope.of(context).unfocus();
 
     Navigator.of(context).push(
       MaterialPageRoute(

@@ -403,7 +403,7 @@ setState(() {
             });
 
             // Optionally auto-submit when OTP is detected
-            ref.read(authProvider.notifier).registerUser(
+            ref.refresh(authProvider.notifier).registerUser(
               widget.name,
               widget.email,
               widget.phone,
@@ -458,7 +458,7 @@ if(secondsRemainig==0){
 
     if (authState.successMessage != null) {
       Future.delayed(Duration.zero, () {
-        ref.read(authProvider.notifier).state = AuthState();
+        ref.refresh(authProvider.notifier).state = AuthState();
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => ResponsiveNavigation()),
           (route) => false,
@@ -544,7 +544,7 @@ final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
     ConnectivityUtils.showNoConnectionDialog(context);
     
                   if (_formKey.currentState!.validate()) {
-                    ref.read(authProvider.notifier).registerUser(
+                    ref.refresh(authProvider.notifier).registerUser(
                       widget.name,
                       widget.email,
                       widget.phone,

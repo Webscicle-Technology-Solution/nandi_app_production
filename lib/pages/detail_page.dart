@@ -131,9 +131,6 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
     ref.watch(rentalProvider);
    //     ref.watch(ratedMovieProvider(MovieDetailParameter(movieId: widget.movieId, mediaType: widget.mediaType)));
 
-
-
-
     final Map<String, String> mediaTypeMapbanner = {
       'videosong': 'videosong',
       'shortfilm': 'shortfilm',
@@ -183,7 +180,7 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
 
     return Scaffold(
       appBar: 
-          isTV? null : CustomAppBar(
+           CustomAppBar(
               showActionIcon: false,
               title:
                   "${mediaType[0].toUpperCase()}${mediaType.substring(1)} Details",

@@ -126,16 +126,157 @@ final connectivityProvider = StreamProvider<ConnectivityResult>((ref) {
     setState(() {});
   }
 
- void _setupDirectionalFocus() {
-  FocusManager.instance.highlightStrategy = FocusHighlightStrategy.alwaysTraditional;
+//  void _setupDirectionalFocus() {
+//   FocusManager.instance.highlightStrategy = FocusHighlightStrategy.alwaysTraditional;
 
-  // Add a listener to focus manager to detect focus changes
-  FocusManager.instance.addListener(() {
-    final currentFocus = FocusManager.instance.primaryFocus;
-    if (currentFocus != null) {
-      print("FOCUS CHANGED TO: ${currentFocus.debugLabel}");
-    }
-  });
+//   // Add a listener to focus manager to detect focus changes
+//   FocusManager.instance.addListener(() {
+//     final currentFocus = FocusManager.instance.primaryFocus;
+//     if (currentFocus != null) {
+//       print("FOCUS CHANGED TO: ${currentFocus.debugLabel}");
+//     }
+//   });
+
+//   ServicesBinding.instance?.keyboard.addHandler((KeyEvent event) {
+//     if (event is! RawKeyDownEvent) return false;
+
+//     final currentFocus = FocusManager.instance.primaryFocus;
+//     final bool isInNavigation = _isWithinNavigation(currentFocus);
+//     final isMenuFocused = ref.read(isMenuFocusedProvider);
+
+//       if (isMenuFocused && !_isWithinNavigation(currentFocus)) {
+//     print("KEYBOARD HANDLER: Menu should have focus, forcing it back");
+//     FocusScope.of(context).requestFocus(_navigationFocusNode);
+//     return true; // Handle this event
+//   }
+    
+//     // If navigation has focus and left arrow is pressed
+//     if (isInNavigation && event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+//       // Always keep focus on navigation for left arrow
+//       print("NAVIGATION: Keeping focus on navigation for left arrow");
+//       return true; // Handled, don't allow other handlers
+//     }
+    
+//     // When navigation is focused and user presses right, handle transition to content
+//     if (isInNavigation && event.logicalKey == LogicalKeyboardKey.arrowRight) {
+//       // We're going from navigation to content
+//       final selectedIndex = ref.read(selectedIndexProvider);
+//       final isTV = AppSizes.getDeviceType(context) == DeviceType.tv;
+//       final screens = _getScreens(isTV);
+      
+//       // Collapse navigation menu if expanded
+//       if (ref.read(isNavigationExpandedProvider)) {
+//         ref.read(isNavigationExpandedProvider.notifier).state = false;
+//       }
+      
+//       print("NAVIGATION: Moving focus from menu to content");
+      
+//       // If we're going to MyRentalsPage, check after a slight delay
+//       if (screens[selectedIndex] is MyRentalPage) {
+//         // Let navigation handle the right arrow key, but also schedule a login button focus check
+//         Future.delayed(Duration(milliseconds: 100), () {
+//           // Find login_button focus node
+//           FocusNode? loginButton;
+//           FocusManager.instance.rootScope.descendants.forEach((node) {
+//             if (node.debugLabel == 'login_button') {
+//               loginButton = node;
+//             }
+//           });
+
+//           // If login button exists, focus it
+//           if (loginButton != null) {
+//             loginButton!.requestFocus();
+//           }
+//         });
+//       } else if (screens[selectedIndex] is PrimeTVHomePage) {
+//         // For TV home page, focus the featured section
+//         Future.delayed(Duration(milliseconds: 100), () {
+//           FocusNode? featuredSection;
+//           FocusManager.instance.rootScope.descendants.forEach((node) {
+//             if (node.debugLabel == 'featured_section') {
+//               featuredSection = node;
+//             }
+//           });
+
+//           if (featuredSection != null) {
+//             print("NAVIGATION: Focusing featured section");
+//             featuredSection!.requestFocus();
+//           }
+//         });
+//       }
+      
+//       return true; // We've handled this event
+//     }
+
+//     // Skip the rest of the navigation handler for login button
+//     if (currentFocus?.debugLabel == 'login_button') {
+//       if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+//         return false; // Let normal focus handling work
+//       }
+//       return false; // Let the login button handle other keys
+//     }
+
+//     // If we're in the content area and press Left at the edge,
+//     // Special handling for MyRentalPage login button
+//     if (currentFocus?.debugLabel == 'login_button') {
+//       // Let the login button handle its own focus
+//       return false;
+//     }
+    
+//     if (_isWithinContent(currentFocus) && 
+//         event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+//       print("KEYBOARD HANDLER: Left arrow in content detected");
+      
+//       // Determine if we're at the left edge of a component
+//       bool isAtLeftEdge = false;
+      
+//       // Check by position
+//       final RenderBox? renderBox = currentFocus?.context?.findRenderObject() as RenderBox?;
+//       if (renderBox != null) {
+//         final position = renderBox.localToGlobal(Offset.zero);
+//         // If close to the left edge, consider it a left edge
+//         if (position.dx < 150) {
+//           isAtLeftEdge = true;
+//         }
+//       }
+      
+//       // Check by focus node debug label (more reliable for specifically marked nodes)
+//       if (currentFocus?.debugLabel != null) {
+//         final String debugLabel = currentFocus!.debugLabel!;
+//         if (debugLabel.contains('filter_section') || 
+//             debugLabel.contains('featured_section') || 
+//             debugLabel.contains('first_item')) {
+//           isAtLeftEdge = true;
+//         }
+//       }
+      
+//       if (isAtLeftEdge) {
+//   print("KEYBOARD HANDLER: At left edge, moving focus to navigation");
+  
+//   // Set the provider state
+//   ref.read(isMenuFocusedProvider.notifier).state = true;
+  
+//   // Use both approaches for reliability
+//   FocusScope.of(context).requestFocus(_navigationFocusNode);
+//   _navigationFocusNode.requestFocus();
+  
+//   return true; // We've handled this event
+// }
+//     }
+
+//     // Handle filter items
+//     if (_isWithinFilterItems(currentFocus)) {
+//       // Your existing code for filter items
+//       return false;
+//     }
+
+//     // Don't interfere with any other events
+//     return false;
+//   });
+// }
+
+void _setupDirectionalFocus() {
+  FocusManager.instance.highlightStrategy = FocusHighlightStrategy.alwaysTraditional;
 
   ServicesBinding.instance?.keyboard.addHandler((KeyEvent event) {
     if (event is! RawKeyDownEvent) return false;
@@ -144,12 +285,6 @@ final connectivityProvider = StreamProvider<ConnectivityResult>((ref) {
     final bool isInNavigation = _isWithinNavigation(currentFocus);
     final isMenuFocused = ref.read(isMenuFocusedProvider);
 
-      if (isMenuFocused && !_isWithinNavigation(currentFocus)) {
-    print("KEYBOARD HANDLER: Menu should have focus, forcing it back");
-    FocusScope.of(context).requestFocus(_navigationFocusNode);
-    return true; // Handle this event
-  }
-    
     // If navigation has focus and left arrow is pressed
     if (isInNavigation && event.logicalKey == LogicalKeyboardKey.arrowLeft) {
       // Always keep focus on navigation for left arrow
@@ -171,9 +306,17 @@ final connectivityProvider = StreamProvider<ConnectivityResult>((ref) {
       
       print("NAVIGATION: Moving focus from menu to content");
       
+      // Set that we're no longer focused on menu
+      ref.read(isMenuFocusedProvider.notifier).state = false;
+      
+      // For HomePage, the page itself will handle focus based on isMenuFocusedProvider
+      if (screens[selectedIndex] is HomePage) {
+        // HomePage will detect isMenuFocusedProvider changed to false and focus on filter
+        return true;
+      }
+      
       // If we're going to MyRentalsPage, check after a slight delay
       if (screens[selectedIndex] is MyRentalPage) {
-        // Let navigation handle the right arrow key, but also schedule a login button focus check
         Future.delayed(Duration(milliseconds: 100), () {
           // Find login_button focus node
           FocusNode? loginButton;
@@ -188,41 +331,12 @@ final connectivityProvider = StreamProvider<ConnectivityResult>((ref) {
             loginButton!.requestFocus();
           }
         });
-      } else if (screens[selectedIndex] is PrimeTVHomePage) {
-        // For TV home page, focus the featured section
-        Future.delayed(Duration(milliseconds: 100), () {
-          FocusNode? featuredSection;
-          FocusManager.instance.rootScope.descendants.forEach((node) {
-            if (node.debugLabel == 'featured_section') {
-              featuredSection = node;
-            }
-          });
-
-          if (featuredSection != null) {
-            print("NAVIGATION: Focusing featured section");
-            featuredSection!.requestFocus();
-          }
-        });
       }
       
       return true; // We've handled this event
     }
 
-    // Skip the rest of the navigation handler for login button
-    if (currentFocus?.debugLabel == 'login_button') {
-      if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
-        return false; // Let normal focus handling work
-      }
-      return false; // Let the login button handle other keys
-    }
-
-    // If we're in the content area and press Left at the edge,
-    // Special handling for MyRentalPage login button
-    if (currentFocus?.debugLabel == 'login_button') {
-      // Let the login button handle its own focus
-      return false;
-    }
-    
+    // If we're in the content area and press Left at the edge
     if (_isWithinContent(currentFocus) && 
         event.logicalKey == LogicalKeyboardKey.arrowLeft) {
       print("KEYBOARD HANDLER: Left arrow in content detected");
@@ -230,44 +344,29 @@ final connectivityProvider = StreamProvider<ConnectivityResult>((ref) {
       // Determine if we're at the left edge of a component
       bool isAtLeftEdge = false;
       
-      // Check by position
-      final RenderBox? renderBox = currentFocus?.context?.findRenderObject() as RenderBox?;
-      if (renderBox != null) {
-        final position = renderBox.localToGlobal(Offset.zero);
-        // If close to the left edge, consider it a left edge
-        if (position.dx < 150) {
-          isAtLeftEdge = true;
-        }
-      }
-      
       // Check by focus node debug label (more reliable for specifically marked nodes)
       if (currentFocus?.debugLabel != null) {
         final String debugLabel = currentFocus!.debugLabel!;
-        if (debugLabel.contains('filter_section') || 
-            debugLabel.contains('featured_section') || 
-            debugLabel.contains('first_item')) {
+        if (debugLabel.contains('filter_item_0') ||  // First filter item
+            debugLabel.contains('continue_watching_item_0') ||
+            debugLabel.contains('newReleases_item_0') ||
+            debugLabel.contains('freeToWatch_item_0') ||
+            debugLabel.contains('favorites_item_0')) {
           isAtLeftEdge = true;
         }
       }
       
       if (isAtLeftEdge) {
-  print("KEYBOARD HANDLER: At left edge, moving focus to navigation");
-  
-  // Set the provider state
-  ref.read(isMenuFocusedProvider.notifier).state = true;
-  
-  // Use both approaches for reliability
-  FocusScope.of(context).requestFocus(_navigationFocusNode);
-  _navigationFocusNode.requestFocus();
-  
-  return true; // We've handled this event
-}
-    }
-
-    // Handle filter items
-    if (_isWithinFilterItems(currentFocus)) {
-      // Your existing code for filter items
-      return false;
+        print("KEYBOARD HANDLER: At left edge, moving focus to navigation");
+        
+        // Set the provider state
+        ref.read(isMenuFocusedProvider.notifier).state = true;
+        
+        // Request focus on navigation
+        FocusScope.of(context).requestFocus(_navigationFocusNode);
+        
+        return true; // We've handled this event
+      }
     }
 
     // Don't interfere with any other events
@@ -358,11 +457,7 @@ void _handleContentLeftEdge() {
   // Screens corresponding to navigation items - MODIFIED FOR TV SPECIFIC PAGES
   List<Widget> _getScreens(bool isTV) => [
         // For Home, use TVHomePage on TV devices, regular HomePage otherwise
-        isTV
-            ? PrimeTVHomePage(
-                onLeftEdgeFocus: _handleContentLeftEdge,
-              )
-            : HomePage(),
+        HomePage(),
         isTV ? TVSearchPage() : DownloadsPage(),
         MyRentalPage(),
         ProfilePage(),
@@ -497,6 +592,7 @@ WidgetsBinding.instance.addPostFrameCallback((_) {
         setState(() {});
         
         // Update the provider state
+        // ref.read(isMenuFocusedProvider.notifier).state = hasFocus;
         ref.read(isMenuFocusedProvider.notifier).state = hasFocus;
         
         if (hasFocus) {

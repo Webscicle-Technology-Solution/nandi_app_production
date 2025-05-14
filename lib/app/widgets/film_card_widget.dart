@@ -82,14 +82,14 @@ class _FilmCardState extends ConsumerState<FilmCard> {
     getPosterImage();
 
     // Request focus if this card is the first in its section
-    if (widget.index == 0 && (widget.hasFocus || widget.focusNode != null)) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!_focusNode.hasFocus) {
-          print("Auto-focusing film card: ${_focusNode.debugLabel}");
-          _focusNode.requestFocus();
-        }
-      });
-    }
+    // if (widget.index == 0 && (widget.hasFocus || widget.focusNode != null)) {
+    //   WidgetsBinding.instance.addPostFrameCallback((_) {
+    //     if (!_focusNode.hasFocus) {
+    //       print("Auto-focusing film card: ${_focusNode.debugLabel}");
+    //       _focusNode.requestFocus();
+    //     }
+    //   });
+    // }
   }
 
   @override

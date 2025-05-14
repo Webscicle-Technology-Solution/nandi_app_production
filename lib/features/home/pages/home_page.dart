@@ -1,20 +1,21 @@
-// import 'package:flutter/material.dart';
-// import 'package:flutter/services.dart';
-// import 'package:flutter_riverpod/flutter_riverpod.dart';
-// import 'package:nandiott_flutter/app/widgets/favFilm_card_widget.dart';
-// import 'package:nandiott_flutter/app/widgets/film_card_widget.dart';
-// import 'package:nandiott_flutter/app/widgets/filterSelector_widget.dart';
-// import 'package:nandiott_flutter/app/widgets/skeltonLoader/filmSkelton.dart';
-// import 'package:nandiott_flutter/features/home/featured-movie/new_carousel.dart';
-// import 'package:nandiott_flutter/features/home/provider/getContiuneMedia.dart';
-// import 'package:nandiott_flutter/features/home/provider/getMedia.dart';
-// import 'package:nandiott_flutter/features/profile/watchHistory/historyCard_widget.dart';
-// import 'package:nandiott_flutter/models/movie_model.dart';
-// import 'package:nandiott_flutter/pages/detail_page.dart';
-// import 'package:nandiott_flutter/providers/checkauth_provider.dart';
-// import 'package:nandiott_flutter/providers/filter_fav_provider.dart';
-// import 'package:nandiott_flutter/providers/filter_provider.dart';
-// import 'package:nandiott_flutter/utils/Device_size.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nandiott_flutter/app/widgets/custombottombar.dart';
+import 'package:nandiott_flutter/app/widgets/favFilm_card_widget.dart';
+import 'package:nandiott_flutter/app/widgets/film_card_widget.dart';
+import 'package:nandiott_flutter/app/widgets/filterSelector_widget.dart';
+import 'package:nandiott_flutter/app/widgets/skeltonLoader/filmSkelton.dart';
+import 'package:nandiott_flutter/features/home/featured-movie/new_carousel.dart';
+import 'package:nandiott_flutter/features/home/provider/getContiuneMedia.dart';
+import 'package:nandiott_flutter/features/home/provider/getMedia.dart';
+import 'package:nandiott_flutter/features/profile/watchHistory/historyCard_widget.dart';
+import 'package:nandiott_flutter/models/movie_model.dart';
+import 'package:nandiott_flutter/pages/detail_page.dart';
+import 'package:nandiott_flutter/providers/checkauth_provider.dart';
+import 'package:nandiott_flutter/providers/filter_fav_provider.dart';
+import 'package:nandiott_flutter/providers/filter_provider.dart';
+import 'package:nandiott_flutter/utils/Device_size.dart';
 
 // class HomePage extends ConsumerStatefulWidget {
 //   const HomePage({super.key});
@@ -60,13 +61,15 @@
 //     _focusNodes[_freeToWatchKey] = [];
 //     _focusNodes[_favoritesKey] = [];
 
-//     // 1. FIX for initial focus on featured carousel
+//     // Modified initialization for consistent focus handling
 //     WidgetsBinding.instance.addPostFrameCallback((_) {
 //       if (mounted) {
+//         // Delay focus request until after UI is fully built
 //         Future.delayed(Duration(milliseconds: 800), () {
 //           if (mounted && !_isInitialized) {
 //             _isInitialized = true;
-//             _featuredFocusNode.requestFocus();
+//             // Start with featuring section in focus - this should be the first interactive element
+//             _setFocusToSection(_featuredKey);
 //           }
 //         });
 //       }
@@ -87,10 +90,12 @@
 //     }
 //     super.dispose();
 //   }
-  
-//   void _ensureVisible(String sectionKey, int itemIndex) {
+
+//   // New unified method to set focus to a specific section
+//   void _setFocusToSection(String sectionKey, {int itemIndex = 0}) {
 //     final key = _sectionKeys[sectionKey];
 //     if (key?.currentContext != null) {
+//       print("Setting focus to section: $sectionKey, item: $itemIndex");
 //       // First ensure the section is visible
 //       Scrollable.ensureVisible(
 //         key!.currentContext!,
@@ -98,22 +103,36 @@
 //         curve: Curves.easeInOut,
 //         alignment: 0.1, // Show section near top of screen
 //       ).then((_) {
-//         // Then ensure the specific item is visible
-//         if (sectionKey == _featuredKey) {
-//           // For featured section, use the special focus node
-//           Future.delayed(const Duration(milliseconds: 100), () {
-//             _featuredFocusNode.requestFocus();
-//           });
-//         } else {
-//           final nodes = _focusNodes[sectionKey];
-//           if (nodes != null && itemIndex < nodes.length) {
-//             Future.delayed(const Duration(milliseconds: 100), () {
-//               nodes[itemIndex].requestFocus();
-//             });
+//         // Wait for scroll animation to complete before requesting focus
+//         Future.delayed(const Duration(milliseconds: 100), () {
+//           if (sectionKey == _featuredKey) {
+//             // For featured section, use the special focus node
+//             if (_featuredFocusNode.canRequestFocus) {
+//               _featuredFocusNode.requestFocus();
+//               setState(() {
+//                 _currentSectionIndex = _getVisibleSections().indexOf(sectionKey);
+//                 _currentItemIndex = 0;
+//               });
+//             }
+//           } else {
+//             final nodes = _focusNodes[sectionKey];
+//             if (nodes != null && nodes.isNotEmpty && itemIndex < nodes.length) {
+//               if (nodes[itemIndex].canRequestFocus) {
+//                 nodes[itemIndex].requestFocus();
+//                 setState(() {
+//                   _currentSectionIndex = _getVisibleSections().indexOf(sectionKey);
+//                   _currentItemIndex = itemIndex;
+//                 });
+//               }
+//             }
 //           }
-//         }
+//         });
 //       });
 //     }
+//   }
+  
+//   void _ensureVisible(String sectionKey, int itemIndex) {
+//     _setFocusToSection(sectionKey, itemIndex: itemIndex);
 //   }
   
 //   void _handleKeyEvent(RawKeyEvent event) {
@@ -124,15 +143,14 @@
 //     if (currentFocus == null) return;
     
 //     // Special handling for featured carousel
-//     if (currentFocus == _featuredFocusNode || currentFocus.debugLabel == 'featured_carousel') {
+//     if (currentFocus == _featuredFocusNode || 
+//         currentFocus.debugLabel?.contains('featured') == true) {
 //       if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
 //         // Navigate down from featured
-//         final visibleSections = _getVisibleSections();
-//         if (visibleSections.length > 1) {
-//           final nextSection = visibleSections[1];
-//           _navigateDown(_featuredKey, 0);
-//         }
+//         _navigateDown(_featuredKey, 0);
+//         return;
 //       }
+//       // Let the carousel handle left/right navigation internally
 //       return;
 //     }
     
@@ -173,26 +191,14 @@
 //       final previousSection = sectionOrder[currentSectionIndex - 1];
       
 //       if (previousSection == _featuredKey) {
-//         // 2. FIX for navigating up to featured
-//         // First scroll to make it visible
-//         final key = _sectionKeys[_featuredKey];
-//         if (key?.currentContext != null) {
-//           Scrollable.ensureVisible(
-//             key!.currentContext!,
-//             duration: const Duration(milliseconds: 300),
-//             curve: Curves.easeInOut,
-//             alignment: 0.0,
-//           ).then((_) {
-//             // Then focus on the featured carousel
-//             _featuredFocusNode.requestFocus();
-//           });
-//         }
+//         // Special case for navigating to featured section
+//         _setFocusToSection(_featuredKey);
 //       } else {
 //         final previousNodes = _focusNodes[previousSection];
 //         if (previousNodes != null && previousNodes.isNotEmpty) {
 //           // Try to maintain horizontal position or go to closest item
 //           final targetIndex = currentIndex < previousNodes.length ? currentIndex : previousNodes.length - 1;
-//           _ensureVisible(previousSection, targetIndex);
+//           _setFocusToSection(previousSection, itemIndex: targetIndex);
 //         }
 //       }
 //     }
@@ -210,7 +216,7 @@
 //       if (nextNodes != null && nextNodes.isNotEmpty) {
 //         // Try to maintain horizontal position or go to closest item
 //         final targetIndex = currentIndex < nextNodes.length ? currentIndex : nextNodes.length - 1;
-//         _ensureVisible(nextSection, targetIndex);
+//         _setFocusToSection(nextSection, itemIndex: targetIndex);
 //       }
 //     }
 //   }
@@ -307,24 +313,21 @@
                 
 //                 SizedBox(height: 5),
 
-//                 // Featured Carousel Section
+//                 // Featured Carousel Section - using improved focus handling
 //                 Container(
 //                   key: _sectionKeys[_featuredKey],
 //                   margin: EdgeInsets.only(top: 10),
-//                   child: Focus(
-//                     focusNode: _featuredFocusNode,
-//                     debugLabel: 'featured_section',
-//                     child: SimpleFeaturedCarousel(
-//                       filter: selectedFilter,
-//                     ),
+//                   child: SimpleFeaturedCarousel(
+//                     filter: selectedFilter,
+//                     initialFocusNode: _featuredFocusNode,
 //                   ),
 //                 ),
                 
-//                 // Continue Watching Section - Show only if isHistoryVisible is true
+//                 // Continue Watching Section
 //                 if (visibleSections.contains('continueWatching'))
 //                   buildContinueWatchingSection(selectedFilter),
 
-//                 // New Releases Section - Show only if isLatestVisible is true
+//                 // New Releases Section
 //                 if (visibleSections.contains('newReleases'))
 //                   Column(
 //                     key: _sectionKeys[_newReleasesKey],
@@ -342,6 +345,7 @@
 //                     ],
 //                   ),
 
+//                 // Free to Watch Section
 //                 if (visibleSections.contains('freeToWatch'))
 //                   Column(
 //                     key: _sectionKeys[_freeToWatchKey],
@@ -359,7 +363,7 @@
 //                     ],
 //                   ),
                   
-//                 // Favorites Section - Show only if isFavoritesVisible is true
+//                 // Favorites Section
 //                 if (isSectionVisible(sectionVisibilityAsync, 'isFavoritesVisible'))
 //                   _buildFavoritesSection(selectedFilter, mediaType)
 //               ],
@@ -379,7 +383,7 @@
 //       data: (movies) {
 //         if (movies == null || movies.isEmpty) return const SizedBox.shrink();
 
-//         // Only add new nodes if they don't exist
+//         // Initialize focus nodes for this section if needed
 //         if (_focusNodes[sectionKey]!.length < movies.length) {
 //           for (int i = _focusNodes[sectionKey]!.length; i < movies.length; i++) {
 //             _focusNodes[sectionKey]!.add(FocusNode(
@@ -409,7 +413,11 @@
 //                 hasFocus: false,
 //                 isLastItem: movies.length - 1 == index,
 //                 onFocused: () {
-//                   _ensureVisible(sectionKey, index);
+//                   // Update current item index when focus changes
+//                   setState(() {
+//                     _currentSectionIndex = _getVisibleSections().indexOf(sectionKey);
+//                     _currentItemIndex = index;
+//                   });
 //                 },
 //               );
 //             },
@@ -499,7 +507,7 @@
 //       return const SizedBox.shrink();
 //     }
 
-//     // Only add new nodes if they don't exist
+//     // Initialize focus nodes for this section if needed
 //     if (_focusNodes[_continueWatchingKey]!.length < watchHistoryItems.length) {
 //       for (int i = _focusNodes[_continueWatchingKey]!.length; i < watchHistoryItems.length; i++) {
 //         _focusNodes[_continueWatchingKey]!.add(FocusNode(
@@ -535,7 +543,11 @@
 //                 focusNode: focusNode,
 //                 hasFocus: false,
 //                 onFocused: () {
-//                   _ensureVisible(_continueWatchingKey, index);
+//                   // Update current indices when focus changes
+//                   setState(() {
+//                     _currentSectionIndex = _getVisibleSections().indexOf(_continueWatchingKey);
+//                     _currentItemIndex = index;
+//                   });
 //                 },
 //               );
 //             },
@@ -564,7 +576,7 @@
 //               return SizedBox.shrink();
 //             }
             
-//             // Only add new nodes if they don't exist
+//             // Initialize focus nodes for this section if needed
 //             if (_focusNodes[_favoritesKey]!.length < favoriteDetails.length) {
 //               for (int i = _focusNodes[_favoritesKey]!.length; i < favoriteDetails.length; i++) {
 //                 _focusNodes[_favoritesKey]!.add(FocusNode(
@@ -600,7 +612,11 @@
 //                         focusNode: focusNode,
 //                         onFocusChange: (hasFocus) {
 //                           if (hasFocus) {
-//                             _ensureVisible(_favoritesKey, index);
+//                             // Update current indices when focus changes
+//                             setState(() {
+//                               _currentSectionIndex = _getVisibleSections().indexOf(_favoritesKey);
+//                               _currentItemIndex = index;
+//                             });
 //                           }
 //                         },
 //                         child: GestureDetector(
@@ -696,25 +712,6 @@
 //     );
 //   }
 // }
-
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nandiott_flutter/app/widgets/favFilm_card_widget.dart';
-import 'package:nandiott_flutter/app/widgets/film_card_widget.dart';
-import 'package:nandiott_flutter/app/widgets/filterSelector_widget.dart';
-import 'package:nandiott_flutter/app/widgets/skeltonLoader/filmSkelton.dart';
-import 'package:nandiott_flutter/features/home/featured-movie/new_carousel.dart';
-import 'package:nandiott_flutter/features/home/provider/getContiuneMedia.dart';
-import 'package:nandiott_flutter/features/home/provider/getMedia.dart';
-import 'package:nandiott_flutter/features/profile/watchHistory/historyCard_widget.dart';
-import 'package:nandiott_flutter/models/movie_model.dart';
-import 'package:nandiott_flutter/pages/detail_page.dart';
-import 'package:nandiott_flutter/providers/checkauth_provider.dart';
-import 'package:nandiott_flutter/providers/filter_fav_provider.dart';
-import 'package:nandiott_flutter/providers/filter_provider.dart';
-import 'package:nandiott_flutter/utils/Device_size.dart';
-
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
@@ -732,6 +729,8 @@ class _HomePageState extends ConsumerState<HomePage> {
   int _currentItemIndex = 0;
   bool _isTV = false;
   bool _isInitialized = false;
+  bool _hasInitialFocus = false;
+  bool _isNavigating = false; // Track if we're in the middle of navigation
   
   // Section keys for navigation
   static const String _featuredKey = 'featured';
@@ -759,15 +758,19 @@ class _HomePageState extends ConsumerState<HomePage> {
     _focusNodes[_freeToWatchKey] = [];
     _focusNodes[_favoritesKey] = [];
 
-    // Modified initialization for consistent focus handling
+    // Set up initial focus only once
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        // Delay focus request until after UI is fully built
-        Future.delayed(Duration(milliseconds: 800), () {
-          if (mounted && !_isInitialized) {
+        Future.delayed(Duration(milliseconds: 500), () {
+          if (mounted && !_hasInitialFocus) {
+            _hasInitialFocus = true;
             _isInitialized = true;
-            // Start with featuring section in focus - this should be the first interactive element
-            _setFocusToSection(_featuredKey);
+            
+            final isMenuFocused = ref.read(isMenuFocusedProvider);
+            // if (!isMenuFocused && FocusManager.instance.primaryFocus == null) {
+              print("HOME: Setting initial focus to featured section");
+              _featuredFocusNode.requestFocus();
+            // }
           }
         });
       }
@@ -789,9 +792,12 @@ class _HomePageState extends ConsumerState<HomePage> {
     super.dispose();
   }
 
-  // New unified method to set focus to a specific section
   void _setFocusToSection(String sectionKey, {int itemIndex = 0}) {
+    if (_isNavigating) return; // Prevent focus conflicts during navigation
+    
+    _isNavigating = true;
     final key = _sectionKeys[sectionKey];
+    
     if (key?.currentContext != null) {
       print("Setting focus to section: $sectionKey, item: $itemIndex");
       // First ensure the section is visible
@@ -799,33 +805,40 @@ class _HomePageState extends ConsumerState<HomePage> {
         key!.currentContext!,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
-        alignment: 0.1, // Show section near top of screen
+        alignment: 0.1,
       ).then((_) {
         // Wait for scroll animation to complete before requesting focus
         Future.delayed(const Duration(milliseconds: 100), () {
-          if (sectionKey == _featuredKey) {
-            // For featured section, use the special focus node
-            if (_featuredFocusNode.canRequestFocus) {
-              _featuredFocusNode.requestFocus();
-              setState(() {
-                _currentSectionIndex = _getVisibleSections().indexOf(sectionKey);
-                _currentItemIndex = 0;
-              });
-            }
-          } else {
-            final nodes = _focusNodes[sectionKey];
-            if (nodes != null && nodes.isNotEmpty && itemIndex < nodes.length) {
-              if (nodes[itemIndex].canRequestFocus) {
-                nodes[itemIndex].requestFocus();
+          if (mounted) {
+            if (sectionKey == _featuredKey) {
+              if (_featuredFocusNode.canRequestFocus) {
+                _featuredFocusNode.requestFocus();
                 setState(() {
                   _currentSectionIndex = _getVisibleSections().indexOf(sectionKey);
-                  _currentItemIndex = itemIndex;
+                  _currentItemIndex = 0;
                 });
               }
+            } else {
+              final nodes = _focusNodes[sectionKey];
+              if (nodes != null && nodes.isNotEmpty && itemIndex < nodes.length) {
+                if (nodes[itemIndex].canRequestFocus) {
+                  nodes[itemIndex].requestFocus();
+                  setState(() {
+                    _currentSectionIndex = _getVisibleSections().indexOf(sectionKey);
+                    _currentItemIndex = itemIndex;
+                  });
+                }
+              }
             }
+            // Reset navigation flag after focus is set
+            Future.delayed(Duration(milliseconds: 50), () {
+              _isNavigating = false;
+            });
           }
         });
       });
+    } else {
+      _isNavigating = false;
     }
   }
   
@@ -842,9 +855,10 @@ class _HomePageState extends ConsumerState<HomePage> {
     
     // Special handling for featured carousel
     if (currentFocus == _featuredFocusNode || 
-        currentFocus.debugLabel?.contains('featured') == true) {
+        currentFocus.debugLabel?.contains('featured_carousel') == true) {
       if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
         // Navigate down from featured
+        print("HOME: Navigating down from featured section");
         _navigateDown(_featuredKey, 0);
         return;
       }
@@ -874,8 +888,10 @@ class _HomePageState extends ConsumerState<HomePage> {
     
     // Handle navigation
     if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+      print("HOME: Navigating up from section: $currentSection");
       _navigateUp(currentSection, currentIndex);
     } else if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+      print("HOME: Navigating down from section: $currentSection");
       _navigateDown(currentSection, currentIndex);
     }
   }
@@ -884,9 +900,12 @@ class _HomePageState extends ConsumerState<HomePage> {
     final sectionOrder = _getVisibleSections();
     final currentSectionIndex = sectionOrder.indexOf(currentSection);
     
+    print("HOME: Current section index: $currentSectionIndex, sections: $sectionOrder");
+    
     if (currentSectionIndex > 0) {
       // Move to previous section
       final previousSection = sectionOrder[currentSectionIndex - 1];
+      print("HOME: Moving to previous section: $previousSection");
       
       if (previousSection == _featuredKey) {
         // Special case for navigating to featured section
@@ -906,9 +925,13 @@ class _HomePageState extends ConsumerState<HomePage> {
     final sectionOrder = _getVisibleSections();
     final currentSectionIndex = sectionOrder.indexOf(currentSection);
     
+    print("HOME: Current section index: $currentSectionIndex, sections: $sectionOrder");
+    
     if (currentSectionIndex < sectionOrder.length - 1) {
       // Move to next section
       final nextSection = sectionOrder[currentSectionIndex + 1];
+      print("HOME: Moving to next section: $nextSection");
+      
       final nextNodes = _focusNodes[nextSection];
       
       if (nextNodes != null && nextNodes.isNotEmpty) {
@@ -923,18 +946,24 @@ class _HomePageState extends ConsumerState<HomePage> {
     final selectedFilter = ref.read(selectedFilterProvider);
     final sectionVisibilityAsync = ref.read(homeSectionVisibilityProvider(selectedFilter));
     final freeMediaAsync = ref.read(freeMediaProvider(selectedFilter));
+    final hasContinueWatchingAsync = ref.read(hasContinueWatchingForContentTypeProvider(selectedFilter));
     
     final sections = <String>[_featuredKey]; // Featured is always visible
     
-    if (isSectionVisible(sectionVisibilityAsync, 'isHistoryVisible')) {
+    // Check if continue watching has items AND is visible
+    if (isSectionVisible(sectionVisibilityAsync, 'isHistoryVisible') &&
+        hasContinueWatchingAsync.whenOrNull(data: (hasItems) => hasItems) == true) {
       sections.add(_continueWatchingKey);
     }
+    
     if (isSectionVisible(sectionVisibilityAsync, 'isLatestVisible')) {
       sections.add(_newReleasesKey);
     }
+    
     if (freeMediaAsync is AsyncData && freeMediaAsync.value?.isNotEmpty == true) {
       sections.add(_freeToWatchKey);
     }
+    
     if (isSectionVisible(sectionVisibilityAsync, 'isFavoritesVisible')) {
       sections.add(_favoritesKey);
     }
@@ -1011,7 +1040,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 
                 SizedBox(height: 5),
 
-                // Featured Carousel Section - using improved focus handling
+                // Featured Carousel Section
                 Container(
                   key: _sectionKeys[_featuredKey],
                   margin: EdgeInsets.only(top: 10),
@@ -1023,7 +1052,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 
                 // Continue Watching Section
                 if (visibleSections.contains('continueWatching'))
-                  buildContinueWatchingSection(selectedFilter),
+                  buildContinueWatchingSection(selectedFilter,_continueWatchingKey),
 
                 // New Releases Section
                 if (visibleSections.contains('newReleases'))
@@ -1063,7 +1092,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                   
                 // Favorites Section
                 if (isSectionVisible(sectionVisibilityAsync, 'isFavoritesVisible'))
-                  _buildFavoritesSection(selectedFilter, mediaType)
+                  _buildFavoritesSection(selectedFilter, mediaType,_favoritesKey)
               ],
             ),
           ),
@@ -1071,7 +1100,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       ),
     );
   }
-  
+
   Widget buildMediaSection({
     required AsyncValue<List<Movie>?> mediaAsync,
     required String mediaType,
@@ -1112,10 +1141,12 @@ class _HomePageState extends ConsumerState<HomePage> {
                 isLastItem: movies.length - 1 == index,
                 onFocused: () {
                   // Update current item index when focus changes
-                  setState(() {
-                    _currentSectionIndex = _getVisibleSections().indexOf(sectionKey);
-                    _currentItemIndex = index;
-                  });
+                  if (!_isNavigating) {
+                    setState(() {
+                      _currentSectionIndex = _getVisibleSections().indexOf(sectionKey);
+                      _currentItemIndex = index;
+                    });
+                  }
                 },
               );
             },
@@ -1148,7 +1179,8 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  Widget buildContinueWatchingSection(String selectedFilter) {
+
+  Widget buildContinueWatchingSection(String selectedFilter,String sectionKey) {
     // Use the provider that checks if there are items for this filter
     final hasContinueWatchingAsync = ref.watch(hasContinueWatchingForContentTypeProvider(selectedFilter));
     
@@ -1206,13 +1238,20 @@ class _HomePageState extends ConsumerState<HomePage> {
     }
 
     // Initialize focus nodes for this section if needed
-    if (_focusNodes[_continueWatchingKey]!.length < watchHistoryItems.length) {
-      for (int i = _focusNodes[_continueWatchingKey]!.length; i < watchHistoryItems.length; i++) {
-        _focusNodes[_continueWatchingKey]!.add(FocusNode(
-          debugLabel: 'continue_watching_item_$i',
-        ));
-      }
-    }
+    // if (_focusNodes[_continueWatchingKey]!.length < watchHistoryItems.length) {
+    //   for (int i = _focusNodes[_continueWatchingKey]!.length; i < watchHistoryItems.length; i++) {
+    //     _focusNodes[_continueWatchingKey]!.add(FocusNode(
+    //       debugLabel: 'continue_watching_item_$i',
+    //     ));
+    //   }
+    // }
+    if (_focusNodes[sectionKey]!.length < watchHistoryItems.length) {
+          for (int i = _focusNodes[sectionKey]!.length; i < watchHistoryItems.length; i++) {
+            _focusNodes[sectionKey]!.add(FocusNode(
+              debugLabel: '${sectionKey}_item_$i',
+            ));
+          }
+        }
 
     return Column(
       key: _sectionKeys[_continueWatchingKey],
@@ -1240,13 +1279,25 @@ class _HomePageState extends ConsumerState<HomePage> {
                 index: index,
                 focusNode: focusNode,
                 hasFocus: false,
+                isLastItem: watchHistoryItems.length - 1 == index,
                 onFocused: () {
-                  // Update current indices when focus changes
-                  setState(() {
-                    _currentSectionIndex = _getVisibleSections().indexOf(_continueWatchingKey);
-                    _currentItemIndex = index;
-                  });
-                },
+                  // Update current item index when focus changes
+                  if (!_isNavigating) {
+                    setState(() {
+                      _currentSectionIndex = _getVisibleSections().indexOf(sectionKey);
+                      _currentItemIndex = index;
+                    });
+                  }
+                }
+                // onFocused: () {
+                //   // Update current indices when focus changes
+                //   if (!_isNavigating) {
+                //     setState(() {
+                //       _currentSectionIndex = _getVisibleSections().indexOf(_continueWatchingKey);
+                //       _currentItemIndex = index;
+                //     });
+                //   }
+                // },
               );
             },
           ),
@@ -1255,7 +1306,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
   
-  Widget _buildFavoritesSection(String selectedFilter, String mediaType) {
+  Widget _buildFavoritesSection(String selectedFilter, String mediaType,String sectionKey,) {
     // Check if the user has favorites of this content type
     final hasFavoritesAsync = ref.watch(hasFavoritesForContentTypeProvider(selectedFilter));
     
@@ -1264,6 +1315,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         if (!hasFavorites) {
           return SizedBox.shrink();
         }
+        
         
         // Fetch the filtered favorites
         final filteredFavoritesAsync = ref.watch(filteredFavoritesProvider(selectedFilter));
@@ -1275,13 +1327,20 @@ class _HomePageState extends ConsumerState<HomePage> {
             }
             
             // Initialize focus nodes for this section if needed
-            if (_focusNodes[_favoritesKey]!.length < favoriteDetails.length) {
-              for (int i = _focusNodes[_favoritesKey]!.length; i < favoriteDetails.length; i++) {
-                _focusNodes[_favoritesKey]!.add(FocusNode(
-                  debugLabel: 'favorites_item_$i',
-                ));
-              }
-            }
+            // if (_focusNodes[_favoritesKey]!.length < favoriteDetails.length) {
+            //   for (int i = _focusNodes[_favoritesKey]!.length; i < favoriteDetails.length; i++) {
+            //     _focusNodes[_favoritesKey]!.add(FocusNode(
+            //       debugLabel: 'favorites_item_$i',
+            //     ));
+            //   }
+            // }
+            if (_focusNodes[sectionKey]!.length < favoriteDetails.length) {
+          for (int i = _focusNodes[sectionKey]!.length; i < favoriteDetails.length; i++) {
+            _focusNodes[sectionKey]!.add(FocusNode(
+              debugLabel: '${sectionKey}_item_$i',
+            ));
+          }
+        }
             
             return Column(
               key: _sectionKeys[_favoritesKey],
@@ -1302,34 +1361,39 @@ class _HomePageState extends ConsumerState<HomePage> {
                     itemCount: favoriteDetails.length,
                     itemBuilder: (context, index) {
                       final item = favoriteDetails[index];
+                      if (index >= _focusNodes[sectionKey]!.length) {
+                return Container(); // Safety check
+              }
+              final focusNode = _focusNodes[sectionKey]![index];
                       final favorite = item['favorite'];
                       final movieDetail = item['movieDetail'];
-                      final focusNode = _focusNodes[_favoritesKey]![index];
+                      // final focusNode = _focusNodes[_favoritesKey]![index];
                       
-                      return Focus(
-                        focusNode: focusNode,
-                        onFocusChange: (hasFocus) {
-                          if (hasFocus) {
-                            // Update current indices when focus changes
-                            setState(() {
-                              _currentSectionIndex = _getVisibleSections().indexOf(_favoritesKey);
-                              _currentItemIndex = index;
-                            });
-                          }
-                        },
-                        child: GestureDetector(
-                          onTap: () => _navigateToMovieDetails(
-                            movieDetail,
-                            favorite.contentType,
-                            userId,
-                            context,
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 10.0),
-                            child: FavFilmCard(
-                              film: movieDetail,
-                              mediaType: favorite.contentType,
-                            ),
+                      return GestureDetector(
+                        onTap: () => _navigateToMovieDetails(
+                          movieDetail,
+                          favorite.contentType,
+                          userId,
+                          context,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 10.0),
+                          child: FavFilmCard(
+                            film: movieDetail,
+                            mediaType: favorite.contentType,
+                             index: index,
+                                      focusNode: focusNode,
+                                      hasFocus: false,
+                                      isLastItem: favoriteDetails.length - 1 == index,
+                                      onFocused: () {
+                                        // Update current item index when focus changes
+                                        if (!_isNavigating) {
+                                          setState(() {
+                                            _currentSectionIndex = _getVisibleSections().indexOf(sectionKey);
+                                            _currentItemIndex = index;
+                                          });
+                                        }
+                                      },
                           ),
                         ),
                       );

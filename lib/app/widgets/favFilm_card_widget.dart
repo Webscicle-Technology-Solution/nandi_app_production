@@ -1,4 +1,5 @@
   import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
   import 'package:nandiott_flutter/app/widgets/skeltonLoader/filmSkelton.dart';
 
   import 'package:nandiott_flutter/models/moviedetail_model.dart';
@@ -11,8 +12,20 @@
   class FavFilmCard extends ConsumerStatefulWidget {
     final MovieDetail film;
     final String mediaType;
+     final bool hasFocus;
+  final int index;
+  final FocusNode? focusNode;
+  final VoidCallback? onFocused;
+  final bool isLastItem;
+
     
-    const FavFilmCard({super.key, required this.film, required this.mediaType});
+    const FavFilmCard({super.key, required this.film, required this.mediaType,
+        this.hasFocus = false,
+    this.index = 0,
+    this.focusNode,
+    this.onFocused,
+    this.isLastItem = false,
+    });
 
     @override
     _FavFilmCardState createState() => _FavFilmCardState();
@@ -20,7 +33,8 @@
 
   class _FavFilmCardState extends ConsumerState<FavFilmCard> {
     final _getBannerPosterService = getBannerPosterService();
-    late FocusNode _focusNode;
+      late FocusNode _focusNode;
+  bool _isFocused = false;
     String imgUrl = "";
 
     Future<void> getPosterImage() async {
@@ -43,7 +57,22 @@
     @override
     void initState() {
       super.initState();
-      _focusNode = FocusNode();
+      // _focusNode = FocusNode();
+      _focusNode = widget.focusNode ??
+        FocusNode(debugLabel: 'film_card_${widget.mediaType}_${widget.index}');
+
+    // Set up focus listener
+    _focusNode.addListener(() {
+      if (mounted) {
+        setState(() {
+          _isFocused = _focusNode.hasFocus;
+        });
+
+        if (_isFocused && widget.onFocused != null) {
+          widget.onFocused!();
+        }
+      }
+    });
       getPosterImage();
     }
 
@@ -57,13 +86,42 @@
         });
         getPosterImage(); // Fetch the new poster image
       }
+      if (oldWidget.hasFocus != widget.hasFocus) {
+      setState(() {
+        _isFocused = widget.hasFocus;
+      });
+
+      if (widget.hasFocus && !_focusNode.hasFocus) {
+        _focusNode.requestFocus();
+      }
+    }
+
+    // Update focus node if provided externally
+    if (widget.focusNode != null && widget.focusNode != _focusNode) {
+      _focusNode = widget.focusNode!;
+    }
     }
 
     @override
     void dispose() {
+      // _focusNode.dispose();
+      if (widget.focusNode == null) {
       _focusNode.dispose();
+    }
       super.dispose();
     }
+
+      void ensureVisible(GlobalKey key, ScrollController controller) {
+    final context = key.currentContext;
+    if (context != null) {
+      Scrollable.ensureVisible(
+        context,
+        duration: Duration(milliseconds: 250),
+        alignment: 0.5,
+        curve: Curves.easeInOut,
+      );
+    }
+  }
 
     @override
     Widget build(BuildContext context) {
@@ -79,11 +137,37 @@
 
           return Focus(
             focusNode: _focusNode,
-            onFocusChange: (hasFocus) {
-              if (isTV) {
-                setState(() {});
-              }
-            },
+          autofocus: widget.index == 0 && widget.hasFocus,
+          onKey: isTV
+              ? (FocusNode node, RawKeyEvent event) {
+                  if (event is RawKeyDownEvent) {
+                    if (event.logicalKey == LogicalKeyboardKey.arrowRight &&
+                        widget.isLastItem) {
+                      return KeyEventResult
+                          .handled; // Prevent going further right
+                    } else if (event.logicalKey == LogicalKeyboardKey.select ||
+                        event.logicalKey == LogicalKeyboardKey.enter) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MovieDetailPage(
+                            movieId: widget.film.id,
+                            mediaType: widget.mediaType,
+                            userId: userId,
+                          ),
+                        ),
+                      );
+                      return KeyEventResult.handled;
+                    }
+                  }
+                  return KeyEventResult.ignored;
+                }
+              : null,
+            // onFocusChange: (hasFocus) {
+            //   if (isTV) {
+            //     setState(() {});
+            //   }
+            // },
             child: GestureDetector(
               onTap: () {
                 Navigator.push(

@@ -390,6 +390,7 @@ class HistorycardWidget extends ConsumerStatefulWidget {
   final VoidCallback? onFocused;
   final bool hasFocus;
   final int index;
+  final bool isLastItem;
 
   const HistorycardWidget({
     Key? key,
@@ -398,6 +399,7 @@ class HistorycardWidget extends ConsumerStatefulWidget {
     this.onFocused,
     this.hasFocus = false,
     this.index = 0,
+    this.isLastItem=false,
   }) : super(key: key);
 
   @override
@@ -473,14 +475,14 @@ class _HistorycardWidgetState extends ConsumerState<HistorycardWidget> {
     getPosterImage();
     
     // Request focus if this card should have initial focus
-    if (widget.index == 0 && (widget.hasFocus || widget.focusNode != null)) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!_focusNode.hasFocus) {
-          print("Auto-focusing history card: ${_focusNode.debugLabel}");
-          _focusNode.requestFocus();
-        }
-      });
-    }
+    // if (widget.index == 0 && (widget.hasFocus || widget.focusNode != null)) {
+    //   WidgetsBinding.instance.addPostFrameCallback((_) {
+    //     if (!_focusNode.hasFocus) {
+    //       print("Auto-focusing history card: ${_focusNode.debugLabel}");
+    //       _focusNode.requestFocus();
+    //     }
+    //   });
+    // }
   }
 
   @override
@@ -505,21 +507,21 @@ class _HistorycardWidgetState extends ConsumerState<HistorycardWidget> {
       getPosterImage();
     }
 
-    // Update focus state if it changed
+  // Update focus state if it changed
     if (oldWidget.hasFocus != widget.hasFocus) {
       setState(() {
         _isFocused = widget.hasFocus;
       });
-      
+
       if (widget.hasFocus && !_focusNode.hasFocus) {
         _focusNode.requestFocus();
       }
     }
 
-    // Update focus node if it changed
-    if (widget.focusNode != null && widget.focusNode != _focusNode) {
-      _focusNode = widget.focusNode!;
-    }
+    // // Update focus node if provided externally
+    // if (widget.focusNode != null && widget.focusNode != _focusNode) {
+    //   _focusNode = widget.focusNode!;
+    // }
   }
 
   @override
@@ -564,36 +566,61 @@ class _HistorycardWidgetState extends ConsumerState<HistorycardWidget> {
           focusNode: _focusNode,
           autofocus: widget.index == 0 && widget.hasFocus,
           debugLabel: 'history_card_${widget.historyItem.contentType}_${widget.index}',
-          onFocusChange: (hasFocus) {
-            if (mounted) {
-              setState(() {
-                _isFocused = hasFocus;
-              });
-              if (hasFocus && widget.onFocused != null) {
-                widget.onFocused!();
-              }
-            }
-          },
-          onKey: isTV ? (FocusNode node, RawKeyEvent event) {
-            if (event is RawKeyDownEvent) {
-              if (event.logicalKey == LogicalKeyboardKey.select ||
-                  event.logicalKey == LogicalKeyboardKey.enter) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => MovieDetailPage(
-                      movieId: widget.historyItem.tvSeriesId ??
-                          widget.historyItem.contentId,
-                      mediaType: widget.historyItem.contentType,
-                      userId: userId,
-                    ),
-                  ),
-                );
-                return KeyEventResult.handled;
-              }
-            }
-            return KeyEventResult.ignored;
-          } : null,
+          // onFocusChange: (hasFocus) {
+          //   if (mounted) {
+          //     setState(() {
+          //       _isFocused = hasFocus;
+          //     });
+          //     if (hasFocus && widget.onFocused != null) {
+          //       widget.onFocused!();
+          //     }
+          //   }
+          // },
+          // onKey: isTV ? (FocusNode node, RawKeyEvent event) {
+          //   if (event is RawKeyDownEvent) {
+          //     if (event.logicalKey == LogicalKeyboardKey.select ||
+          //         event.logicalKey == LogicalKeyboardKey.enter) {
+          //       Navigator.push(
+          //         context,
+          //         MaterialPageRoute(
+          //           builder: (context) => MovieDetailPage(
+          //             movieId: widget.historyItem.tvSeriesId ??
+          //                 widget.historyItem.contentId,
+          //             mediaType: widget.historyItem.contentType,
+          //             userId: userId,
+          //           ),
+          //         ),
+          //       );
+          //       return KeyEventResult.handled;
+          //     }
+          //   }
+          //   return KeyEventResult.ignored;
+          // } : null,
+          onKey: isTV
+              ? (FocusNode node, RawKeyEvent event) {
+                  if (event is RawKeyDownEvent) {
+                    if (event.logicalKey == LogicalKeyboardKey.arrowRight &&
+                        widget.isLastItem) {
+                      return KeyEventResult
+                          .handled; // Prevent going further right
+                    } else if (event.logicalKey == LogicalKeyboardKey.select ||
+                        event.logicalKey == LogicalKeyboardKey.enter) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MovieDetailPage(
+                            movieId: widget.historyItem.contentId,
+                            mediaType: widget.historyItem.contentType,
+                            userId: userId,
+                          ),
+                        ),
+                      );
+                      return KeyEventResult.handled;
+                    }
+                  }
+                  return KeyEventResult.ignored;
+                }
+              : null,
           child: GestureDetector(
             onTap: () {
               Navigator.push(

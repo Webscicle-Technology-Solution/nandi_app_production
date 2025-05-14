@@ -663,7 +663,7 @@ class _SimpleFeaturedCarouselState extends State<SimpleFeaturedCarousel> {
   @override
   Widget build(BuildContext context) {
     final isTV = AppSizes.getDeviceType(context) == DeviceType.tv;
-    final height = isTV ? 240.0 : 200.0;
+    final height = isTV ? 260.0 : 200.0;
 
     // Show loading indicator when fetching data
     if (_isLoading) {
@@ -745,6 +745,7 @@ class _SimpleFeaturedCarouselState extends State<SimpleFeaturedCarousel> {
       child: Column(
         children: [
           Container(
+            margin: EdgeInsets.all(15.0),
             height: height,
             decoration: BoxDecoration(
               border: _hasFocus 
@@ -781,7 +782,7 @@ class _SimpleFeaturedCarouselState extends State<SimpleFeaturedCarousel> {
                   ));
                   },
                   child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 12),
+                    // margin: const EdgeInsets.symmetric(horizontal: 12),
                     decoration: BoxDecoration(
                       image: DecorationImage(
                         image: bannerUrl.isEmpty

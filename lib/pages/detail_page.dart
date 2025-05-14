@@ -44,7 +44,6 @@ class MovieDetailPage extends ConsumerStatefulWidget {
 }
 
 class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
-
   final baseUrl = dotenv.env['API_BASE_URL'];
 
   double currentRating = 0.0;
@@ -53,8 +52,6 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
   late FocusNode favoriteButtonFocusNode;
   late FocusNode downloadButtonFocusNode;
   // Function to fetch and set the initial rating
-
-
 
   void _resetRating() {
     setState(() {
@@ -67,6 +64,8 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
   late String mediaType;
   late String userId;
 
+  bool _isNavigatingAway = false;
+
   @override
   void initState() {
     super.initState();
@@ -75,14 +74,14 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
     watchButtonFocusNode = FocusNode(debugLabel: 'watchButton');
     favoriteButtonFocusNode = FocusNode(debugLabel: 'favoriteButton');
     downloadButtonFocusNode = FocusNode(debugLabel: 'downloadButton');
-    
+
     print("MEDIATYPE = ${widget.mediaType} ");
 
     ref.read(authUserProvider);
     movieId = widget.movieId;
     userId = widget.userId;
     mediaType = widget.mediaType;
-    
+
     // Ensure initial focus is set after the first frame is rendered
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (AppSizes.getDeviceType(context) == DeviceType.tv) {
@@ -109,27 +108,29 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
     ref.invalidate(tvSeriesWatchProgressProvider);
     ref.invalidate(watchHistoryProvider);
     print("mediatype and mediaid before rated is ${mediaType},$movieId");
-    ref.invalidate(ratedMovieProvider(MovieDetailParameter(movieId: widget.movieId, mediaType: widget.mediaType)));
+    ref.invalidate(ratedMovieProvider(MovieDetailParameter(
+        movieId: widget.movieId, mediaType: widget.mediaType)));
   }
 
   @override
   void dispose() {
+    _isNavigatingAway = true;
+    FocusScope.of(context).unfocus();
     // Clean up focus nodes
     watchButtonFocusNode.dispose();
     favoriteButtonFocusNode.dispose();
     downloadButtonFocusNode.dispose();
     // ref.invalidate(movieDetailProvider);
     // ref.invalidate(tvSeriesWatchProgressProvider);
-    
+
     // TODO: implement dispose
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-
     ref.watch(rentalProvider);
-   //     ref.watch(ratedMovieProvider(MovieDetailParameter(movieId: widget.movieId, mediaType: widget.mediaType)));
+    //     ref.watch(ratedMovieProvider(MovieDetailParameter(movieId: widget.movieId, mediaType: widget.mediaType)));
 
     final Map<String, String> mediaTypeMapbanner = {
       'videosong': 'videosong',
@@ -179,21 +180,23 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
     final bool isTV = AppSizes.getDeviceType(context) == DeviceType.tv;
 
     return Scaffold(
-      appBar: 
-           CustomAppBar(
-              showActionIcon: false,
-              title:
-                  "${mediaType[0].toUpperCase()}${mediaType.substring(1)} Details",
-              showBackButton: true),
+      appBar: CustomAppBar(
+          showActionIcon: false,
+          title:
+              "${mediaType[0].toUpperCase()}${mediaType.substring(1)} Details",
+          showBackButton: true),
       body: SafeArea(
         child: FocusScope(
-        // This traps focus within the detail page
-        onFocusChange: (hasFocus) {
-          if (!hasFocus && mounted && AppSizes.getDeviceType(context) == DeviceType.tv) {
-            print("DETAIL PAGE: Lost focus at page level, reclaiming");
-            FocusScope.of(context).requestFocus(watchButtonFocusNode);
-          };
-        },
+          // This traps focus within the detail page
+          onFocusChange: (hasFocus) {
+            if (!hasFocus &&
+                mounted &&
+                AppSizes.getDeviceType(context) == DeviceType.tv) {
+              print("DETAIL PAGE: Lost focus at page level, reclaiming");
+              FocusScope.of(context).requestFocus(watchButtonFocusNode);
+            }
+            ;
+          },
           child: movieDetails.when(
             data: (movie) => movie != null
                 ? bannerUrl.when(
@@ -309,7 +312,7 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
                     ? _buildSeasonSelector(context, ref)
                     : const SizedBox(),
                 const SizedBox(height: 15),
-                
+
                 if (movie.description != null &&
                     movie.description!.trim().isNotEmpty) ...[
                   const Text(
@@ -342,25 +345,27 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
   }
 
   // Helper method to add consistent focus styling
-Widget _buildFocusableBox({
-  required Widget child,
-  FocusNode? focusNode,
-  bool autofocus = false,
-  VoidCallback? onPressed,
-}) {
-  return Focus(
-    focusNode: focusNode,
-    autofocus: autofocus,
-    onKey: onPressed != null ? (node, event) {
-      if (event is RawKeyDownEvent) {
-        if (event.logicalKey == LogicalKeyboardKey.select || 
-            event.logicalKey == LogicalKeyboardKey.enter) {
-          onPressed();
-          return KeyEventResult.handled;
-        }
-      }
-      return KeyEventResult.ignored;
-    } : null,
+  Widget _buildFocusableBox({
+    required Widget child,
+    FocusNode? focusNode,
+    bool autofocus = false,
+    VoidCallback? onPressed,
+  }) {
+    return Focus(
+      focusNode: focusNode,
+      autofocus: autofocus,
+      onKey: onPressed != null
+          ? (node, event) {
+              if (event is RawKeyDownEvent) {
+                if (event.logicalKey == LogicalKeyboardKey.select ||
+                    event.logicalKey == LogicalKeyboardKey.enter) {
+                  onPressed();
+                  return KeyEventResult.handled;
+                }
+              }
+              return KeyEventResult.ignored;
+            }
+          : null,
       child: Builder(
         builder: (context) {
           final isFocused = Focus.of(context).hasFocus;
@@ -375,13 +380,15 @@ Widget _buildFocusableBox({
                   color: isFocused ? Colors.amber : Colors.transparent,
                   width: 3,
                 ),
-                boxShadow: isFocused ? [
-                  BoxShadow(
-                    color: Colors.amber.withOpacity(0.5),
-                    blurRadius: 8,
-                    spreadRadius: 2,
-                  )
-                ] : null,
+                boxShadow: isFocused
+                    ? [
+                        BoxShadow(
+                          color: Colors.amber.withOpacity(0.5),
+                          blurRadius: 8,
+                          spreadRadius: 2,
+                        )
+                      ]
+                    : null,
               ),
               child: child,
             ),
@@ -391,30 +398,29 @@ Widget _buildFocusableBox({
     );
   }
 
-Widget _buildButton({
-  required String text,
-  required IconData icon,
-  required Color textColor,
-  required VoidCallback onPressed,
-  FocusNode? focusNode,
-  bool autofocus = false,
-}) {
-  final isTv = AppSizes.getDeviceType(context) == DeviceType.tv;
-  return Focus(
-    focusNode: focusNode,
-    autofocus: autofocus,
-    onKey: (node, event) {
-      if (event is RawKeyDownEvent) {
-        if (event.logicalKey == LogicalKeyboardKey.select || 
-            event.logicalKey == LogicalKeyboardKey.enter) {
-          onPressed();
-          return KeyEventResult.handled;
+  Widget _buildButton({
+    required String text,
+    required IconData icon,
+    required Color textColor,
+    required VoidCallback onPressed,
+    FocusNode? focusNode,
+    bool autofocus = false,
+  }) {
+    final isTv = AppSizes.getDeviceType(context) == DeviceType.tv;
+    return Focus(
+      focusNode: focusNode,
+      autofocus: autofocus,
+      onKey: (node, event) {
+        if (event is RawKeyDownEvent) {
+          if (event.logicalKey == LogicalKeyboardKey.select ||
+              event.logicalKey == LogicalKeyboardKey.enter) {
+            onPressed();
+            return KeyEventResult.handled;
+          }
         }
-      }
-      return KeyEventResult.ignored;
-    },
-    child: Builder(
-      builder: (context) {
+        return KeyEventResult.ignored;
+      },
+      child: Builder(builder: (context) {
         final isFocused = Focus.of(context).hasFocus;
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
@@ -425,13 +431,15 @@ Widget _buildButton({
                 color: isFocused && isTv ? Colors.amber : Colors.transparent,
                 width: 3,
               ),
-              boxShadow: isFocused && isTv? [
-                BoxShadow(
-                  color: Colors.amber.withOpacity(0.5),
-                  blurRadius: 10,
-                  spreadRadius: 2,
-                )
-              ] : null,
+              boxShadow: isFocused && isTv
+                  ? [
+                      BoxShadow(
+                        color: Colors.amber.withOpacity(0.5),
+                        blurRadius: 10,
+                        spreadRadius: 2,
+                      )
+                    ]
+                  : null,
             ),
             child: SizedBox(
               width: double.infinity,
@@ -446,270 +454,341 @@ Widget _buildButton({
                   ),
                 ),
                 icon: Icon(icon, size: 20, color: textColor),
-                label: Text(text, style: TextStyle(fontSize: 15, color: textColor)),
+                label: Text(text,
+                    style: TextStyle(fontSize: 15, color: textColor)),
               ),
             ),
           ),
         );
-      }
-    ),
-  );
-}
+      }),
+    );
+  }
 
   // rent button with focus
   // Modified _buildWatchNowButton implementation
-Widget _buildWatchNowButton(MovieDetail movie, BuildContext context) {
-  bool isRentable = movie.accessParams?.isRentable == true;
-  bool isFree = movie.accessParams?.isFree == true;
+  Widget _buildWatchNowButton(MovieDetail movie, BuildContext context) {
+    bool isRentable = movie.accessParams?.isRentable == true;
+    bool isFree = movie.accessParams?.isFree == true;
 
-  final authUser = ref.watch(authUserProvider);
-  final rentals = ref.watch(rentalProvider);
+    final authUser = ref.watch(authUserProvider);
+    final rentals = ref.watch(rentalProvider);
 
-  // Add a loading state variable
-  bool isRefreshing = false;
+    // Add a loading state variable
+    bool isRefreshing = false;
 
-  return authUser.when(
-    data: (user) {
-      // When no user is logged in
-      if (user == null) {
-        return _buildButton(
-          text: "Login to watch",
-          icon: Icons.login,
-          textColor: Color(0xFFF4AE00),
-          focusNode: watchButtonFocusNode,
-          autofocus: true,
-          onPressed: () async {
-            // Start with loading state
-            setState(() {
-              isRefreshing = true;
-            });
+    return authUser.when(
+      data: (user) {
+        // When no user is logged in
+        if (user == null) {
+          return _buildButton(
+            text: "Login to watch",
+            icon: Icons.login,
+            textColor: Color(0xFFF4AE00),
+            focusNode: watchButtonFocusNode,
+            autofocus: true,
+            onPressed: () async {
+              FocusScope.of(context).unfocus();
+              watchButtonFocusNode.canRequestFocus = false;
+              favoriteButtonFocusNode.canRequestFocus = false;
+              downloadButtonFocusNode.canRequestFocus = false;
 
-            // Navigate to login page and wait for result
-            final loginResult = await Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => LoginScreen()),
-            );
+              // Start with loading state
+              setState(() {
+                isRefreshing = true;
+              });
 
-            // If login was successful
-            if (loginResult == true) {
-              // Explicitly refresh providers one by one in order
-              await ref.refresh(authUserProvider.future);
-              
-              // Wait a small amount of time for auth to propagate
-              await Future.delayed(Duration(milliseconds: 300));
-              
-              // Now refresh dependent providers
+              // Navigate to login page and wait for result
+              final loginResult = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => LoginScreen()),
+              );
               if (mounted) {
-                final newUser = ref.read(authUserProvider).value;
-                if (newUser != null) {
+                watchButtonFocusNode.canRequestFocus = true;
+                favoriteButtonFocusNode.canRequestFocus = true;
+                downloadButtonFocusNode.canRequestFocus = true;
+
+                // Request focus on the watch button
+                FocusScope.of(context).requestFocus(watchButtonFocusNode);
+              }
+
+              // If login was successful
+              if (loginResult == true) {
+                // Explicitly refresh providers one by one in order
+                await ref.refresh(authUserProvider.future);
+
+                // Wait a small amount of time for auth to propagate
+                await Future.delayed(Duration(milliseconds: 300));
+
+                // Now refresh dependent providers
+                if (mounted) {
+                  final newUser = ref.read(authUserProvider).value;
+                  if (newUser != null) {
+                    setState(() {
+                      userId = newUser.id;
+                    });
+
+                    // Refresh remaining providers
+                    await ref.refresh(rentalProvider.future);
+                    await ref.refresh(subscriptionProvider(
+                            SubscriptionDetailParameter(userId: newUser.id))
+                        .future);
+                    // await ref.refresh(isMovieFavoriteProvider(movie.id).future);
+                    await ref.refresh(favoritesProvider.future);
+                  }
+
+                  // End loading state
                   setState(() {
-                    userId = newUser.id;
+                    isRefreshing = false;
                   });
-                  
-                  // Refresh remaining providers
-                  await ref.refresh(rentalProvider.future);
-                  await ref.refresh(subscriptionProvider(
-                    SubscriptionDetailParameter(userId: newUser.id)
-                  ).future);
-                  // await ref.refresh(isMovieFavoriteProvider(movie.id).future);
-                  await ref.refresh(favoritesProvider.future);
                 }
-                
-                // End loading state
+              } else {
+                // Login was not successful
                 setState(() {
                   isRefreshing = false;
                 });
               }
-            } else {
-              // Login was not successful
+            },
+          );
+        } else {
+          // User is already logged in
+          if (isRefreshing) {
+            return const Center(child: Buttonskelton());
+          }
+
+          setState(() {
+            userId = user.id;
+          });
+
+          final subscriptions = ref.watch(subscriptionProvider(
+              SubscriptionDetailParameter(userId: user.id)));
+
+          // User is logged in, show appropriate button based on rental/subscription status
+          return rentals.when(
+            data: (rentalList) {
+              // Check if the user has rented this movie
+              bool hasRented = rentalList.any((rental) =>
+                  rental.userId == user.id && rental.movieId == movie.id);
+
+              return subscriptions.when(
+                data: (subscription) {
+                  // Check if user has active subscription
+                  bool isSubscribed =
+                      subscription?.subscriptionType.name != "Free";
+
+                  if ((widget.mediaType == "tvseries" ||
+                          widget.mediaType == "TVSeries") &&
+                      isSubscribed) {
+                    return const SizedBox(height: 10);
+                  } else {
+                    if (hasRented || isSubscribed || isFree) {
+                      return _buildButton(
+                        text: "Watch Now",
+                        icon: Icons.visibility,
+                        textColor: Color(0xFFF4AE00),
+                        focusNode: watchButtonFocusNode,
+                        autofocus: true,
+                        onPressed: () async {
+                          FocusScope.of(context).unfocus();
+                          watchButtonFocusNode.canRequestFocus = false;
+                          favoriteButtonFocusNode.canRequestFocus = false;
+                          downloadButtonFocusNode.canRequestFocus = false;
+
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => VideoPlayerScreen(
+                                mediaType: widget.mediaType,
+                                movieId: movie.id,
+                              ),
+                            ),
+                          );
+                          ref.invalidate(watchHistoryProvider);
+                          ref.invalidate(movieDetailProvider);
+                          ref.invalidate(tvSeriesWatchProgressProvider);
+
+                          if (mounted) {
+                            watchButtonFocusNode.canRequestFocus = true;
+                            favoriteButtonFocusNode.canRequestFocus = true;
+                            downloadButtonFocusNode.canRequestFocus = true;
+
+                            // Request focus on the watch button
+                            FocusScope.of(context)
+                                .requestFocus(watchButtonFocusNode);
+                          }
+                        },
+                      );
+                    } else if (isRentable) {
+                      return _buildButton(
+                        text:
+                            "Rent for ₹${movie.accessParams?.rentalPrice ?? "N/A"}",
+                        icon: Icons.payments,
+                        textColor: Color(0xFFF4AE00),
+                        focusNode: watchButtonFocusNode,
+                        autofocus: true,
+                        onPressed: () async {
+                          FocusScope.of(context).unfocus();
+                          watchButtonFocusNode.canRequestFocus = false;
+                          favoriteButtonFocusNode.canRequestFocus = false;
+                          downloadButtonFocusNode.canRequestFocus = false;
+                          final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => RentalPaymentRedirectPage(
+                                      movieId: widget.movieId,
+                                      redirectUrl:
+                                          "https://nandi.webscicle.com/app/paymentreport")));
+
+                          if (mounted) {
+                            watchButtonFocusNode.canRequestFocus = true;
+                            favoriteButtonFocusNode.canRequestFocus = true;
+                            downloadButtonFocusNode.canRequestFocus = true;
+
+                            // Request focus on the watch button
+                            FocusScope.of(context)
+                                .requestFocus(watchButtonFocusNode);
+                          }
+                          if (result == true) {
+                            ref.invalidate(rentalProvider);
+                          }
+                          // Add rental logic here
+                          print("Redirecting to Payment page");
+                        },
+                      );
+                    } else {
+                      return _buildButton(
+                        text: "Subscribe to Watch",
+                        icon: Icons.subscriptions,
+                        textColor: Color(0xFFF4AE00),
+                        focusNode: watchButtonFocusNode,
+                        autofocus: true,
+                        onPressed: () {
+                          FocusScope.of(context).unfocus();
+                          watchButtonFocusNode.canRequestFocus = false;
+                          favoriteButtonFocusNode.canRequestFocus = false;
+                          downloadButtonFocusNode.canRequestFocus = false;
+
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (_) => SubscriptionPlanModal(
+                              userId: user.id,
+                              movieId: movieId,
+                            ),
+                          );
+                          if (mounted) {
+                            watchButtonFocusNode.canRequestFocus = true;
+                            favoriteButtonFocusNode.canRequestFocus = true;
+                            downloadButtonFocusNode.canRequestFocus = true;
+
+                            // Request focus on the watch button
+                            FocusScope.of(context)
+                                .requestFocus(watchButtonFocusNode);
+                          }
+                        },
+                      );
+                    }
+                  }
+                },
+                loading: () => Center(child: Buttonskelton()),
+                error: (_, __) => _buildButton(
+                  text:
+                      "Loading Subscription...", // Changed error text to be less alarming
+                  icon: Icons.refresh,
+                  textColor: Color(0xFFF4AE00),
+                  focusNode: watchButtonFocusNode,
+                  autofocus: true,
+                  onPressed: () {
+                    ref.refresh(subscriptionProvider(
+                            SubscriptionDetailParameter(userId: user.id))
+                        .future);
+                  },
+                ),
+              );
+            },
+            loading: () => Center(child: Buttonskelton()),
+            error: (_, __) => _buildButton(
+              text:
+                  "Loading Content...", // Changed error text to be less alarming
+              icon: Icons.refresh,
+              textColor: Color(0xFFF4AE00),
+              focusNode: watchButtonFocusNode,
+              autofocus: true,
+              onPressed: () {
+                ref.refresh(rentalProvider.future);
+              },
+            ),
+          );
+        }
+      },
+      loading: () => Center(child: Buttonskelton()),
+      error: (_, __) => _buildButton(
+        text: "Login to Watch",
+        icon: Icons.login,
+        textColor: Color(0xFFF4AE00),
+        focusNode: watchButtonFocusNode,
+        autofocus: true,
+        onPressed: () async {
+          FocusScope.of(context).unfocus();
+          watchButtonFocusNode.canRequestFocus = false;
+          favoriteButtonFocusNode.canRequestFocus = false;
+          downloadButtonFocusNode.canRequestFocus = false;
+          setState(() {
+            isRefreshing = true;
+          });
+
+          final loginResult = await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => LoginScreen()),
+          );
+
+          if (mounted) {
+            watchButtonFocusNode.canRequestFocus = true;
+            favoriteButtonFocusNode.canRequestFocus = true;
+            downloadButtonFocusNode.canRequestFocus = true;
+
+            // Request focus on the watch button
+            FocusScope.of(context).requestFocus(watchButtonFocusNode);
+          }
+
+          // If login was successful
+          if (loginResult == true) {
+            // Explicitly refresh providers one by one
+            await ref.refresh(authUserProvider.future);
+
+            // Wait for auth to propagate
+            await Future.delayed(Duration(milliseconds: 300));
+
+            // Now refresh dependent providers
+            if (mounted) {
+              final newUser = ref.read(authUserProvider).value;
+              if (newUser != null) {
+                setState(() {
+                  userId = newUser.id;
+                });
+
+                // Refresh remaining providers
+                await ref.refresh(rentalProvider.future);
+                await ref.refresh(subscriptionProvider(
+                        SubscriptionDetailParameter(userId: newUser.id))
+                    .future);
+                // ref.refresh(isMovieFavoriteProvider(movie.id));
+                await ref.refresh(favoritesProvider.future);
+              }
+
               setState(() {
                 isRefreshing = false;
               });
             }
-          },
-        );
-      } else {
-        // User is already logged in
-        if (isRefreshing) {
-          return const Center(child: Buttonskelton());
-        }
-
-        setState(() {
-          userId = user.id;
-        });
-        
-        final subscriptions = ref.watch(subscriptionProvider(
-          SubscriptionDetailParameter(userId: user.id)
-        ));
-        
-        // User is logged in, show appropriate button based on rental/subscription status
-        return rentals.when(
-          data: (rentalList) {
-            // Check if the user has rented this movie
-            bool hasRented = rentalList.any((rental) =>
-                rental.userId == user.id && rental.movieId == movie.id);
-
-            return subscriptions.when(
-              data: (subscription) {
-                // Check if user has active subscription
-                bool isSubscribed = subscription?.subscriptionType.name != "Free";
-
-                if ((widget.mediaType == "tvseries" || 
-                    widget.mediaType == "TVSeries") && isSubscribed) {
-                  return const SizedBox(height: 10);
-                } else {
-                  if (hasRented || isSubscribed || isFree) {
-                    return _buildButton(
-                      text: "Watch Now",
-                      icon: Icons.visibility,
-                      textColor: Color(0xFFF4AE00),
-                      focusNode: watchButtonFocusNode,
-                      autofocus: true,
-                      onPressed: () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => VideoPlayerScreen(
-                              mediaType: widget.mediaType,
-                              movieId: movie.id,
-                            ),
-                          ),
-                        );
-                        ref.invalidate(watchHistoryProvider);
-                        ref.invalidate(movieDetailProvider);
-                        ref.invalidate(tvSeriesWatchProgressProvider);
-                      },
-                    );
-                  } else if (isRentable) {
-                    return _buildButton(
-                      text: "Rent for ₹${movie.accessParams?.rentalPrice ?? "N/A"}",
-                      icon: Icons.payments,
-                      textColor: Color(0xFFF4AE00),
-                      focusNode: watchButtonFocusNode,
-                      autofocus: true,
-                      onPressed: () async {
-                        final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => RentalPaymentRedirectPage(
-                              movieId: widget.movieId,
-                              redirectUrl: "https://nandi.webscicle.com/app/paymentreport"
-                            )
-                          )
-                        );
-                        if (result == true) {
-                          ref.invalidate(rentalProvider);
-                        }
-                        // Add rental logic here
-                        print("Redirecting to Payment page");
-                      },
-                    );
-                  } else {
-                    return _buildButton(
-                      text: "Subscribe to Watch",
-                      icon: Icons.subscriptions,
-                      textColor: Color(0xFFF4AE00),
-                      focusNode: watchButtonFocusNode,
-                      autofocus: true,
-                      onPressed: () {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          backgroundColor: Colors.transparent,
-                          builder: (_) => SubscriptionPlanModal(
-                            userId: user.id,
-                            movieId: movieId,
-                          ),
-                        );
-                      },
-                    );
-                  }
-                }
-              },
-              loading: () => Center(child: Buttonskelton()),
-              error: (_, __) => _buildButton(
-                text: "Loading Subscription...",  // Changed error text to be less alarming
-                icon: Icons.refresh,
-                textColor: Color(0xFFF4AE00),
-                focusNode: watchButtonFocusNode,
-                autofocus: true,
-                onPressed: () {
-                  ref.refresh(subscriptionProvider(
-                    SubscriptionDetailParameter(userId: user.id)
-                  ).future);
-                },
-              ),
-            );
-          },
-          loading: () => Center(child: Buttonskelton()),
-          error: (_, __) => _buildButton(
-            text: "Loading Content...",  // Changed error text to be less alarming
-            icon: Icons.refresh,
-            textColor: Color(0xFFF4AE00),
-            focusNode: watchButtonFocusNode,
-            autofocus: true,
-            onPressed: () {
-              ref.refresh(rentalProvider.future);
-            },
-          ),
-        );
-      }
-    },
-    loading: () => Center(child: Buttonskelton()),
-    error: (_, __) => _buildButton(
-      text: "Login to Watch",
-      icon: Icons.login,
-      textColor: Color(0xFFF4AE00),
-      focusNode: watchButtonFocusNode,
-      autofocus: true,
-      onPressed: () async {
-        setState(() {
-          isRefreshing = true;
-        });
-        
-        final loginResult = await Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => LoginScreen()),
-        );
-
-        // If login was successful
-        if (loginResult == true) {
-          // Explicitly refresh providers one by one
-          await ref.refresh(authUserProvider.future);
-          
-          // Wait for auth to propagate
-          await Future.delayed(Duration(milliseconds: 300));
-          
-          // Now refresh dependent providers
-          if (mounted) {
-            final newUser = ref.read(authUserProvider).value;
-            if (newUser != null) {
-              setState(() {
-                userId = newUser.id;
-              });
-              
-              // Refresh remaining providers
-              await ref.refresh(rentalProvider.future);
-              await ref.refresh(subscriptionProvider(
-                SubscriptionDetailParameter(userId: newUser.id)
-              ).future);
-              // ref.refresh(isMovieFavoriteProvider(movie.id));
-              await ref.refresh(favoritesProvider.future);
-            }
-            
+          } else {
             setState(() {
               isRefreshing = false;
             });
           }
-        } else {
-          setState(() {
-            isRefreshing = false;
-          });
-        }
-      },
-    ),
-  );
-}
+        },
+      ),
+    );
+  }
 
   Widget _buildFavoriteDownloadButtons(
       MovieDetail movie, BuildContext context) {
@@ -800,91 +879,101 @@ Widget _buildWatchNowButton(MovieDetail movie, BuildContext context) {
                           child: Focus(
                             focusNode: favoriteButtonFocusNode,
                             onKey: (node, event) {
-    if (event is RawKeyDownEvent) {
-      if (event.logicalKey == LogicalKeyboardKey.select || 
-          event.logicalKey == LogicalKeyboardKey.enter) {
-        ref.read(favoritesProvider.notifier).toggleFavorite(
-          movie.id,
-          widget.mediaType,
-        );
-        return KeyEventResult.handled;
-      }
-    }
-    return KeyEventResult.ignored;
-  },
-                            child: Builder(
-                              builder: (context) {
-                                final isFocused = Focus.of(context).hasFocus;
-                                return Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(
-                                      color: isFocused ? Colors.amber : Colors.transparent,
-                                      width: 3,
-                                    ),
-                                    boxShadow: isFocused && isTV ? [
-                                      BoxShadow(
-                                        color: Colors.amber.withOpacity(0.5),
-                                        blurRadius: 8,
-                                        spreadRadius: 2,
-                                      )
-                                    ] : null,
-                                  ),
-                                  child: OutlinedButton.icon(
-                                    onPressed: () {
-                                      ref
-                                          .read(favoritesProvider.notifier)
-                                          .toggleFavorite(
-                                            movie.id,
-                                            widget.mediaType,
-                                          );
-                                    },
-                                    icon: ShaderMask(
-                                      shaderCallback: (Rect bounds) {
-                                        return const LinearGradient(
-                                          colors: [
-                                            Color.fromARGB(255, 255, 187, 0),
-                                            Color.fromARGB(255, 255, 123, 0)
-                                          ],
-                                          begin: Alignment.topLeft,
-                                          end: Alignment.bottomRight,
-                                        ).createShader(bounds);
-                                      },
-                                      child: Icon(
-                                        isFavorite
-                                            ? Icons.favorite
-                                            : Icons.favorite_border,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    label: ShaderMask(
-                                      shaderCallback: (Rect bounds) {
-                                        return const LinearGradient(
-                                          colors: [
-                                            Color.fromARGB(255, 255, 187, 0),
-                                            Color.fromARGB(255, 255, 123, 0)
-                                          ],
-                                          begin: Alignment.topLeft,
-                                          end: Alignment.bottomRight,
-                                        ).createShader(bounds);
-                                      },
-                                      child: Text(
-                                        isFavorite
-                                            ? "Remove Favorite"
-                                            : "Add to Favorites",
-                                        style: const TextStyle(color: Colors.white),
-                                      ),
-                                    ),
-                                    style: OutlinedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(vertical: 12),
-                                      side: const BorderSide(
-                                          color: Color.fromARGB(255, 224, 129, 5)),
-                                      foregroundColor: Colors.white,
-                                    ),
-                                  ),
-                                );
+                              if (event is RawKeyDownEvent) {
+                                if (event.logicalKey ==
+                                        LogicalKeyboardKey.select ||
+                                    event.logicalKey ==
+                                        LogicalKeyboardKey.enter) {
+                                  ref
+                                      .read(favoritesProvider.notifier)
+                                      .toggleFavorite(
+                                        movie.id,
+                                        widget.mediaType,
+                                      );
+                                  return KeyEventResult.handled;
+                                }
                               }
-                            ),
+                              return KeyEventResult.ignored;
+                            },
+                            child: Builder(builder: (context) {
+                              final isFocused = Focus.of(context).hasFocus;
+                              return Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: isFocused
+                                        ? Colors.amber
+                                        : Colors.transparent,
+                                    width: 3,
+                                  ),
+                                  boxShadow: isFocused && isTV
+                                      ? [
+                                          BoxShadow(
+                                            color:
+                                                Colors.amber.withOpacity(0.5),
+                                            blurRadius: 8,
+                                            spreadRadius: 2,
+                                          )
+                                        ]
+                                      : null,
+                                ),
+                                child: OutlinedButton.icon(
+                                  onPressed: () {
+                                    ref
+                                        .read(favoritesProvider.notifier)
+                                        .toggleFavorite(
+                                          movie.id,
+                                          widget.mediaType,
+                                        );
+                                  },
+                                  icon: ShaderMask(
+                                    shaderCallback: (Rect bounds) {
+                                      return const LinearGradient(
+                                        colors: [
+                                          Color.fromARGB(255, 255, 187, 0),
+                                          Color.fromARGB(255, 255, 123, 0)
+                                        ],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ).createShader(bounds);
+                                    },
+                                    child: Icon(
+                                      isFavorite
+                                          ? Icons.favorite
+                                          : Icons.favorite_border,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  label: ShaderMask(
+                                    shaderCallback: (Rect bounds) {
+                                      return const LinearGradient(
+                                        colors: [
+                                          Color.fromARGB(255, 255, 187, 0),
+                                          Color.fromARGB(255, 255, 123, 0)
+                                        ],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ).createShader(bounds);
+                                    },
+                                    child: Text(
+                                      isFavorite
+                                          ? "Remove Favorite"
+                                          : "Add to Favorites",
+                                      style:
+                                          const TextStyle(color: Colors.white),
+                                    ),
+                                  ),
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 12),
+                                    side: const BorderSide(
+                                        color:
+                                            Color.fromARGB(255, 224, 129, 5)),
+                                    foregroundColor: Colors.white,
+                                  ),
+                                ),
+                              );
+                            }),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -895,221 +984,248 @@ Widget _buildWatchNowButton(MovieDetail movie, BuildContext context) {
                             : Expanded(
                                 child: Focus(
                                   focusNode: downloadButtonFocusNode,
-                                  child: Builder(
-                                    builder: (context) {
-                                      final isFocused = Focus.of(context).hasFocus;
-                                      return Container(
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(10),
-                                          border: Border.all(
-                                            color: isFocused ? Colors.amber : Colors.transparent,
-                                            width: 3,
-                                          ),
-                                          boxShadow: isFocused ? [
-                                            BoxShadow(
-                                              color: Colors.amber.withOpacity(0.5),
-                                              blurRadius: 8,
-                                              spreadRadius: 2,
-                                            )
-                                          ] : null,
+                                  child: Builder(builder: (context) {
+                                    final isFocused =
+                                        Focus.of(context).hasFocus;
+                                    return Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(
+                                          color: isFocused
+                                              ? Colors.amber
+                                              : Colors.transparent,
+                                          width: 3,
                                         ),
-                                        child: OutlinedButton.icon(
-                                          onPressed: !canDownload ||
-                                                  buttonState.isPreparingDownload ||
-                                                  buttonState.isDownloading
-                                              ? null // Disable button if not allowed or during download
-                                              : () async {
-                                                  if (showGoToDownloads) {
-                                                    ref
-                                                        .read(selectedIndexProvider
-                                                            .notifier)
-                                                        .state = 1;
-                                                    Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                          builder: (context) =>
-                                                              ResponsiveNavigation()),
-                                                    );
-                                                  } else {
-                                                    // Show initial feedback
-                                                    ScaffoldMessenger.of(context)
-                                                        .showSnackBar(
-                                                      const SnackBar(
-                                                          content: Text(
-                                                              'Preparing download...')),
-                                                    );
-                                                    // Start preparing for download
+                                        boxShadow: isFocused
+                                            ? [
+                                                BoxShadow(
+                                                  color: Colors.amber
+                                                      .withOpacity(0.5),
+                                                  blurRadius: 8,
+                                                  spreadRadius: 2,
+                                                )
+                                              ]
+                                            : null,
+                                      ),
+                                      child: OutlinedButton.icon(
+                                        onPressed: !canDownload ||
+                                                buttonState
+                                                    .isPreparingDownload ||
+                                                buttonState.isDownloading
+                                            ? null // Disable button if not allowed or during download
+                                            : () async {
+                                                if (showGoToDownloads) {
+                                                  ref
+                                                      .read(
+                                                          selectedIndexProvider
+                                                              .notifier)
+                                                      .state = 1;
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            ResponsiveNavigation()),
+                                                  );
+                                                } else {
+                                                  // Show initial feedback
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(
+                                                    const SnackBar(
+                                                        content: Text(
+                                                            'Preparing download...')),
+                                                  );
+                                                  // Start preparing for download
+                                                  ref
+                                                      .read(
+                                                          downloadButtonStateProvider(
+                                                                  widget
+                                                                      .movieId)
+                                                              .notifier)
+                                                      .setPreparingDownload(
+                                                          true);
+
+                                                  try {
+                                                    // Get and validate the media URL
+                                                    final mediaUrl =
+                                                        "$baseUrl/drm/getmasterplaylist/$transformedMediaType/${movie.id}";
+                                                    final mediaUrlValidity =
+                                                        await ref.read(
+                                                            trailerUrlValidityProvider(
+                                                                    mediaUrl)
+                                                                .future);
+
+                                                    if (mediaUrlValidity
+                                                        .isEmpty) {
+                                                      ref
+                                                          .read(downloadButtonStateProvider(
+                                                                  widget
+                                                                      .movieId)
+                                                              .notifier)
+                                                          .setPreparingDownload(
+                                                              false);
+
+                                                      if (mounted) {
+                                                        ScaffoldMessenger.of(
+                                                                context)
+                                                            .showSnackBar(
+                                                          const SnackBar(
+                                                              content: Text(
+                                                                  'No media available to download.')),
+                                                        );
+                                                      }
+                                                      return;
+                                                    }
+
+                                                    // Start the download using our method
+                                                    final success = await ref
+                                                        .read(
+                                                            downloadButtonStateProvider(
+                                                                    widget
+                                                                        .movieId)
+                                                                .notifier)
+                                                        .startDownload(
+                                                          mediaUrl:
+                                                              mediaUrlValidity,
+                                                          movieId: movie.id,
+                                                          title: movie.title,
+                                                          context: context,
+                                                          mediaType:
+                                                              widget.mediaType,
+                                                          transformedMediaTypebanner:
+                                                              transformedMediaTypebanner,
+                                                        );
+
+                                                    if (success && mounted) {
+                                                      ScaffoldMessenger.of(
+                                                              context)
+                                                          .showSnackBar(
+                                                        SnackBar(
+                                                          content: const Text(
+                                                              'Download started. Go to Downloads page to view progress.'),
+                                                          action:
+                                                              SnackBarAction(
+                                                            label: 'Go Now',
+                                                            onPressed: () {
+                                                              Navigator.push(
+                                                                context,
+                                                                MaterialPageRoute(
+                                                                    builder:
+                                                                        (context) =>
+                                                                            DownloadsPage()),
+                                                              );
+                                                            },
+                                                          ),
+                                                        ),
+                                                      );
+                                                    }
+                                                  } catch (e) {
                                                     ref
                                                         .read(
                                                             downloadButtonStateProvider(
-                                                                    widget.movieId)
+                                                                    widget
+                                                                        .movieId)
                                                                 .notifier)
-                                                        .setPreparingDownload(true);
+                                                        .setPreparingDownload(
+                                                            false);
 
-                                                    try {
-                                                      // Get and validate the media URL
-                                                      final mediaUrl =
-                                                          "$baseUrl/drm/getmasterplaylist/$transformedMediaType/${movie.id}";
-                                                      final mediaUrlValidity =
-                                                          await ref.read(
-                                                              trailerUrlValidityProvider(
-                                                                      mediaUrl)
-                                                                  .future);
-
-                                                      if (mediaUrlValidity.isEmpty) {
-                                                        ref
-                                                            .read(
-                                                                downloadButtonStateProvider(
-                                                                        widget.movieId)
-                                                                    .notifier)
-                                                            .setPreparingDownload(
-                                                                false);
-
-                                                        if (mounted) {
-                                                          ScaffoldMessenger.of(context)
-                                                              .showSnackBar(
-                                                            const SnackBar(
-                                                                content: Text(
-                                                                    'No media available to download.')),
-                                                          );
-                                                        }
-                                                        return;
-                                                      }
-
-                                                      // Start the download using our method
-                                                      final success = await ref
-                                                          .read(
-                                                              downloadButtonStateProvider(
-                                                                      widget.movieId)
-                                                                  .notifier)
-                                                          .startDownload(
-                                                            mediaUrl: mediaUrlValidity,
-                                                            movieId: movie.id,
-                                                            title: movie.title,
-                                                            context: context,
-                                                            mediaType: widget.mediaType,
-                                                            transformedMediaTypebanner:
-                                                                transformedMediaTypebanner,
-                                                          );
-
-                                                      if (success && mounted) {
-                                                        ScaffoldMessenger.of(context)
-                                                            .showSnackBar(
-                                                          SnackBar(
-                                                            content: const Text(
-                                                                'Download started. Go to Downloads page to view progress.'),
-                                                            action: SnackBarAction(
-                                                              label: 'Go Now',
-                                                              onPressed: () {
-                                                                Navigator.push(
-                                                                  context,
-                                                                  MaterialPageRoute(
-                                                                      builder: (context) =>
-                                                                          DownloadsPage()),
-                                                                );
-                                                              },
-                                                            ),
-                                                          ),
-                                                        );
-                                                      }
-                                                    } catch (e) {
-                                                      ref
-                                                          .read(
-                                                              downloadButtonStateProvider(
-                                                                      widget.movieId)
-                                                                  .notifier)
-                                                          .setPreparingDownload(false);
-
-                                                      if (mounted) {
-                                                        ScaffoldMessenger.of(context)
-                                                            .showSnackBar(
-                                                          SnackBar(
-                                                              content: Text(
-                                                                  'Error: ${e.toString()}')),
-                                                        );
-                                                      }
+                                                    if (mounted) {
+                                                      ScaffoldMessenger.of(
+                                                              context)
+                                                          .showSnackBar(
+                                                        SnackBar(
+                                                            content: Text(
+                                                                'Error: ${e.toString()}')),
+                                                      );
                                                     }
                                                   }
-                                                },
-                                          icon: !canDownload
-                                              ? const Icon(Icons.file_download_off,
-                                                  color: Colors.grey)
-                                              : buttonState.isPreparingDownload
-                                                  ? const SizedBox(
-                                                      width: 16,
-                                                      height: 16,
-                                                      child: CircularProgressIndicator(
-                                                          strokeWidth: 2))
-                                                  : buttonState.isDownloading
-                                                      ? const SizedBox(
-                                                          width: 16,
-                                                          height: 16,
-                                                          child: CircularProgressIndicator(
-                                                              strokeWidth: 2,
-                                                              valueColor:
-                                                                  AlwaysStoppedAnimation<Color>(
-                                                                      Colors
-                                                                          .white)))
-                                                                  
-                                                      : showGoToDownloads
-                                                          ? const Icon(
-                                                              Icons.download_done,
-                                                              color: Colors.green)
-                                                          : Icon(Icons.download,
-                                                              color: Theme.of(context)
-                                                                  .primaryColorDark),
-                                          label: !canDownload
-                                              ? _getDownloadButtonText(
-                                                  isRentable, isSubscribed)
-                                              : buttonState.isPreparingDownload
-                                                  ? const Text("Starting...",
-                                                      style: TextStyle(
-                                                          color: Colors.white))
-                                                  : buttonState.isDownloading
-                                                      ? const Text("Downloading...",
-                                                          style: TextStyle(
-                                                              color: Colors.white))
-                                                      : showGoToDownloads
-                                                          ? const Text(
-                                                              "Go to Downloads",
-                                                              style: TextStyle(
-                                                                  color: Colors.white))
-                                                          : Text("Download",
-                                                              style: TextStyle(
-                                                                  color: Theme.of(
-                                                                          context)
-                                                                      .primaryColorDark)),
-                                          style: OutlinedButton.styleFrom(
-                                            backgroundColor: isDarkMode
-                                                ? Colors.grey[900]
-                                                : Colors.grey[50],
-                                            padding: const EdgeInsets.symmetric(
-                                                vertical: 12),
-                                            side: BorderSide(
-                                              color: !canDownload
-                                                  ? Colors.grey
-                                                  : buttonState.isPreparingDownload ||
-                                                          buttonState.isDownloading
-                                                      ? Colors.blue
-                                                      : showGoToDownloads
-                                                          ? Colors.green
-                                                          : Theme.of(context)
-                                                              .primaryColorDark,
-                                            ),
-                                            foregroundColor: Colors.white,
-                                            disabledForegroundColor:
-                                                buttonState.isDownloading
-                                                    ? Colors.white.withOpacity(0.7)
-                                                    : Colors.grey.withOpacity(0.5),
-                                            disabledBackgroundColor:
-                                                buttonState.isDownloading
-                                                    ? Colors.blue.withOpacity(0.1)
-                                                    : null,
+                                                }
+                                              },
+                                        icon: !canDownload
+                                            ? const Icon(
+                                                Icons.file_download_off,
+                                                color: Colors.grey)
+                                            : buttonState.isPreparingDownload
+                                                ? const SizedBox(
+                                                    width: 16,
+                                                    height: 16,
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                            strokeWidth: 2))
+                                                : buttonState.isDownloading
+                                                    ? const SizedBox(
+                                                        width: 16,
+                                                        height: 16,
+                                                        child: CircularProgressIndicator(
+                                                            strokeWidth: 2,
+                                                            valueColor:
+                                                                AlwaysStoppedAnimation<
+                                                                        Color>(
+                                                                    Colors
+                                                                        .white)))
+                                                    : showGoToDownloads
+                                                        ? const Icon(
+                                                            Icons.download_done,
+                                                            color: Colors.green)
+                                                        : Icon(Icons.download,
+                                                            color: Theme.of(
+                                                                    context)
+                                                                .primaryColorDark),
+                                        label: !canDownload
+                                            ? _getDownloadButtonText(
+                                                isRentable, isSubscribed)
+                                            : buttonState.isPreparingDownload
+                                                ? const Text("Starting...",
+                                                    style: TextStyle(
+                                                        color: Colors.white))
+                                                : buttonState.isDownloading
+                                                    ? const Text(
+                                                        "Downloading...",
+                                                        style: TextStyle(
+                                                            color:
+                                                                Colors.white))
+                                                    : showGoToDownloads
+                                                        ? const Text(
+                                                            "Go to Downloads",
+                                                            style: TextStyle(
+                                                                color: Colors
+                                                                    .white))
+                                                        : Text("Download",
+                                                            style: TextStyle(
+                                                                color: Theme.of(
+                                                                        context)
+                                                                    .primaryColorDark)),
+                                        style: OutlinedButton.styleFrom(
+                                          backgroundColor: isDarkMode
+                                              ? Colors.grey[900]
+                                              : Colors.grey[50],
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 12),
+                                          side: BorderSide(
+                                            color: !canDownload
+                                                ? Colors.grey
+                                                : buttonState
+                                                            .isPreparingDownload ||
+                                                        buttonState
+                                                            .isDownloading
+                                                    ? Colors.blue
+                                                    : showGoToDownloads
+                                                        ? Colors.green
+                                                        : Theme.of(context)
+                                                            .primaryColorDark,
                                           ),
+                                          foregroundColor: Colors.white,
+                                          disabledForegroundColor: buttonState
+                                                  .isDownloading
+                                              ? Colors.white.withOpacity(0.7)
+                                              : Colors.grey.withOpacity(0.5),
+                                          disabledBackgroundColor:
+                                              buttonState.isDownloading
+                                                  ? Colors.blue.withOpacity(0.1)
+                                                  : null,
                                         ),
-                                      );
-                                    }
-                                  ),
+                                      ),
+                                    );
+                                  }),
                                 ),
                               ),
                       ],
@@ -1125,49 +1241,58 @@ Widget _buildWatchNowButton(MovieDetail movie, BuildContext context) {
                       Expanded(
                         child: Focus(
                           focusNode: favoriteButtonFocusNode,
-                          child: Builder(
-                            builder: (context) {
-                              final isFocused = Focus.of(context).hasFocus;
-                              return Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(
-                                    color: isFocused ? Colors.amber : Colors.transparent,
-                                    width: 3,
-                                  ),
-                                  boxShadow: isFocused ? [
-                                    BoxShadow(
-                                      color: Colors.amber.withOpacity(0.5),
-                                      blurRadius: 8,
-                                      spreadRadius: 2,
-                                    )
-                                  ] : null,
+                          child: Builder(builder: (context) {
+                            final isFocused = Focus.of(context).hasFocus;
+                            return Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: isFocused
+                                      ? Colors.amber
+                                      : Colors.transparent,
+                                  width: 3,
                                 ),
-                                child: OutlinedButton.icon(
-                                  onPressed: () {
-                                    ref.read(favoritesProvider.notifier).toggleFavorite(
-                                          movie.id,
-                                          widget.mediaType,
-                                        );
-                                  },
-                                  icon: Icon(
-                                    isFavorite ? Icons.favorite : Icons.favorite_border,
-                                    color: const Color.fromARGB(255, 255, 123, 0),
-                                  ),
-                                  label: Text(
-                                    isFavorite ? "Remove Favorite" : "Add to Favorites",
-                                    style: const TextStyle(
-                                        color: Color.fromARGB(255, 255, 123, 0)),
-                                  ),
-                                  style: OutlinedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
-                                    side: const BorderSide(
-                                        color: Color.fromARGB(255, 224, 129, 5)),
-                                  ),
+                                boxShadow: isFocused
+                                    ? [
+                                        BoxShadow(
+                                          color: Colors.amber.withOpacity(0.5),
+                                          blurRadius: 8,
+                                          spreadRadius: 2,
+                                        )
+                                      ]
+                                    : null,
+                              ),
+                              child: OutlinedButton.icon(
+                                onPressed: () {
+                                  ref
+                                      .read(favoritesProvider.notifier)
+                                      .toggleFavorite(
+                                        movie.id,
+                                        widget.mediaType,
+                                      );
+                                },
+                                icon: Icon(
+                                  isFavorite
+                                      ? Icons.favorite
+                                      : Icons.favorite_border,
+                                  color: const Color.fromARGB(255, 255, 123, 0),
                                 ),
-                              );
-                            }
-                          ),
+                                label: Text(
+                                  isFavorite
+                                      ? "Remove Favorite"
+                                      : "Add to Favorites",
+                                  style: const TextStyle(
+                                      color: Color.fromARGB(255, 255, 123, 0)),
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 12),
+                                  side: const BorderSide(
+                                      color: Color.fromARGB(255, 224, 129, 5)),
+                                ),
+                              ),
+                            );
+                          }),
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -1179,37 +1304,44 @@ Widget _buildWatchNowButton(MovieDetail movie, BuildContext context) {
                           : Expanded(
                               child: Focus(
                                 focusNode: downloadButtonFocusNode,
-                                child: Builder(
-                                  builder: (context) {
-                                    final isFocused = Focus.of(context).hasFocus;
-                                    return Container(
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(10),
-                                        border: Border.all(
-                                          color: isFocused ? Colors.amber : Colors.transparent,
-                                          width: 3,
-                                        ),
-                                        boxShadow: isFocused ? [
-                                          BoxShadow(
-                                            color: Colors.amber.withOpacity(0.5),
-                                            blurRadius: 8,
-                                            spreadRadius: 2,
-                                          )
-                                        ] : null,
+                                child: Builder(builder: (context) {
+                                  final isFocused = Focus.of(context).hasFocus;
+                                  return Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(
+                                        color: isFocused
+                                            ? Colors.amber
+                                            : Colors.transparent,
+                                        width: 3,
                                       ),
-                                      child: OutlinedButton.icon(
-                                        onPressed: null,
-                                        icon: const Icon(Icons.error, color: Colors.grey),
-                                        label: const Text("Unable to verify access",
-                                            style: TextStyle(color: Colors.grey)),
-                                        style: OutlinedButton.styleFrom(
-                                          padding: const EdgeInsets.symmetric(vertical: 12),
-                                          side: const BorderSide(color: Colors.grey),
-                                        ),
+                                      boxShadow: isFocused
+                                          ? [
+                                              BoxShadow(
+                                                color: Colors.amber
+                                                    .withOpacity(0.5),
+                                                blurRadius: 8,
+                                                spreadRadius: 2,
+                                              )
+                                            ]
+                                          : null,
+                                    ),
+                                    child: OutlinedButton.icon(
+                                      onPressed: null,
+                                      icon: const Icon(Icons.error,
+                                          color: Colors.grey),
+                                      label: const Text(
+                                          "Unable to verify access",
+                                          style: TextStyle(color: Colors.grey)),
+                                      style: OutlinedButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 12),
+                                        side: const BorderSide(
+                                            color: Colors.grey),
                                       ),
-                                    );
-                                  }
-                                ),
+                                    ),
+                                  );
+                                }),
                               ),
                             ),
                     ],
@@ -1226,49 +1358,56 @@ Widget _buildWatchNowButton(MovieDetail movie, BuildContext context) {
                   Expanded(
                     child: Focus(
                       focusNode: favoriteButtonFocusNode,
-                      child: Builder(
-                        builder: (context) {
-                          final isFocused = Focus.of(context).hasFocus;
-                          return Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: isFocused ? Colors.amber : Colors.transparent,
-                                width: 3,
-                              ),
-                              boxShadow: isFocused ? [
-                                BoxShadow(
-                                  color: Colors.amber.withOpacity(0.5),
-                                  blurRadius: 8,
-                                  spreadRadius: 2,
-                                )
-                              ] : null,
+                      child: Builder(builder: (context) {
+                        final isFocused = Focus.of(context).hasFocus;
+                        return Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color:
+                                  isFocused ? Colors.amber : Colors.transparent,
+                              width: 3,
                             ),
-                            child: OutlinedButton.icon(
-                              onPressed: () {
-                                ref.read(favoritesProvider.notifier).toggleFavorite(
-                                      movie.id,
-                                      widget.mediaType,
-                                    );
-                              },
-                              icon: Icon(
-                                isFavorite ? Icons.favorite : Icons.favorite_border,
-                                color: const Color.fromARGB(255, 255, 123, 0),
-                              ),
-                              label: Text(
-                                isFavorite ? "Remove Favorite" : "Add to Favorites",
-                                style: const TextStyle(
-                                    color: Color.fromARGB(255, 255, 123, 0)),
-                              ),
-                              style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                                side: const BorderSide(
-                                    color: Color.fromARGB(255, 224, 129, 5)),
-                              ),
+                            boxShadow: isFocused
+                                ? [
+                                    BoxShadow(
+                                      color: Colors.amber.withOpacity(0.5),
+                                      blurRadius: 8,
+                                      spreadRadius: 2,
+                                    )
+                                  ]
+                                : null,
+                          ),
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              ref
+                                  .read(favoritesProvider.notifier)
+                                  .toggleFavorite(
+                                    movie.id,
+                                    widget.mediaType,
+                                  );
+                            },
+                            icon: Icon(
+                              isFavorite
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              color: const Color.fromARGB(255, 255, 123, 0),
                             ),
-                          );
-                        }
-                      ),
+                            label: Text(
+                              isFavorite
+                                  ? "Remove Favorite"
+                                  : "Add to Favorites",
+                              style: const TextStyle(
+                                  color: Color.fromARGB(255, 255, 123, 0)),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              side: const BorderSide(
+                                  color: Color.fromARGB(255, 224, 129, 5)),
+                            ),
+                          ),
+                        );
+                      }),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -1280,37 +1419,42 @@ Widget _buildWatchNowButton(MovieDetail movie, BuildContext context) {
                       : Expanded(
                           child: Focus(
                             focusNode: downloadButtonFocusNode,
-                            child: Builder(
-                              builder: (context) {
-                                final isFocused = Focus.of(context).hasFocus;
-                                return Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(
-                                      color: isFocused ? Colors.amber : Colors.transparent,
-                                      width: 3,
-                                    ),
-                                    boxShadow: isFocused ? [
-                                      BoxShadow(
-                                        color: Colors.amber.withOpacity(0.5),
-                                        blurRadius: 8,
-                                        spreadRadius: 2,
-                                      )
-                                    ] : null,
+                            child: Builder(builder: (context) {
+                              final isFocused = Focus.of(context).hasFocus;
+                              return Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: isFocused
+                                        ? Colors.amber
+                                        : Colors.transparent,
+                                    width: 3,
                                   ),
-                                  child: OutlinedButton.icon(
-                                    onPressed: null,
-                                    icon: const Icon(Icons.error, color: Colors.grey),
-                                    label: const Text("Unable to verify access",
-                                        style: TextStyle(color: Colors.grey)),
-                                    style: OutlinedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(vertical: 12),
-                                      side: const BorderSide(color: Colors.grey),
-                                    ),
+                                  boxShadow: isFocused
+                                      ? [
+                                          BoxShadow(
+                                            color:
+                                                Colors.amber.withOpacity(0.5),
+                                            blurRadius: 8,
+                                            spreadRadius: 2,
+                                          )
+                                        ]
+                                      : null,
+                                ),
+                                child: OutlinedButton.icon(
+                                  onPressed: null,
+                                  icon: const Icon(Icons.error,
+                                      color: Colors.grey),
+                                  label: const Text("Unable to verify access",
+                                      style: TextStyle(color: Colors.grey)),
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 12),
+                                    side: const BorderSide(color: Colors.grey),
                                   ),
-                                );
-                              }
-                            ),
+                                ),
+                              );
+                            }),
                           ),
                         ),
                 ],
@@ -1378,59 +1522,61 @@ Widget _buildWatchNowButton(MovieDetail movie, BuildContext context) {
             itemCount: castList.length,
             separatorBuilder: (_, __) => const SizedBox(width: 10),
             itemBuilder: (context, index) {
-              return Builder(
-                builder: (context) {
-                  return Focus(
-                    autofocus: index == 0 && AppSizes.getDeviceType(context) == DeviceType.tv,
-                    child: Builder(
-                      builder: (context) {
-                        final isFocused = Focus.of(context).hasFocus;
-                        return AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 8),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: isFocused ? Colors.amber : Colors.transparent,
-                              width: 3,
+              return Builder(builder: (context) {
+                return Focus(
+                  autofocus: index == 0 &&
+                      AppSizes.getDeviceType(context) == DeviceType.tv,
+                  child: Builder(
+                    builder: (context) {
+                      final isFocused = Focus.of(context).hasFocus;
+                      return AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color:
+                                isFocused ? Colors.amber : Colors.transparent,
+                            width: 3,
+                          ),
+                          boxShadow: isFocused
+                              ? [
+                                  BoxShadow(
+                                    color: Colors.amber.withOpacity(0.5),
+                                    blurRadius: 8,
+                                    spreadRadius: 2,
+                                  )
+                                ]
+                              : null,
+                          color: isFocused
+                              ? Colors.amber.withOpacity(0.1)
+                              : Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey[800]
+                                  : Colors.grey[300],
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              castList[index]["name"]!,
+                              style: const TextStyle(
+                                  fontSize: 14, fontWeight: FontWeight.bold),
                             ),
-                            boxShadow: isFocused ? [
-                              BoxShadow(
-                                color: Colors.amber.withOpacity(0.5),
-                                blurRadius: 8,
-                                spreadRadius: 2,
-                              )
-                            ] : null,
-                            color: isFocused
-                                ? Colors.amber.withOpacity(0.1)
-                                : Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.grey[800]
-                                    : Colors.grey[300],
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                castList[index]["name"]!,
-                                style: const TextStyle(
-                                    fontSize: 14, fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(height: 5),
-                              Text(
-                                castList[index]["role"]!,
-                                style: const TextStyle(
-                                    fontSize: 12, color: Color(0xFFF4AE00)),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  );
-                }
-              );
+                            const SizedBox(height: 5),
+                            Text(
+                              castList[index]["role"]!,
+                              style: const TextStyle(
+                                  fontSize: 12, color: Color(0xFFF4AE00)),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                );
+              });
             },
           ),
         ),
@@ -1439,44 +1585,44 @@ Widget _buildWatchNowButton(MovieDetail movie, BuildContext context) {
   }
 
   Widget _buildSeasonSelector(BuildContext context, WidgetRef ref) {
-  final seasonsAsync = ref.watch(seasonsProvider(widget.movieId));
-  final selectedSeason = ref.watch(selectedSeasonProvider);
+    final seasonsAsync = ref.watch(seasonsProvider(widget.movieId));
+    final selectedSeason = ref.watch(selectedSeasonProvider);
 
-  return seasonsAsync.when(
-    loading: () => const Center(child: Buttonskelton()),
-    error: (err, stack) => Text(err.toString()),
-    data: (seasons) {
-      if (seasons.isEmpty) return const Text("No seasons available.");
+    return seasonsAsync.when(
+      loading: () => const Center(child: Buttonskelton()),
+      error: (err, stack) => Text(err.toString()),
+      data: (seasons) {
+        if (seasons.isEmpty) return const Text("No seasons available.");
 
-      final defaultSeason = selectedSeason ?? seasons.first;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (selectedSeason == null) {
-          ref.read(selectedSeasonProvider.notifier).state = defaultSeason;
-        }
-      });
+        final defaultSeason = selectedSeason ?? seasons.first;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (selectedSeason == null) {
+            ref.read(selectedSeasonProvider.notifier).state = defaultSeason;
+          }
+        });
 
-      // Make the season selector itself focusable
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Dropdown with focus support
-          Focus(
-            onKey: (node, event) {
-              if (event is RawKeyDownEvent && 
-                  (event.logicalKey == LogicalKeyboardKey.select || 
-                   event.logicalKey == LogicalKeyboardKey.enter)) {
-                showSeasonSelectorDialog(
-                  context: context,
-                  seasons: seasons,
-                  onSelected: (season) => 
-                      ref.read(selectedSeasonProvider.notifier).state = season,
-                );
-                return KeyEventResult.handled;
-              }
-              return KeyEventResult.ignored;
-            },
-            child: Builder(
-              builder: (context) {
+        // Make the season selector itself focusable
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Dropdown with focus support
+            Focus(
+              onKey: (node, event) {
+                if (event is RawKeyDownEvent &&
+                    (event.logicalKey == LogicalKeyboardKey.select ||
+                        event.logicalKey == LogicalKeyboardKey.enter)) {
+                  showSeasonSelectorDialog(
+                    context: context,
+                    seasons: seasons,
+                    onSelected: (season) => ref
+                        .read(selectedSeasonProvider.notifier)
+                        .state = season,
+                  );
+                  return KeyEventResult.handled;
+                }
+                return KeyEventResult.ignored;
+              },
+              child: Builder(builder: (context) {
                 final isFocused = Focus.of(context).hasFocus;
                 return Container(
                   decoration: BoxDecoration(
@@ -1485,20 +1631,23 @@ Widget _buildWatchNowButton(MovieDetail movie, BuildContext context) {
                       color: isFocused ? Colors.amber : Colors.grey.shade300,
                       width: isFocused ? 3 : 1,
                     ),
-                    boxShadow: isFocused ? [
-                      BoxShadow(
-                        color: Colors.amber.withOpacity(0.5),
-                        blurRadius: 8,
-                        spreadRadius: 2,
-                      )
-                    ] : null,
+                    boxShadow: isFocused
+                        ? [
+                            BoxShadow(
+                              color: Colors.amber.withOpacity(0.5),
+                              blurRadius: 8,
+                              spreadRadius: 2,
+                            )
+                          ]
+                        : null,
                   ),
                   child: InkWell(
                     onTap: () => showSeasonSelectorDialog(
                       context: context,
                       seasons: seasons,
-                      onSelected: (season) =>
-                          ref.read(selectedSeasonProvider.notifier).state = season,
+                      onSelected: (season) => ref
+                          .read(selectedSeasonProvider.notifier)
+                          .state = season,
                     ),
                     child: InputDecorator(
                       decoration: InputDecoration(
@@ -1520,227 +1669,752 @@ Widget _buildWatchNowButton(MovieDetail movie, BuildContext context) {
                     ),
                   ),
                 );
-              }
+              }),
             ),
+            const SizedBox(height: 16),
+            // Now the episode section
+            _buildEpisodeSection(ref, widget.movieId),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildEpisodeSection(WidgetRef ref, String seriesId) {
+    final authUser = ref.watch(authUserProvider);
+    final episodesState = ref.watch(
+      paginatedEpisodesProvider((seriesId: seriesId)),
+    );
+
+    if (episodesState.hasError) {
+      return const Center(child: Text("Failed to load episodes"));
+    }
+
+    if (episodesState.episodes.isEmpty && episodesState.isLoading) {
+      return const Center(child: Buttonskelton());
+    }
+
+    // Use a direct List<Widget> approach for better control
+    List<Widget> episodeWidgets = [];
+
+    // Create individually focusable episode items
+    for (int i = 0; i < episodesState.episodes.length; i++) {
+      final episode = episodesState.episodes[i];
+      final isPublished =
+          episode.status == 'published' || episode.status == 'active';
+
+      // Create a standalone focusable widget for each episode
+      episodeWidgets.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12.0),
+          child: _buildFocusableEpisode(
+            context: context,
+            ref: ref,
+            episode: episode,
+            isPublished: isPublished,
+            index: i,
+            seriesId: seriesId,
           ),
-          const SizedBox(height: 16),
-          // Now the episode section
-          _buildEpisodeSection(ref, widget.movieId),
-        ],
+        ),
       );
-    },
-  );
-}
+    }
 
-Widget _buildEpisodeSection(WidgetRef ref, String seriesId) {
-  final authUser = ref.watch(authUserProvider);
-  final episodesState = ref.watch(
-    paginatedEpisodesProvider((seriesId: seriesId)),
-  );
-
-  if (episodesState.hasError) {
-    return const Center(child: Text("Failed to load episodes"));
-  }
-
-  if (episodesState.episodes.isEmpty && episodesState.isLoading) {
-    return const Center(child: Buttonskelton());
-  }
-
-  // Use a direct List<Widget> approach for better control
-  List<Widget> episodeWidgets = [];
-  
-  // Create individually focusable episode items
-  for (int i = 0; i < episodesState.episodes.length; i++) {
-    final episode = episodesState.episodes[i];
-    final isPublished = episode.status == 'published' || episode.status == 'active';
-    
-    // Create a standalone focusable widget for each episode
-    episodeWidgets.add(
-      Padding(
-        padding: const EdgeInsets.only(bottom: 12.0),
-        child: _buildFocusableEpisode(
-          context: context,
-          ref: ref,
-          episode: episode,
-          isPublished: isPublished,
-          index: i,
-          seriesId: seriesId,
-        ),
-      ),
-    );
-  }
-  
-  // Add View More button if needed
-  if (episodesState.currentPage < episodesState.totalPages) {
-    episodeWidgets.add(
-      Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: ElevatedButton(
-          onPressed: () {
-            ref.read(paginatedEpisodesProvider((seriesId: seriesId)).notifier)
-                .fetchNextPage();
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.amber,
-            foregroundColor: Colors.black,
+    // Add View More button if needed
+    if (episodesState.currentPage < episodesState.totalPages) {
+      episodeWidgets.add(
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: ElevatedButton(
+            onPressed: () {
+              ref
+                  .read(
+                      paginatedEpisodesProvider((seriesId: seriesId)).notifier)
+                  .fetchNextPage();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.amber,
+              foregroundColor: Colors.black,
+            ),
+            child: episodesState.isLoading
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : const Text("View More"),
           ),
-          child: episodesState.isLoading
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
-                )
-              : const Text("View More"),
         ),
-      ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: episodeWidgets,
     );
   }
-
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: episodeWidgets,
-  );
-}
 
 // Dedicated method for building focusable episodes
-Widget _buildFocusableEpisode({
-  required BuildContext context,
-  required WidgetRef ref,
-  required dynamic episode,
-  required bool isPublished,
-  required int index,
-  required String seriesId,
-}) {
-  final posterAsync = ref.watch(posterProvider(episode.id));
-  final authUser = ref.watch(authUserProvider);
+  Widget _buildFocusableEpisode({
+    required BuildContext context,
+    required WidgetRef ref,
+    required dynamic episode,
+    required bool isPublished,
+    required int index,
+    required String seriesId,
+  }) {
+    final posterAsync = ref.watch(posterProvider(episode.id));
+    final authUser = ref.watch(authUserProvider);
 
-  // Create a separate focus node for explicit control
-  FocusNode episodeFocusNode = FocusNode(debugLabel: 'episode-$index');
-  
-  return Focus(
-    focusNode: episodeFocusNode,
-    canRequestFocus: true,
-    descendantsAreFocusable: false, // Important: prevent descendants from receiving focus
-    onKey: (node, event) {
-      if (event is RawKeyDownEvent &&
-          (event.logicalKey == LogicalKeyboardKey.select ||
-           event.logicalKey == LogicalKeyboardKey.enter)) {
-        // Handle user auth check and episode playback
-        _handleEpisodeSelection(
-          context,
-          ref,
-          authUser,
-          episode,
-          isPublished,
-          seriesId,
-        );
-        return KeyEventResult.handled;
-      }
-      return KeyEventResult.ignored;
-    },
-    child: Builder(
-      builder: (context) {
-        final isFocused = Focus.of(context).hasFocus;
-        return GestureDetector(
-          onTap: () {
-            // Request focus when tapped (important for TV)
-            FocusScope.of(context).requestFocus(episodeFocusNode);
-            // Handle the episode selection
-            _handleEpisodeSelection(
-              context,
-              ref,
-              authUser,
-              episode,
-              isPublished,
-              seriesId,
-            );
-          },
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: isFocused ? Colors.amber : Colors.grey.withOpacity(0.3),
-                width: isFocused ? 3 : 1,
+    // Create a separate focus node for explicit control
+    FocusNode episodeFocusNode = FocusNode(debugLabel: 'episode-$index');
+
+    return Focus(
+      focusNode: episodeFocusNode,
+      canRequestFocus: true,
+      descendantsAreFocusable:
+          false, // Important: prevent descendants from receiving focus
+      onKey: (node, event) {
+        if (event is RawKeyDownEvent &&
+            (event.logicalKey == LogicalKeyboardKey.select ||
+                event.logicalKey == LogicalKeyboardKey.enter)) {
+          // Handle user auth check and episode playback
+          _handleEpisodeSelection(
+            context,
+            ref,
+            authUser,
+            episode,
+            isPublished,
+            seriesId,
+          );
+          return KeyEventResult.handled;
+        }
+        return KeyEventResult.ignored;
+      },
+      child: Builder(
+        builder: (context) {
+          final isFocused = Focus.of(context).hasFocus;
+          return GestureDetector(
+            onTap: () {
+              // Request focus when tapped (important for TV)
+              FocusScope.of(context).requestFocus(episodeFocusNode);
+              // Handle the episode selection
+              _handleEpisodeSelection(
+                context,
+                ref,
+                authUser,
+                episode,
+                isPublished,
+                seriesId,
+              );
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color:
+                      isFocused ? Colors.amber : Colors.grey.withOpacity(0.3),
+                  width: isFocused ? 3 : 1,
+                ),
+                borderRadius: BorderRadius.circular(8),
+                color: isFocused ? Colors.amber.withOpacity(0.1) : null,
+                boxShadow: isFocused
+                    ? [
+                        BoxShadow(
+                          color: Colors.amber.withOpacity(0.6),
+                          blurRadius: 8,
+                          spreadRadius: 1,
+                        )
+                      ]
+                    : null,
               ),
-              borderRadius: BorderRadius.circular(8),
-              color: isFocused ? Colors.amber.withOpacity(0.1) : null,
-              boxShadow: isFocused
-                  ? [
-                      BoxShadow(
-                        color: Colors.amber.withOpacity(0.6),
-                        blurRadius: 8,
-                        spreadRadius: 1,
-                      )
-                    ]
-                  : null,
-            ),
-            padding: const EdgeInsets.all(8),
-            child: Row(
-              children: [
-                // Episode thumbnail
-                posterAsync.when(
-                  data: (posterUrl) => SizedBox(
-                    width: 100,
-                    height: 60,
-                    child: Stack(
-                      children: [
-                        if (posterUrl != null)
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
-                            child: Image.network(
-                              posterUrl,
-                              width: 100,
-                              height: 60,
-                              fit: BoxFit.cover,
+              padding: const EdgeInsets.all(8),
+              child: Row(
+                children: [
+                  // Episode thumbnail
+                  posterAsync.when(
+                    data: (posterUrl) => SizedBox(
+                      width: 100,
+                      height: 60,
+                      child: Stack(
+                        children: [
+                          if (posterUrl != null)
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(4),
+                              child: Image.network(
+                                posterUrl,
+                                width: 100,
+                                height: 60,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          Center(
+                            child: Icon(
+                              isPublished
+                                  ? Icons.play_circle_filled
+                                  : Icons.access_time,
+                              color: isPublished ? Colors.green : Colors.orange,
+                              size: 30,
                             ),
                           ),
-                        Center(
-                          child: Icon(
-                            isPublished
-                                ? Icons.play_circle_filled
-                                : Icons.access_time,
-                            color: isPublished ? Colors.green : Colors.orange,
-                            size: 30,
+                        ],
+                      ),
+                    ),
+                    loading: () => const SizedBox(
+                      width: 100,
+                      height: 60,
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                    error: (_, __) => const SizedBox(
+                      width: 100,
+                      height: 60,
+                      child: Center(child: Icon(Icons.error)),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  // Episode details
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Episode ${episode.episodeNumber ?? "-"}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: isFocused ? Colors.amber : null,
                           ),
                         ),
+                        if (episode.description != null)
+                          Text(
+                            episode.description!,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 12),
+                          ),
                       ],
                     ),
                   ),
-                  loading: () => const SizedBox(
-                    width: 100,
-                    height: 60,
-                    child: Center(child: CircularProgressIndicator()),
-                  ),
-                  error: (_, __) => const SizedBox(
-                    width: 100,
-                    height: 60,
-                    child: Center(child: Icon(Icons.error)),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+// Handle episode selection based on auth state
+  void _handleEpisodeSelection(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<dynamic> authUser,
+    dynamic episode,
+    bool isPublished,
+    String seriesId,
+  ) {
+    authUser.when(
+      data: (user) {
+        final isLoggedIn = user != null;
+
+        if (!isLoggedIn) {
+          // Show login dialog
+          showDialog(
+            context: context,
+            builder: (_) => AlertDialog(
+              title: const Text("Login Required"),
+              content: const Text("Please log in to watch this episode."),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Cancel"),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => LoginScreen()),
+                    );
+                  },
+                  child: const Text("Login"),
+                ),
+              ],
+            ),
+          );
+          return;
+        }
+
+        // Check subscription
+        final subscription = ref.read(
+            subscriptionProvider(SubscriptionDetailParameter(userId: user.id)));
+
+        subscription.when(
+          data: (sub) {
+            final isSubscribed = sub?.subscriptionType.name != "Free";
+
+            if (!isSubscribed) {
+              // Show subscription dialog
+              showDialog(
+                context: context,
+                builder: (_) => AlertDialog(
+                  title: const Text("Subscription Required"),
+                  content:
+                      const Text("Please subscribe to watch this episode."),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text("Cancel"),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        // Navigate to subscription page
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (_) => SubscriptionPlanModal(
+                            userId: user.id,
+                            movieId: seriesId,
+                          ),
+                        );
+                      },
+                      child: const Text("Subscribe"),
+                    ),
+                  ],
+                ),
+              );
+            } else if (!isPublished) {
+              // Show coming soon dialog
+              showDialog(
+                context: context,
+                builder: (_) => AlertDialog(
+                  title: const Text("Coming Soon"),
+                  content: Text(
+                      "Episode ${episode.episodeNumber} is scheduled for release soon."),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text("OK"),
+                    ),
+                  ],
+                ),
+              );
+            } else {
+              // Play the episode
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => VideoPlayerScreen(
+                    movieId: episode.id,
+                    mediaType: "episodes",
+                    tvSeriesId: seriesId,
                   ),
                 ),
-                const SizedBox(width: 16),
-                // Episode details
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Episode ${episode.episodeNumber ?? "-"}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: isFocused ? Colors.amber : null,
+              );
+            }
+          },
+          loading: () {
+            // Show loading
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Checking subscription...")),
+            );
+          },
+          error: (_, __) {
+            // Show error
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Error checking subscription")),
+            );
+          },
+        );
+      },
+      loading: () {
+        // Show loading
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Checking login status...")),
+        );
+      },
+      error: (_, __) {
+        // Show error
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Error checking login status")),
+        );
+      },
+    );
+  }
+
+// New helper method to build individual episode items with proper focus
+  Widget _buildEpisodeItem(
+      BuildContext context,
+      WidgetRef ref,
+      dynamic episode,
+      AsyncValue<String?> posterAsync,
+      bool isPublished,
+      bool autofocus,
+      String seriesId) {
+    return posterAsync.when(
+      loading: () => const ListTile(
+        leading: SizedBox(
+          width: 80,
+          height: 80,
+          child: Center(child: Buttonskelton()),
+        ),
+        title: Text('Loading episode...'),
+      ),
+      error: (err, stack) => ListTile(
+        leading: const Icon(Icons.error),
+        title: Text('Episode ${episode.episodeNumber ?? "-"}'),
+        subtitle: const Text("Failed to load poster."),
+      ),
+      data: (posterUrl) {
+        final authUser = ref.watch(authUserProvider);
+
+        return authUser.when(
+          loading: () => const ListTile(title: Text("Loading user...")),
+          error: (err, _) => const ListTile(title: Text("Error loading user")),
+          data: (user) {
+            final isLoggedIn = user != null;
+            final subscriptionAsync = isLoggedIn
+                ? ref.watch(subscriptionProvider(
+                    SubscriptionDetailParameter(userId: user.id)))
+                : const AsyncValue.data(null);
+
+            return subscriptionAsync.when(
+              loading: () =>
+                  const ListTile(title: Text("Checking subscription...")),
+              error: (err, _) =>
+                  const ListTile(title: Text("Subscription error")),
+              data: (subscription) {
+                final isSubscribed =
+                    subscription?.subscriptionType.name != "Free";
+
+                // Make each episode individually focusable
+                return Focus(
+                  autofocus: autofocus &&
+                      AppSizes.getDeviceType(context) == DeviceType.tv,
+                  onKey: (node, event) {
+                    if (event is RawKeyDownEvent &&
+                        (event.logicalKey == LogicalKeyboardKey.select ||
+                            event.logicalKey == LogicalKeyboardKey.enter)) {
+                      _handleEpisodeTap(context, isLoggedIn, isSubscribed,
+                          isPublished, episode, seriesId);
+                      return KeyEventResult.handled;
+                    }
+                    return KeyEventResult.ignored;
+                  },
+                  child: Builder(
+                    builder: (context) {
+                      final isFocused = Focus.of(context).hasFocus;
+                      return AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color:
+                                isFocused ? Colors.amber : Colors.transparent,
+                            width: 3,
+                          ),
+                          borderRadius: BorderRadius.circular(6),
+                          boxShadow: isFocused
+                              ? [
+                                  BoxShadow(
+                                    color: Colors.amber.withOpacity(0.5),
+                                    blurRadius: 8,
+                                    spreadRadius: 2,
+                                  )
+                                ]
+                              : null,
                         ),
-                      ),
-                      if (episode.description != null)
-                        Text(
-                          episode.description!,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: 12),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.all(8),
+                          leading: posterUrl != null
+                              ? Stack(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(3),
+                                      child: Image.network(
+                                        posterUrl,
+                                        width: 100,
+                                        height: 150,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                    Positioned.fill(
+                                      child: Container(
+                                          color: Colors.black.withOpacity(0.2)),
+                                    ),
+                                    Positioned.fill(
+                                      child: Align(
+                                        alignment: Alignment.center,
+                                        child: Icon(
+                                          isPublished
+                                              ? Icons.play_circle_fill
+                                              : Icons.timer_outlined,
+                                          color: isPublished
+                                              ? Colors.green
+                                              : Colors.orange,
+                                          size: 30,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : Icon(
+                                  isPublished
+                                      ? Icons.play_circle_fill
+                                      : Icons.timer_outlined,
+                                  color: isPublished
+                                      ? Colors.green
+                                      : Colors.orange,
+                                  size: 30,
+                                ),
+                          title:
+                              Text('Episode ${episode.episodeNumber ?? "-"}'),
+                          subtitle: episode.description != null
+                              ? Text(
+                                  episode.description!,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                )
+                              : null,
+                          onTap: () => _handleEpisodeTap(context, isLoggedIn,
+                              isSubscribed, isPublished, episode, seriesId),
                         ),
-                    ],
+                      );
+                    },
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+// Extract episode tap logic to a separate method for reuse
+  void _handleEpisodeTap(BuildContext context, bool isLoggedIn,
+      bool isSubscribed, bool isPublished, dynamic episode, String seriesId) {
+    if (!isLoggedIn) {
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text("Login Required"),
+          content: const Text("Please log in to watch this episode."),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => LoginScreen()),
+                );
+              },
+              child: const Text("Login"),
+            ),
+          ],
+        ),
+      );
+    } else if (!isSubscribed) {
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text("Subscription Required"),
+          content: const Text("Please subscribe to watch this episode."),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Subscribe"),
+            ),
+          ],
+        ),
+      );
+    } else if (!isPublished) {
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text("Coming Soon"),
+          content: Text(
+              "Episode ${episode.episodeNumber} is scheduled for release soon."),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("OK"),
+            ),
+          ],
+        ),
+      );
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => VideoPlayerScreen(
+            movieId: episode.id,
+            mediaType: "episodes",
+            tvSeriesId: seriesId,
+          ),
+        ),
+      );
+    }
+  }
+
+  Widget _buildRatingBar(
+      BuildContext context, String contentType, String contentId) {
+    // Fetch the async value (assuming ratedMoviesProvider is a FutureProvider or StreamProvider)
+    final ratedMovieAsyncValue = ref.watch(ratedMovieProvider(
+        MovieDetailParameter(
+            movieId: widget.movieId, mediaType: widget.mediaType)));
+
+    return ratedMovieAsyncValue.when(
+      data: (data) {
+        //  print();
+        // Handle the data state, for example, showing the rating bar
+        return _buildFocusableBox(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                "Rate the Movie",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              RatingBar.builder(
+                initialRating: (data?['userRating'] as num?)?.toDouble() ?? 0.0,
+                minRating: (data?['userRating'] as num?)?.toDouble() ?? 0.0,
+                direction: Axis.horizontal,
+                allowHalfRating: false,
+                itemCount: 5,
+                itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
+                itemBuilder: (context, _) => Icon(
+                  Icons.star,
+                  color: Colors.amber,
+                ),
+                onRatingUpdate: (newRating) {
+                  // Store the rating temporarily
+                  setState(() {
+                    currentRating = newRating;
+                  });
+
+                  // Show the confirmation dialog
+                  _showRatingConfirmationDialog(
+                      context, currentRating, widget.mediaType, widget.movieId);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+      loading: () {
+        // Handle loading state, maybe show a loading indicator
+        return Center(child: CircularProgressIndicator());
+      },
+      error: (error, stackTrace) {
+        // Handle error state, show a message
+        return Center(child: Text('Error: $error'));
+      },
+    );
+  }
+
+  void _showRatingConfirmationDialog(BuildContext context, double currentRating,
+      String contentType, String contentId) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.amber.shade100, Colors.white],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircleAvatar(
+                    radius: 30,
+                    backgroundColor: Colors.transparent,
+                    child: Image.asset("")),
+                const SizedBox(height: 10),
+                Text(
+                  "How Would You Rate this $contentType ?",
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black),
+                ),
+                const SizedBox(height: 16),
+                RatingBar.builder(
+                  unratedColor: Colors.grey,
+                  initialRating: currentRating,
+                  minRating: currentRating,
+                  direction: Axis.horizontal,
+                  allowHalfRating: false,
+                  itemCount: 5,
+                  itemBuilder: (context, _) => const Icon(
+                    Icons.star,
+                    color: Colors.amber,
+                  ),
+                  onRatingUpdate: (newRating) {
+                    setState(() {
+                      currentRating = newRating;
+                    });
+                  },
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: Size(double.infinity, 45),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    backgroundColor: Colors.amber,
+                  ),
+                  onPressed: () async {
+                    final params = MovieDetailParameter(
+                      mediaType: contentType,
+                      movieId: contentId,
+                      rating: currentRating,
+                    );
+
+                    try {
+                      final result =
+                          await ref.refresh(movieRateProvider(params).future);
+                      await ref.refresh(ratedMovieProvider(MovieDetailParameter(
+                          movieId: widget.movieId,
+                          mediaType: widget.mediaType)));
+                      Fluttertoast.showToast(
+                        msg: result!,
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.BOTTOM,
+                      );
+                    } catch (e) {
+                      Fluttertoast.showToast(
+                        msg: e.toString().replaceAll('Exception:', ''),
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.BOTTOM,
+                      );
+                    }
+
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text("Submit"),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    _resetRating();
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text(
+                    "No, Thanks!",
+                    style: TextStyle(color: Colors.grey),
                   ),
                 ),
               ],
@@ -1748,519 +2422,6 @@ Widget _buildFocusableEpisode({
           ),
         );
       },
-    ),
-  );
-}
-
-// Handle episode selection based on auth state
-void _handleEpisodeSelection(
-  BuildContext context,
-  WidgetRef ref,
-  AsyncValue<dynamic> authUser,
-  dynamic episode,
-  bool isPublished,
-  String seriesId,
-) {
-  authUser.when(
-    data: (user) {
-      final isLoggedIn = user != null;
-      
-      if (!isLoggedIn) {
-        // Show login dialog
-        showDialog(
-          context: context,
-          builder: (_) => AlertDialog(
-            title: const Text("Login Required"),
-            content: const Text("Please log in to watch this episode."),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text("Cancel"),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => LoginScreen()),
-                  );
-                },
-                child: const Text("Login"),
-              ),
-            ],
-          ),
-        );
-        return;
-      }
-      
-      // Check subscription
-      final subscription = ref.read(
-        subscriptionProvider(SubscriptionDetailParameter(userId: user.id))
-      );
-      
-      subscription.when(
-        data: (sub) {
-          final isSubscribed = sub?.subscriptionType.name != "Free";
-          
-          if (!isSubscribed) {
-            // Show subscription dialog
-            showDialog(
-              context: context,
-              builder: (_) => AlertDialog(
-                title: const Text("Subscription Required"),
-                content: const Text("Please subscribe to watch this episode."),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text("Cancel"),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      // Navigate to subscription page
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        builder: (_) => SubscriptionPlanModal(
-                          userId: user.id,
-                          movieId: seriesId,
-                        ),
-                      );
-                    },
-                    child: const Text("Subscribe"),
-                  ),
-                ],
-              ),
-            );
-          } else if (!isPublished) {
-            // Show coming soon dialog
-            showDialog(
-              context: context,
-              builder: (_) => AlertDialog(
-                title: const Text("Coming Soon"),
-                content: Text(
-                    "Episode ${episode.episodeNumber} is scheduled for release soon."),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text("OK"),
-                  ),
-                ],
-              ),
-            );
-          } else {
-            // Play the episode
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => VideoPlayerScreen(
-                  movieId: episode.id,
-                  mediaType: "episodes",
-                  tvSeriesId: seriesId,
-                ),
-              ),
-            );
-          }
-        },
-        loading: () {
-          // Show loading
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Checking subscription...")),
-          );
-        },
-        error: (_, __) {
-          // Show error
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Error checking subscription")),
-          );
-        },
-      );
-    },
-    loading: () {
-      // Show loading
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Checking login status...")),
-      );
-    },
-    error: (_, __) {
-      // Show error
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Error checking login status")),
-      );
-    },
-  );
-}
-// New helper method to build individual episode items with proper focus
-Widget _buildEpisodeItem(
-  BuildContext context, 
-  WidgetRef ref, 
-  dynamic episode, 
-  AsyncValue<String?> posterAsync, 
-  bool isPublished, 
-  bool autofocus,
-  String seriesId
-) {
-  return posterAsync.when(
-    loading: () => const ListTile(
-      leading: SizedBox(
-        width: 80,
-        height: 80,
-        child: Center(child: Buttonskelton()),
-      ),
-      title: Text('Loading episode...'),
-    ),
-    error: (err, stack) => ListTile(
-      leading: const Icon(Icons.error),
-      title: Text('Episode ${episode.episodeNumber ?? "-"}'),
-      subtitle: const Text("Failed to load poster."),
-    ),
-    data: (posterUrl) {
-      final authUser = ref.watch(authUserProvider);
-      
-      return authUser.when(
-        loading: () => const ListTile(title: Text("Loading user...")),
-        error: (err, _) => const ListTile(title: Text("Error loading user")),
-        data: (user) {
-          final isLoggedIn = user != null;
-          final subscriptionAsync = isLoggedIn
-              ? ref.watch(subscriptionProvider(
-                  SubscriptionDetailParameter(userId: user.id)))
-              : const AsyncValue.data(null);
-
-          return subscriptionAsync.when(
-            loading: () => const ListTile(title: Text("Checking subscription...")),
-            error: (err, _) => const ListTile(title: Text("Subscription error")),
-            data: (subscription) {
-              final isSubscribed = subscription?.subscriptionType.name != "Free";
-              
-              // Make each episode individually focusable
-              return Focus(
-                autofocus: autofocus && AppSizes.getDeviceType(context) == DeviceType.tv,
-                onKey: (node, event) {
-                  if (event is RawKeyDownEvent && 
-                      (event.logicalKey == LogicalKeyboardKey.select || 
-                       event.logicalKey == LogicalKeyboardKey.enter)) {
-                    _handleEpisodeTap(
-                      context, 
-                      isLoggedIn, 
-                      isSubscribed, 
-                      isPublished, 
-                      episode, 
-                      seriesId
-                    );
-                    return KeyEventResult.handled;
-                  }
-                  return KeyEventResult.ignored;
-                },
-                child: Builder(
-                  builder: (context) {
-                    final isFocused = Focus.of(context).hasFocus;
-                    return AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: isFocused ? Colors.amber : Colors.transparent,
-                          width: 3,
-                        ),
-                        borderRadius: BorderRadius.circular(6),
-                        boxShadow: isFocused ? [
-                          BoxShadow(
-                            color: Colors.amber.withOpacity(0.5),
-                            blurRadius: 8,
-                            spreadRadius: 2,
-                          )
-                        ] : null,
-                      ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.all(8),
-                        leading: posterUrl != null
-                            ? Stack(
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(3),
-                                    child: Image.network(
-                                      posterUrl,
-                                      width: 100,
-                                      height: 150,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                  Positioned.fill(
-                                    child: Container(color: Colors.black.withOpacity(0.2)),
-                                  ),
-                                  Positioned.fill(
-                                    child: Align(
-                                      alignment: Alignment.center,
-                                      child: Icon(
-                                        isPublished ? Icons.play_circle_fill : Icons.timer_outlined,
-                                        color: isPublished ? Colors.green : Colors.orange,
-                                        size: 30,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              )
-                            : Icon(
-                                isPublished ? Icons.play_circle_fill : Icons.timer_outlined,
-                                color: isPublished ? Colors.green : Colors.orange,
-                                size: 30,
-                              ),
-                        title: Text('Episode ${episode.episodeNumber ?? "-"}'),
-                        subtitle: episode.description != null
-                            ? Text(
-                                episode.description!,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              )
-                            : null,
-                        onTap: () => _handleEpisodeTap(
-                          context, 
-                          isLoggedIn, 
-                          isSubscribed, 
-                          isPublished, 
-                          episode, 
-                          seriesId
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              );
-            },
-          );
-        },
-      );
-    },
-  );
-}
-
-// Extract episode tap logic to a separate method for reuse
-void _handleEpisodeTap(
-  BuildContext context, 
-  bool isLoggedIn, 
-  bool isSubscribed, 
-  bool isPublished, 
-  dynamic episode,
-  String seriesId
-) {
-  if (!isLoggedIn) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Login Required"),
-        content: const Text("Please log in to watch this episode."),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => LoginScreen()),
-              );
-            },
-            child: const Text("Login"),
-          ),
-        ],
-      ),
-    );
-  } else if (!isSubscribed) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Subscription Required"),
-        content: const Text("Please subscribe to watch this episode."),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Subscribe"),
-          ),
-        ],
-      ),
-    );
-  } else if (!isPublished) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Coming Soon"),
-        content: Text("Episode ${episode.episodeNumber} is scheduled for release soon."),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("OK"),
-          ),
-        ],
-      ),
-    );
-  } else {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => VideoPlayerScreen(
-          movieId: episode.id,
-          mediaType: "episodes",
-          tvSeriesId: seriesId,
-        ),
-      ),
     );
   }
-  
 }
-
-Widget _buildRatingBar(BuildContext context, String contentType, String contentId) {
-  // Fetch the async value (assuming ratedMoviesProvider is a FutureProvider or StreamProvider)
-  final ratedMovieAsyncValue =ref.watch (ratedMovieProvider(MovieDetailParameter(movieId: widget.movieId, mediaType: widget.mediaType)));
-
-  return ratedMovieAsyncValue.when(
-    data: (data) {  
-    //  print();
-      // Handle the data state, for example, showing the rating bar
-      return _buildFocusableBox(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              "Rate the Movie",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            RatingBar.builder(
-initialRating: (data?['userRating'] as num?)?.toDouble() ?? 0.0,
-              minRating:  (data?['userRating'] as num?)?.toDouble() ?? 0.0,
-              direction: Axis.horizontal,
-              allowHalfRating: false,
-              itemCount: 5,
-              itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
-              itemBuilder: (context, _) => Icon(
-                Icons.star,
-                color: Colors.amber,
-              ),
-              onRatingUpdate: (newRating) {
-                // Store the rating temporarily
-                setState(() {
-                  currentRating = newRating;
-                });
-
-                // Show the confirmation dialog
-                _showRatingConfirmationDialog(context, currentRating, widget.mediaType, widget.movieId);
-              },
-            ),
-          ],
-        ),
-      );
-    },
-    loading: () {
-      // Handle loading state, maybe show a loading indicator
-      return Center(child: CircularProgressIndicator());
-    },
-    error: (error, stackTrace) {
-      // Handle error state, show a message
-      return Center(child: Text('Error: $error'));
-    },
-  );
-}
-
-
-  void _showRatingConfirmationDialog(BuildContext context, double currentRating, String contentType, String contentId) {
-showDialog(
-  context: context,
-  barrierDismissible: false,
-  builder: (BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.amber.shade100, Colors.white],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-             CircleAvatar(
-              radius: 30,
-              backgroundColor: Colors.transparent,
-              child: Image.asset("")
-            ),
-            const SizedBox(height: 10),
-             Text(
-              "How Would You Rate this $contentType ?",
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold,color:Colors.black),
-            ),
-            const SizedBox(height: 16),
-            RatingBar.builder(
-              unratedColor: Colors.grey,
-              initialRating: currentRating,
-              minRating: currentRating,
-              direction: Axis.horizontal,
-              allowHalfRating: false,
-              itemCount: 5,
-              itemBuilder: (context, _) => const Icon(
-                Icons.star,
-                color: Colors.amber,
-              ),
-              onRatingUpdate: (newRating) {
-                setState(() {
-                     currentRating = newRating;
-                });
-             
-              },
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                minimumSize: Size(double.infinity, 45),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                backgroundColor: Colors.amber,
-              ),
-              onPressed: () async {
-                final params = MovieDetailParameter(
-                  mediaType: contentType,
-                  movieId: contentId,
-                  rating: currentRating,
-                );
-
-                try {
-                  final result = await ref.refresh(movieRateProvider(params).future);
-                 await ref.refresh(ratedMovieProvider(MovieDetailParameter(movieId: widget.movieId, mediaType: widget.mediaType)));
-                  Fluttertoast.showToast(
-                    msg: result!,
-                    toastLength: Toast.LENGTH_SHORT,
-                    gravity: ToastGravity.BOTTOM,
-                  );
-                } catch (e) {
-                  Fluttertoast.showToast(
-                    msg: e.toString().replaceAll('Exception:', ''),
-                    toastLength: Toast.LENGTH_SHORT,
-                    gravity: ToastGravity.BOTTOM,
-                  );
-                }
-
-                Navigator.of(context).pop();
-              },
-              child: const Text("Submit"),
-            ),
-            TextButton(
-              onPressed: ()async {
-_resetRating();
-                Navigator.of(context).pop();
-              },
-              child: const Text(
-                "No, Thanks!",
-                style: TextStyle(color: Colors.grey),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  },
-);
-}
-        }

@@ -87,6 +87,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     _generateNewUuid();
     _startUuidRefreshTimer();
     getToken();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        // Force focus to the numpad on TV
+        if (AppSizes.getDeviceType(context) == DeviceType.tv) {
+          FocusScope.of(context).requestFocus(_numPadFocusNode);
+          
+          // Also request focus on the first numpad button
+          if (_numPadButtonNodes.isNotEmpty) {
+            _numPadButtonNodes[0].requestFocus();
+          }
+        }
+      }
+    });
   }
   
   String? _deviceType;
@@ -718,27 +731,6 @@ final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
                                         ),
                                       ),
                                     ),
-
-                                  // if(_isOtpSent == false)
-                                  // TextButton(
-                                  //       onPressed: () {
-                                  //         Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=>ResponsiveNavigation()), (route)=>false);
-                                         
-                                  //       },
-                                  //       style: ElevatedButton.styleFrom(
-                                  //         // backgroundColor: Theme.of(context).primaryColorDark.wit,
-                                  //         side:  BorderSide(
-                                  //             color: Theme.of(context).primaryColorDark),
-                                  //         shape: RoundedRectangleBorder(
-                                  //           borderRadius:
-                                  //               BorderRadius.circular(10),
-                                  //         ),
-                                  //       ),
-                                  //       child:  Text(
-                                  //         'Continue without login',
-                                  //         style: TextStyle(color: Theme.of(context).primaryColorDark),
-                                  //       ),
-                                  //     ),
                                 ],
                               ),
                             ),

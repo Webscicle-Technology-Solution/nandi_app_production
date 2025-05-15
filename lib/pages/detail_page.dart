@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -28,6 +29,7 @@ import 'package:nandiott_flutter/providers/series_watchhistory_provider.dart';
 import 'package:nandiott_flutter/providers/subscription_provider.dart';
 import 'package:nandiott_flutter/providers/tvseries_season_provider.dart';
 import 'package:nandiott_flutter/utils/Device_size.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MovieDetailPage extends ConsumerStatefulWidget {
   final String movieId;
@@ -45,6 +47,8 @@ class MovieDetailPage extends ConsumerStatefulWidget {
 
 class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
   final baseUrl = dotenv.env['API_BASE_URL'];
+
+  final bool isIos = Platform.isIOS;
 
   double currentRating = 0.0;
   // Initialize focus nodes for TV navigation
@@ -667,21 +671,64 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
                           favoriteButtonFocusNode.canRequestFocus = false;
                           downloadButtonFocusNode.canRequestFocus = false;
 
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            backgroundColor: Colors.transparent,
-                            builder: (_) => SubscriptionPlanModal(
-                              userId: user.id,
-                              movieId: movieId,
-                            ),
-                          );
+                          if (isIos == true) {
+                            // Show alert dialog for iOS users
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: Text("Subscription Unavailable"),
+                                content: Text(
+                                  "In-app subscriptions are not available on iOS.\nPlease visit our website to subscribe.",
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: Text("Cancel"),
+                                  ),
+                                  TextButton(
+                                    onPressed: () async {
+                                      const url =
+                                          'https://nandipictures.in/app'; // Replace with your real link
+                                      if (await canLaunchUrl(Uri.parse(url))) {
+                                        await launchUrl(Uri.parse(url),
+                                            mode:
+                                                LaunchMode.externalApplication);
+                                      } else {
+                                        // Show error if URL can't be launched
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                              content: Text(
+                                                  "Could not launch website")),
+                                        );
+                                      }
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: Text("Go to Website"),
+                                  ),
+                                ],
+                              ),
+                            );
+                          } else {
+                            // For non-iOS devices, show the subscription modal
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              backgroundColor: Colors.transparent,
+                              builder: (_) => SubscriptionPlanModal(
+                                userId: user.id,
+                                movieId: movieId,
+                              ),
+                            );
+                          }
+
                           if (mounted) {
                             watchButtonFocusNode.canRequestFocus = true;
                             favoriteButtonFocusNode.canRequestFocus = true;
                             downloadButtonFocusNode.canRequestFocus = true;
 
-                            // Request focus on the watch button
                             FocusScope.of(context)
                                 .requestFocus(watchButtonFocusNode);
                           }

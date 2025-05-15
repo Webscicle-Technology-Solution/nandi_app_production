@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +10,7 @@ import 'package:nandiott_flutter/pages/subscriptionplan_page.dart';
 import 'package:nandiott_flutter/providers/checkauth_provider.dart';
 import 'package:nandiott_flutter/providers/subscription_provider.dart';
 import 'package:nandiott_flutter/utils/Device_size.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AccountSettingsPage extends ConsumerStatefulWidget {
   const AccountSettingsPage({super.key});
@@ -22,6 +25,11 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
   final FocusNode profileFocusNode = FocusNode();
   final FocusNode upgradePlanFocusNode = FocusNode();
   final FocusNode loginFocusNode = FocusNode();
+
+  final bool isIos = Platform.isIOS;
+
+
+
   
   // For TV remote navigation
   int _currentFocusIndex = 0;
@@ -81,128 +89,298 @@ class _AccountSettingsPageState extends ConsumerState<AccountSettingsPage> {
   }
 
   // Mobile layout - original UI
+  // Widget _buildMobileLayout(dynamic user, AsyncValue<dynamic> subscriptionAsyncValue) {
+  //   return SingleChildScrollView(
+  //     controller: _scrollController,
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         const SizedBox(height: 20),
+  //         Center(
+  //           child: CustomProfilePic(
+  //             imagepath: "assets/images/film-thumb.jpg",
+  //             onTap: () {},
+  //           ),
+  //         ),
+  //         const SizedBox(height: 30),
+  //         const Text("Name:", style: TextStyle(fontSize: 16)),
+  //         const SizedBox(height: 5),
+  //         Row(
+  //           children: [
+  //             const SizedBox(width: 30),
+  //             Expanded(
+  //               child: Text(
+  //                 user.name,
+  //                 style: const TextStyle(
+  //                   fontSize: 16, 
+  //                   fontWeight: FontWeight.bold
+  //                 ),
+  //                 overflow: TextOverflow.ellipsis,
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //         const SizedBox(height: 25),
+  //         const Text("Email:", style: TextStyle(fontSize: 16)),
+  //         const SizedBox(height: 5),
+  //         Row(
+  //           children: [
+  //             const SizedBox(width: 30),
+  //             Expanded(
+  //               child: Text(
+  //                 user.email,
+  //                 style: const TextStyle(
+  //                   fontSize: 16, 
+  //                   fontWeight: FontWeight.bold
+  //                 ),
+  //                 overflow: TextOverflow.ellipsis,
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //         const SizedBox(height: 25),
+  //         const Text("Phone:", style: TextStyle(fontSize: 16)),
+  //         const SizedBox(height: 5),
+  //         Row(
+  //           children: [
+  //             const SizedBox(width: 30),
+  //             Expanded(
+  //               child: Text(
+  //                 user.phone,
+  //                 style: const TextStyle(
+  //                   fontSize: 16, 
+  //                   fontWeight: FontWeight.bold
+  //                 ),
+  //                 overflow: TextOverflow.ellipsis,
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //         const SizedBox(height: 25),
+  //         const Text("Subscription Plan :",
+  //             style: TextStyle(fontSize: 16)),
+  //         const SizedBox(height: 5),
+  //         subscriptionAsyncValue.when(
+  //           data: (subscription) {
+  //             return Row(
+  //               children: [
+  //                 const SizedBox(width: 30),
+  //                 Expanded(
+  //                   child: Text(
+  //                     subscription?.subscriptionType.name ??
+  //                         'No subscription found',
+  //                     style: const TextStyle(
+  //                       fontSize: 16, 
+  //                       fontWeight: FontWeight.bold
+  //                     ),
+  //                     overflow: TextOverflow.ellipsis,
+  //                   ),
+  //                 ),
+  //                 if (subscription?.subscriptionType.name != "Gold")
+  //                   TextButton(
+  //                     onPressed: () {
+  //                       showModalBottomSheet(
+  //                         context: context,
+  //                         isScrollControlled: true,
+  //                         backgroundColor: Colors.transparent,
+  //                         builder: (_) => SubscriptionPlanModal(
+  //                           userId: user.id,
+  //                           movieId: "",
+  //                         ),
+  //                       );
+  //                     },
+  //                     child: Text(
+  //                       "Upgrade Plan",
+  //                       style: TextStyle(
+  //                         color: Colors.amber,
+  //                         fontSize: AppSizes.getstatusFontSize(context),
+  //                       ),
+  //                     ),
+  //                   ),
+  //               ],
+  //             );
+  //           },
+  //           loading: () => const Center(child: CircularProgressIndicator()),
+  //           error: (error, stack) {
+  //             print("Error fetching subscription data: $error");
+  //             return const Text('Failed to load subscription data');
+  //           },
+  //         ),
+  //         const SizedBox(height: 50),
+  //       ],
+  //     ),
+  //   );
+  // }
+
   Widget _buildMobileLayout(dynamic user, AsyncValue<dynamic> subscriptionAsyncValue) {
-    return SingleChildScrollView(
-      controller: _scrollController,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 20),
-          Center(
-            child: CustomProfilePic(
-              imagepath: "assets/images/film-thumb.jpg",
-              onTap: () {},
+  return SingleChildScrollView(
+    controller: _scrollController,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 20),
+        Center(
+          child: CustomProfilePic(
+            imagepath: "assets/images/film-thumb.jpg",
+            onTap: () {},
+          ),
+        ),
+        const SizedBox(height: 30),
+        const Text("Name:", style: TextStyle(fontSize: 16)),
+        const SizedBox(height: 5),
+        Row(
+          children: [
+            const SizedBox(width: 30),
+            Expanded(
+              child: Text(
+                user.name,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-          ),
-          const SizedBox(height: 30),
-          const Text("Name:", style: TextStyle(fontSize: 16)),
-          const SizedBox(height: 5),
-          Row(
-            children: [
-              const SizedBox(width: 30),
-              Expanded(
-                child: Text(
-                  user.name,
-                  style: const TextStyle(
-                    fontSize: 16, 
-                    fontWeight: FontWeight.bold
-                  ),
-                  overflow: TextOverflow.ellipsis,
+          ],
+        ),
+        const SizedBox(height: 25),
+        const Text("Email:", style: TextStyle(fontSize: 16)),
+        const SizedBox(height: 5),
+        Row(
+          children: [
+            const SizedBox(width: 30),
+            Expanded(
+              child: Text(
+                user.email,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
+                overflow: TextOverflow.ellipsis,
               ),
-            ],
-          ),
-          const SizedBox(height: 25),
-          const Text("Email:", style: TextStyle(fontSize: 16)),
-          const SizedBox(height: 5),
-          Row(
-            children: [
-              const SizedBox(width: 30),
-              Expanded(
-                child: Text(
-                  user.email,
-                  style: const TextStyle(
-                    fontSize: 16, 
-                    fontWeight: FontWeight.bold
-                  ),
-                  overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+        const SizedBox(height: 25),
+        const Text("Phone:", style: TextStyle(fontSize: 16)),
+        const SizedBox(height: 5),
+        Row(
+          children: [
+            const SizedBox(width: 30),
+            Expanded(
+              child: Text(
+                user.phone,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
+                overflow: TextOverflow.ellipsis,
               ),
-            ],
-          ),
-          const SizedBox(height: 25),
-          const Text("Phone:", style: TextStyle(fontSize: 16)),
-          const SizedBox(height: 5),
-          Row(
-            children: [
-              const SizedBox(width: 30),
-              Expanded(
-                child: Text(
-                  user.phone,
-                  style: const TextStyle(
-                    fontSize: 16, 
-                    fontWeight: FontWeight.bold
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 25),
-          const Text("Subscription Plan :",
-              style: TextStyle(fontSize: 16)),
-          const SizedBox(height: 5),
-          subscriptionAsyncValue.when(
-            data: (subscription) {
-              return Row(
-                children: [
-                  const SizedBox(width: 30),
-                  Expanded(
-                    child: Text(
-                      subscription?.subscriptionType.name ??
-                          'No subscription found',
-                      style: const TextStyle(
-                        fontSize: 16, 
-                        fontWeight: FontWeight.bold
-                      ),
-                      overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+        const SizedBox(height: 25),
+        const Text("Subscription Plan:", style: TextStyle(fontSize: 16)),
+        const SizedBox(height: 5),
+        subscriptionAsyncValue.when(
+          data: (subscription) {
+            return Row(
+              children: [
+                const SizedBox(width: 30),
+                Expanded(
+                  child: Text(
+                    subscription?.subscriptionType.name ??
+                        'No subscription found',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  if (subscription?.subscriptionType.name != "Gold")
-                    TextButton(
-                      onPressed: () {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          backgroundColor: Colors.transparent,
-                          builder: (_) => SubscriptionPlanModal(
-                            userId: user.id,
-                            movieId: "",
+                ),
+                // iOS-specific behavior: Show Popup for iOS users
+                if (isIos)
+                  TextButton(
+                    onPressed: () {
+                      // Show a dialog instead of modal
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text("Subscription Unavailable"),
+                          content: Text(
+                            "In-app subscriptions are not available on iOS.\nPlease visit our website to subscribe.",
                           ),
-                        );
-                      },
-                      child: Text(
-                        "Upgrade Plan",
-                        style: TextStyle(
-                          color: Colors.amber,
-                          fontSize: AppSizes.getstatusFontSize(context),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: Text("Cancel"),
+                            ),
+                            TextButton(
+                              onPressed: () async {
+                                const url = 'https://nandipictures.in/app'; // Replace with your real link
+                                if (await canLaunchUrl(Uri.parse(url))) {
+                                  await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                                } else {
+                                  // Show error if URL can't be launched
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text("Could not launch website")),
+                                  );
+                                }
+                                Navigator.of(context).pop();
+                              },
+                              child: Text("Go to Website"),
+                            ),
+                          ],
                         ),
+                      );
+                    },
+                    child: Text(
+                      "Upgrade Plan",
+                      style: TextStyle(
+                        color: Colors.amber,
+                        fontSize: AppSizes.getstatusFontSize(context),
                       ),
                     ),
-                ],
-              );
-            },
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, stack) {
-              print("Error fetching subscription data: $error");
-              return const Text('Failed to load subscription data');
-            },
-          ),
-          const SizedBox(height: 50),
-        ],
-      ),
-    );
-  }
+                  ),
+                // For non-iOS users, show Upgrade button to change plan
+                if (!isIos && subscription?.subscriptionType.name != "Gold")
+                  TextButton(
+                    onPressed: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (_) => SubscriptionPlanModal(
+                          userId: user.id,
+                          movieId: "",
+                        ),
+                      );
+                    },
+                    child: Text(
+                      "Upgrade Plan",
+                      style: TextStyle(
+                        color: Colors.amber,
+                        fontSize: AppSizes.getstatusFontSize(context),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) {
+            print("Error fetching subscription data: $error");
+            return const Text('Failed to load subscription data');
+          },
+        ),
+        const SizedBox(height: 50),
+      ],
+    ),
+  );
+}
+
 
   // TV layout - two-column design
   Widget _buildTvLayout(dynamic user, AsyncValue<dynamic> subscriptionAsyncValue) {

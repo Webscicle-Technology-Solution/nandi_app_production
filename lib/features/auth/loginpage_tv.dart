@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +27,8 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final tvLoginUrl=dotenv.env['TV_LOGIN_URL'];
+
+  final bool isIos = Platform.isIOS;
 
   String? deviceToken;
   final TextEditingController _phoneController = TextEditingController();
@@ -701,7 +704,7 @@ final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
                                       );
                                     },
                                   ),
-                                  if (isTv == false && _isOtpSent == false)
+                                  if (isTv == false && _isOtpSent == false && isIos==false)
                                     Container(
                                       margin: const EdgeInsets.symmetric(
                                           horizontal: 30, vertical: 30),

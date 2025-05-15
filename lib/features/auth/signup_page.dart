@@ -172,7 +172,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                                   issuffxicon: false,
                                   prefixIcon: Icons.numbers,
                                   controller: pincodeController,
-                                  hintText: 'Pincode',
+                                  hintText: 'Zip Code',
                                   keyboardType: TextInputType.text,
                                   obscureText: false,
                                 ),

@@ -520,22 +520,22 @@ final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   !isTv
-                                      ? SizedBox(
+                                      ? const SizedBox(
                                           height: 100,
                                         )
                                       : SizedBox.shrink(),
-                                  Text(
-                                    _isOtpSent
-                                        ? 'Enter OTP'
-                                        : 'Login with Phone',
-                                    style: const TextStyle(
+                                  _isOtpSent
+                                        ? const SizedBox.shrink():const Text(
+                                     'Login with Phone',
+                                    style: TextStyle(
                                       fontSize: 24,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.amber,
                                     ),
                                   ),
-                                  SizedBox(height: isTv ? 5 : 50),
+                                  SizedBox(height: isTv ? 20 : 50),
                                   if (!_isOtpSent) ...[
+                                    const SizedBox(height: 15,),
                                     Container(
                                       decoration: BoxDecoration(
                                         color: Colors.grey.shade900,
@@ -572,6 +572,7 @@ final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
                                         ],
                                       ),
                                     ),
+                                    SizedBox(height: 15,)
                                   ] else ...[
                                     Text(
                                       'OTP sent to +91 ${_phoneController.text}',
@@ -608,7 +609,7 @@ final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
                                         ),
                                       ),
                                     ),
-                                     SizedBox(height: isTv ? 5:16),
+                                     SizedBox(height: 16),
                                     _otpTimeLeft > 0
                                         ? Text(
                                             'Resend OTP in $_otpTimeLeft seconds',
@@ -620,7 +621,7 @@ final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
                                             child: const Text('Resend OTP'),
                                           ),
                                   ],
-                                  SizedBox(height: isTv ? 5 : 10),
+                                  SizedBox(height: 10),
                                   // Custom Number Pad
                                   GridView.builder(
                                     shrinkWrap: true,

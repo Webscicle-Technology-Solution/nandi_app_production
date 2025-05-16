@@ -54,7 +54,7 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
   // Initialize focus nodes for TV navigation
   late FocusNode watchButtonFocusNode;
   late FocusNode favoriteButtonFocusNode;
-  late FocusNode downloadButtonFocusNode;
+  // late FocusNode downloadButtonFocusNode;
   // Function to fetch and set the initial rating
 
   void _resetRating() {
@@ -77,7 +77,7 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
     // Initialize focus nodes
     watchButtonFocusNode = FocusNode(debugLabel: 'watchButton');
     favoriteButtonFocusNode = FocusNode(debugLabel: 'favoriteButton');
-    downloadButtonFocusNode = FocusNode(debugLabel: 'downloadButton');
+    // downloadButtonFocusNode = FocusNode(debugLabel: 'downloadButton');
 
     print("MEDIATYPE = ${widget.mediaType} ");
 
@@ -123,7 +123,7 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
     // Clean up focus nodes
     watchButtonFocusNode.dispose();
     favoriteButtonFocusNode.dispose();
-    downloadButtonFocusNode.dispose();
+    // downloadButtonFocusNode.dispose();
     // ref.invalidate(movieDetailProvider);
     // ref.invalidate(tvSeriesWatchProgressProvider);
 
@@ -494,7 +494,7 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
               FocusScope.of(context).unfocus();
               watchButtonFocusNode.canRequestFocus = false;
               favoriteButtonFocusNode.canRequestFocus = false;
-              downloadButtonFocusNode.canRequestFocus = false;
+              // downloadButtonFocusNode.canRequestFocus = false;
 
               // Start with loading state
               setState(() {
@@ -509,7 +509,7 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
               if (mounted) {
                 watchButtonFocusNode.canRequestFocus = true;
                 favoriteButtonFocusNode.canRequestFocus = true;
-                downloadButtonFocusNode.canRequestFocus = true;
+                // downloadButtonFocusNode.canRequestFocus = true;
 
                 // Request focus on the watch button
                 FocusScope.of(context).requestFocus(watchButtonFocusNode);
@@ -595,7 +595,6 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
                           FocusScope.of(context).unfocus();
                           watchButtonFocusNode.canRequestFocus = false;
                           favoriteButtonFocusNode.canRequestFocus = false;
-                          downloadButtonFocusNode.canRequestFocus = false;
 
                           await Navigator.push(
                             context,
@@ -613,7 +612,6 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
                           if (mounted) {
                             watchButtonFocusNode.canRequestFocus = true;
                             favoriteButtonFocusNode.canRequestFocus = true;
-                            downloadButtonFocusNode.canRequestFocus = true;
 
                             // Request focus on the watch button
                             FocusScope.of(context)
@@ -633,7 +631,6 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
                           FocusScope.of(context).unfocus();
                           watchButtonFocusNode.canRequestFocus = false;
                           favoriteButtonFocusNode.canRequestFocus = false;
-                          downloadButtonFocusNode.canRequestFocus = false;
                           final result = await Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -645,7 +642,6 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
                           if (mounted) {
                             watchButtonFocusNode.canRequestFocus = true;
                             favoriteButtonFocusNode.canRequestFocus = true;
-                            downloadButtonFocusNode.canRequestFocus = true;
 
                             // Request focus on the watch button
                             FocusScope.of(context)
@@ -669,7 +665,6 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
                           FocusScope.of(context).unfocus();
                           watchButtonFocusNode.canRequestFocus = false;
                           favoriteButtonFocusNode.canRequestFocus = false;
-                          downloadButtonFocusNode.canRequestFocus = false;
 
                           if (isIos == true) {
                             // Show alert dialog for iOS users
@@ -727,7 +722,6 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
                           if (mounted) {
                             watchButtonFocusNode.canRequestFocus = true;
                             favoriteButtonFocusNode.canRequestFocus = true;
-                            downloadButtonFocusNode.canRequestFocus = true;
 
                             FocusScope.of(context)
                                 .requestFocus(watchButtonFocusNode);
@@ -779,7 +773,6 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
           FocusScope.of(context).unfocus();
           watchButtonFocusNode.canRequestFocus = false;
           favoriteButtonFocusNode.canRequestFocus = false;
-          downloadButtonFocusNode.canRequestFocus = false;
           setState(() {
             isRefreshing = true;
           });
@@ -792,7 +785,6 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
           if (mounted) {
             watchButtonFocusNode.canRequestFocus = true;
             favoriteButtonFocusNode.canRequestFocus = true;
-            downloadButtonFocusNode.canRequestFocus = true;
 
             // Request focus on the watch button
             FocusScope.of(context).requestFocus(watchButtonFocusNode);
@@ -1026,62 +1018,144 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
                         const SizedBox(width: 10),
 
                         // Download Button with focus
-                        isTVSeries || isTV
+                        isTVSeries || isTV || isIos
                             ? const SizedBox()
                             : Expanded(
-                                child: Focus(
-                                  focusNode: downloadButtonFocusNode,
-                                  child: Builder(builder: (context) {
-                                    final isFocused =
-                                        Focus.of(context).hasFocus;
-                                    return Container(
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(10),
-                                        border: Border.all(
-                                          color: isFocused
-                                              ? Colors.amber
-                                              : Colors.transparent,
-                                          width: 3,
-                                        ),
-                                        boxShadow: isFocused
-                                            ? [
-                                                BoxShadow(
-                                                  color: Colors.amber
-                                                      .withOpacity(0.5),
-                                                  blurRadius: 8,
-                                                  spreadRadius: 2,
-                                                )
-                                              ]
-                                            : null,
+                                child: Builder(builder: (context) {
+                                  final isFocused =
+                                      Focus.of(context).hasFocus;
+                                  return Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(
+                                        color: isFocused
+                                            ? Colors.amber
+                                            : Colors.transparent,
+                                        width: 3,
                                       ),
-                                      child: OutlinedButton.icon(
-                                        onPressed: !canDownload ||
-                                                buttonState
-                                                    .isPreparingDownload ||
-                                                buttonState.isDownloading
-                                            ? null // Disable button if not allowed or during download
-                                            : () async {
-                                                if (showGoToDownloads) {
-                                                  ref
+                                      boxShadow: isFocused
+                                          ? [
+                                              BoxShadow(
+                                                color: Colors.amber
+                                                    .withOpacity(0.5),
+                                                blurRadius: 8,
+                                                spreadRadius: 2,
+                                              )
+                                            ]
+                                          : null,
+                                    ),
+                                    child: OutlinedButton.icon(
+                                      onPressed: !canDownload ||
+                                              buttonState
+                                                  .isPreparingDownload ||
+                                              buttonState.isDownloading
+                                          ? null // Disable button if not allowed or during download
+                                          : () async {
+                                              if (showGoToDownloads) {
+                                                ref
+                                                    .read(
+                                                        selectedIndexProvider
+                                                            .notifier)
+                                                    .state = 1;
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          ResponsiveNavigation()),
+                                                );
+                                              } else {
+                                                // Show initial feedback
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  const SnackBar(
+                                                      content: Text(
+                                                          'Preparing download...')),
+                                                );
+                                                // Start preparing for download
+                                                ref
+                                                    .read(
+                                                        downloadButtonStateProvider(
+                                                                widget
+                                                                    .movieId)
+                                                            .notifier)
+                                                    .setPreparingDownload(
+                                                        true);
+                                
+                                                try {
+                                                  // Get and validate the media URL
+                                                  final mediaUrl =
+                                                      "$baseUrl/drm/getmasterplaylist/$transformedMediaType/${movie.id}";
+                                                  final mediaUrlValidity =
+                                                      await ref.read(
+                                                          trailerUrlValidityProvider(
+                                                                  mediaUrl)
+                                                              .future);
+                                
+                                                  if (mediaUrlValidity
+                                                      .isEmpty) {
+                                                    ref
+                                                        .read(downloadButtonStateProvider(
+                                                                widget
+                                                                    .movieId)
+                                                            .notifier)
+                                                        .setPreparingDownload(
+                                                            false);
+                                
+                                                    if (mounted) {
+                                                      ScaffoldMessenger.of(
+                                                              context)
+                                                          .showSnackBar(
+                                                        const SnackBar(
+                                                            content: Text(
+                                                                'No media available to download.')),
+                                                      );
+                                                    }
+                                                    return;
+                                                  }
+                                
+                                                  // Start the download using our method
+                                                  final success = await ref
                                                       .read(
-                                                          selectedIndexProvider
+                                                          downloadButtonStateProvider(
+                                                                  widget
+                                                                      .movieId)
                                                               .notifier)
-                                                      .state = 1;
-                                                  Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                        builder: (context) =>
-                                                            ResponsiveNavigation()),
-                                                  );
-                                                } else {
-                                                  // Show initial feedback
-                                                  ScaffoldMessenger.of(context)
-                                                      .showSnackBar(
-                                                    const SnackBar(
-                                                        content: Text(
-                                                            'Preparing download...')),
-                                                  );
-                                                  // Start preparing for download
+                                                      .startDownload(
+                                                        mediaUrl:
+                                                            mediaUrlValidity,
+                                                        movieId: movie.id,
+                                                        title: movie.title,
+                                                        context: context,
+                                                        mediaType:
+                                                            widget.mediaType,
+                                                        transformedMediaTypebanner:
+                                                            transformedMediaTypebanner,
+                                                      );
+                                
+                                                  if (success && mounted) {
+                                                    ScaffoldMessenger.of(
+                                                            context)
+                                                        .showSnackBar(
+                                                      SnackBar(
+                                                        content: const Text(
+                                                            'Download started. Go to Downloads page to view progress.'),
+                                                        action:
+                                                            SnackBarAction(
+                                                          label: 'Go Now',
+                                                          onPressed: () {
+                                                            Navigator.push(
+                                                              context,
+                                                              MaterialPageRoute(
+                                                                  builder:
+                                                                      (context) =>
+                                                                          DownloadsPage()),
+                                                            );
+                                                          },
+                                                        ),
+                                                      ),
+                                                    );
+                                                  }
+                                                } catch (e) {
                                                   ref
                                                       .read(
                                                           downloadButtonStateProvider(
@@ -1089,191 +1163,106 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
                                                                       .movieId)
                                                               .notifier)
                                                       .setPreparingDownload(
-                                                          true);
-
-                                                  try {
-                                                    // Get and validate the media URL
-                                                    final mediaUrl =
-                                                        "$baseUrl/drm/getmasterplaylist/$transformedMediaType/${movie.id}";
-                                                    final mediaUrlValidity =
-                                                        await ref.read(
-                                                            trailerUrlValidityProvider(
-                                                                    mediaUrl)
-                                                                .future);
-
-                                                    if (mediaUrlValidity
-                                                        .isEmpty) {
-                                                      ref
-                                                          .read(downloadButtonStateProvider(
-                                                                  widget
-                                                                      .movieId)
-                                                              .notifier)
-                                                          .setPreparingDownload(
-                                                              false);
-
-                                                      if (mounted) {
-                                                        ScaffoldMessenger.of(
-                                                                context)
-                                                            .showSnackBar(
-                                                          const SnackBar(
-                                                              content: Text(
-                                                                  'No media available to download.')),
-                                                        );
-                                                      }
-                                                      return;
-                                                    }
-
-                                                    // Start the download using our method
-                                                    final success = await ref
-                                                        .read(
-                                                            downloadButtonStateProvider(
-                                                                    widget
-                                                                        .movieId)
-                                                                .notifier)
-                                                        .startDownload(
-                                                          mediaUrl:
-                                                              mediaUrlValidity,
-                                                          movieId: movie.id,
-                                                          title: movie.title,
-                                                          context: context,
-                                                          mediaType:
-                                                              widget.mediaType,
-                                                          transformedMediaTypebanner:
-                                                              transformedMediaTypebanner,
-                                                        );
-
-                                                    if (success && mounted) {
-                                                      ScaffoldMessenger.of(
-                                                              context)
-                                                          .showSnackBar(
-                                                        SnackBar(
-                                                          content: const Text(
-                                                              'Download started. Go to Downloads page to view progress.'),
-                                                          action:
-                                                              SnackBarAction(
-                                                            label: 'Go Now',
-                                                            onPressed: () {
-                                                              Navigator.push(
-                                                                context,
-                                                                MaterialPageRoute(
-                                                                    builder:
-                                                                        (context) =>
-                                                                            DownloadsPage()),
-                                                              );
-                                                            },
-                                                          ),
-                                                        ),
-                                                      );
-                                                    }
-                                                  } catch (e) {
-                                                    ref
-                                                        .read(
-                                                            downloadButtonStateProvider(
-                                                                    widget
-                                                                        .movieId)
-                                                                .notifier)
-                                                        .setPreparingDownload(
-                                                            false);
-
-                                                    if (mounted) {
-                                                      ScaffoldMessenger.of(
-                                                              context)
-                                                          .showSnackBar(
-                                                        SnackBar(
-                                                            content: Text(
-                                                                'Error: ${e.toString()}')),
-                                                      );
-                                                    }
+                                                          false);
+                                
+                                                  if (mounted) {
+                                                    ScaffoldMessenger.of(
+                                                            context)
+                                                        .showSnackBar(
+                                                      SnackBar(
+                                                          content: Text(
+                                                              'Error: ${e.toString()}')),
+                                                    );
                                                   }
                                                 }
-                                              },
-                                        icon: !canDownload
-                                            ? const Icon(
-                                                Icons.file_download_off,
-                                                color: Colors.grey)
-                                            : buttonState.isPreparingDownload
-                                                ? const SizedBox(
-                                                    width: 16,
-                                                    height: 16,
-                                                    child:
-                                                        CircularProgressIndicator(
-                                                            strokeWidth: 2))
-                                                : buttonState.isDownloading
-                                                    ? const SizedBox(
-                                                        width: 16,
-                                                        height: 16,
-                                                        child: CircularProgressIndicator(
-                                                            strokeWidth: 2,
-                                                            valueColor:
-                                                                AlwaysStoppedAnimation<
-                                                                        Color>(
-                                                                    Colors
-                                                                        .white)))
-                                                    : showGoToDownloads
-                                                        ? const Icon(
-                                                            Icons.download_done,
-                                                            color: Colors.green)
-                                                        : Icon(Icons.download,
-                                                            color: Theme.of(
-                                                                    context)
-                                                                .primaryColorDark),
-                                        label: !canDownload
-                                            ? _getDownloadButtonText(
-                                                isRentable, isSubscribed)
-                                            : buttonState.isPreparingDownload
-                                                ? const Text("Starting...",
-                                                    style: TextStyle(
-                                                        color: Colors.white))
-                                                : buttonState.isDownloading
-                                                    ? const Text(
-                                                        "Downloading...",
-                                                        style: TextStyle(
-                                                            color:
-                                                                Colors.white))
-                                                    : showGoToDownloads
-                                                        ? const Text(
-                                                            "Go to Downloads",
-                                                            style: TextStyle(
-                                                                color: Colors
-                                                                    .white))
-                                                        : Text("Download",
-                                                            style: TextStyle(
-                                                                color: Theme.of(
-                                                                        context)
-                                                                    .primaryColorDark)),
-                                        style: OutlinedButton.styleFrom(
-                                          backgroundColor: isDarkMode
-                                              ? Colors.grey[900]
-                                              : Colors.grey[50],
-                                          padding: const EdgeInsets.symmetric(
-                                              vertical: 12),
-                                          side: BorderSide(
-                                            color: !canDownload
-                                                ? Colors.grey
-                                                : buttonState
-                                                            .isPreparingDownload ||
-                                                        buttonState
-                                                            .isDownloading
-                                                    ? Colors.blue
-                                                    : showGoToDownloads
-                                                        ? Colors.green
-                                                        : Theme.of(context)
-                                                            .primaryColorDark,
-                                          ),
-                                          foregroundColor: Colors.white,
-                                          disabledForegroundColor: buttonState
-                                                  .isDownloading
-                                              ? Colors.white.withOpacity(0.7)
-                                              : Colors.grey.withOpacity(0.5),
-                                          disabledBackgroundColor:
-                                              buttonState.isDownloading
-                                                  ? Colors.blue.withOpacity(0.1)
-                                                  : null,
+                                              }
+                                            },
+                                      icon: !canDownload
+                                          ? const Icon(
+                                              Icons.file_download_off,
+                                              color: Colors.grey)
+                                          : buttonState.isPreparingDownload
+                                              ? const SizedBox(
+                                                  width: 16,
+                                                  height: 16,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                          strokeWidth: 2))
+                                              : buttonState.isDownloading
+                                                  ? const SizedBox(
+                                                      width: 16,
+                                                      height: 16,
+                                                      child: CircularProgressIndicator(
+                                                          strokeWidth: 2,
+                                                          valueColor:
+                                                              AlwaysStoppedAnimation<
+                                                                      Color>(
+                                                                  Colors
+                                                                      .white)))
+                                                  : showGoToDownloads
+                                                      ? const Icon(
+                                                          Icons.download_done,
+                                                          color: Colors.green)
+                                                      : Icon(Icons.download,
+                                                          color: Theme.of(
+                                                                  context)
+                                                              .primaryColorDark),
+                                      label: !canDownload
+                                          ? _getDownloadButtonText(
+                                              isRentable, isSubscribed)
+                                          : buttonState.isPreparingDownload
+                                              ? const Text("Starting...",
+                                                  style: TextStyle(
+                                                      color: Colors.white))
+                                              : buttonState.isDownloading
+                                                  ? const Text(
+                                                      "Downloading...",
+                                                      style: TextStyle(
+                                                          color:
+                                                              Colors.white))
+                                                  : showGoToDownloads
+                                                      ? const Text(
+                                                          "Go to Downloads",
+                                                          style: TextStyle(
+                                                              color: Colors
+                                                                  .white))
+                                                      : Text("Download",
+                                                          style: TextStyle(
+                                                              color: Theme.of(
+                                                                      context)
+                                                                  .primaryColorDark)),
+                                      style: OutlinedButton.styleFrom(
+                                        backgroundColor: isDarkMode
+                                            ? Colors.grey[900]
+                                            : Colors.grey[50],
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 12),
+                                        side: BorderSide(
+                                          color: !canDownload
+                                              ? Colors.grey
+                                              : buttonState
+                                                          .isPreparingDownload ||
+                                                      buttonState
+                                                          .isDownloading
+                                                  ? Colors.blue
+                                                  : showGoToDownloads
+                                                      ? Colors.green
+                                                      : Theme.of(context)
+                                                          .primaryColorDark,
                                         ),
+                                        foregroundColor: Colors.white,
+                                        disabledForegroundColor: buttonState
+                                                .isDownloading
+                                            ? Colors.white.withOpacity(0.7)
+                                            : Colors.grey.withOpacity(0.5),
+                                        disabledBackgroundColor:
+                                            buttonState.isDownloading
+                                                ? Colors.blue.withOpacity(0.1)
+                                                : null,
                                       ),
-                                    );
-                                  }),
-                                ),
+                                    ),
+                                  );
+                                }),
                               ),
                       ],
                     ),
@@ -1349,47 +1338,44 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
                               widget.mediaType == "tvseries"
                           ? const SizedBox()
                           : Expanded(
-                              child: Focus(
-                                focusNode: downloadButtonFocusNode,
-                                child: Builder(builder: (context) {
-                                  final isFocused = Focus.of(context).hasFocus;
-                                  return Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(10),
-                                      border: Border.all(
-                                        color: isFocused
-                                            ? Colors.amber
-                                            : Colors.transparent,
-                                        width: 3,
-                                      ),
-                                      boxShadow: isFocused
-                                          ? [
-                                              BoxShadow(
-                                                color: Colors.amber
-                                                    .withOpacity(0.5),
-                                                blurRadius: 8,
-                                                spreadRadius: 2,
-                                              )
-                                            ]
-                                          : null,
+                              child: Builder(builder: (context) {
+                                final isFocused = Focus.of(context).hasFocus;
+                                return Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: isFocused
+                                          ? Colors.amber
+                                          : Colors.transparent,
+                                      width: 3,
                                     ),
-                                    child: OutlinedButton.icon(
-                                      onPressed: null,
-                                      icon: const Icon(Icons.error,
+                                    boxShadow: isFocused
+                                        ? [
+                                            BoxShadow(
+                                              color: Colors.amber
+                                                  .withOpacity(0.5),
+                                              blurRadius: 8,
+                                              spreadRadius: 2,
+                                            )
+                                          ]
+                                        : null,
+                                  ),
+                                  child: OutlinedButton.icon(
+                                    onPressed: null,
+                                    icon: const Icon(Icons.error,
+                                        color: Colors.grey),
+                                    label: const Text(
+                                        "Unable to verify access",
+                                        style: TextStyle(color: Colors.grey)),
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 12),
+                                      side: const BorderSide(
                                           color: Colors.grey),
-                                      label: const Text(
-                                          "Unable to verify access",
-                                          style: TextStyle(color: Colors.grey)),
-                                      style: OutlinedButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 12),
-                                        side: const BorderSide(
-                                            color: Colors.grey),
-                                      ),
                                     ),
-                                  );
-                                }),
-                              ),
+                                  ),
+                                );
+                              }),
                             ),
                     ],
                   ),
@@ -1464,45 +1450,42 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
                           widget.mediaType == "tvseries"
                       ? const SizedBox()
                       : Expanded(
-                          child: Focus(
-                            focusNode: downloadButtonFocusNode,
-                            child: Builder(builder: (context) {
-                              final isFocused = Focus.of(context).hasFocus;
-                              return Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(
-                                    color: isFocused
-                                        ? Colors.amber
-                                        : Colors.transparent,
-                                    width: 3,
-                                  ),
-                                  boxShadow: isFocused
-                                      ? [
-                                          BoxShadow(
-                                            color:
-                                                Colors.amber.withOpacity(0.5),
-                                            blurRadius: 8,
-                                            spreadRadius: 2,
-                                          )
-                                        ]
-                                      : null,
+                          child: Builder(builder: (context) {
+                            final isFocused = Focus.of(context).hasFocus;
+                            return Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: isFocused
+                                      ? Colors.amber
+                                      : Colors.transparent,
+                                  width: 3,
                                 ),
-                                child: OutlinedButton.icon(
-                                  onPressed: null,
-                                  icon: const Icon(Icons.error,
-                                      color: Colors.grey),
-                                  label: const Text("Unable to verify access",
-                                      style: TextStyle(color: Colors.grey)),
-                                  style: OutlinedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 12),
-                                    side: const BorderSide(color: Colors.grey),
-                                  ),
+                                boxShadow: isFocused
+                                    ? [
+                                        BoxShadow(
+                                          color:
+                                              Colors.amber.withOpacity(0.5),
+                                          blurRadius: 8,
+                                          spreadRadius: 2,
+                                        )
+                                      ]
+                                    : null,
+                              ),
+                              child: OutlinedButton.icon(
+                                onPressed: null,
+                                icon: const Icon(Icons.error,
+                                    color: Colors.grey),
+                                label: const Text("Unable to verify access",
+                                    style: TextStyle(color: Colors.grey)),
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 12),
+                                  side: const BorderSide(color: Colors.grey),
                                 ),
-                              );
-                            }),
-                          ),
+                              ),
+                            );
+                          }),
                         ),
                 ],
               ),

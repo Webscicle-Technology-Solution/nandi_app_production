@@ -748,7 +748,7 @@ class _SimpleFeaturedCarouselState extends State<SimpleFeaturedCarousel> {
             margin: EdgeInsets.all(15.0),
             height: height,
             decoration: BoxDecoration(
-              border: _hasFocus 
+              border: _hasFocus && isTV 
                   ? Border.all(color: Colors.amber, width: 2)
                   : null,
               borderRadius: BorderRadius.circular(12),

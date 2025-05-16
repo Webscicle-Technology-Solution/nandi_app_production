@@ -13,6 +13,7 @@ class DeleteAccountButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    
     return ElevatedButton.icon(
       onPressed: () async {
         // Show first confirmation dialog
@@ -54,7 +55,6 @@ class DeleteAccountButton extends ConsumerWidget {
                 ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).pop(true); // User confirms
-                    Navigator.of(context).pop(true); // User confirms
                   },
                   style: ElevatedButton.styleFrom(
                     foregroundColor: Colors.black,
@@ -81,14 +81,6 @@ class DeleteAccountButton extends ConsumerWidget {
                   size: 40.0,
                 ),
                 titlePadding: EdgeInsets.all(20),
-                // content: Text(
-                //   "Your account has been temporarily deactivated. If you log in within the next 7 days, you'll be able to recover it. After 7 days, it will be permanently deleted.",
-                // style: TextStyle(
-                //   color: Theme.of(context).primaryColorDark,
-                //   fontSize: 16,
-                //   fontWeight: FontWeight.w600,
-                // ),
-                // ),
                 content: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -134,6 +126,7 @@ class DeleteAccountButton extends ConsumerWidget {
                   ElevatedButton(
                     onPressed: () {
                       Navigator.of(context).pop(true); // User presses "Okay"
+
                     },
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.black,
@@ -147,34 +140,27 @@ class DeleteAccountButton extends ConsumerWidget {
           );
 
           if (tempConfirm == true) {
+            ref.read(selectedIndexProvider.notifier).state = 0; // index 0 for Home Page
             try {
               // Important: Navigate FIRST before invalidating the token or logging out
               // This prevents the "invalid refresh token" issue
+          Navigator.of(context).pop();
 
               final navigator = Navigator.of(context);
 
               // Navigate to the login screen or bottom navigation
-              final result = await navigator.push(
-                MaterialPageRoute(builder: (context) => LoginScreen()),
-                // (route) => false, // Remove all previous routes
-              );
-              if (result == true) {
-                ref.invalidate(authUserProvider);
-                ref.invalidate(subscriptionProvider(
-                  SubscriptionDetailParameter(userId: ""),
-                ));
-                ref.invalidate(favoritesProvider);
-                ref.invalidate(favoritesWithDetailsProvider);
-                ref.invalidate(watchHistoryProvider);
-              } else {
-                ref.invalidate(authUserProvider);
-                ref.invalidate(subscriptionProvider(
-                  SubscriptionDetailParameter(userId: ""),
-                ));
-                ref.invalidate(favoritesProvider);
-                ref.invalidate(favoritesWithDetailsProvider);
-                ref.invalidate(watchHistoryProvider);
-              }
+              // navigator.push(
+              //   MaterialPageRoute(builder: (context) => LoginScreen()),
+              //   // (route) => false, // Remove all previous routes
+              // );
+
+              navigator.pushAndRemoveUntil(
+  MaterialPageRoute(builder: (_) => const ResponsiveNavigation()),
+  (route) => false,
+);
+              
+        
+             
 
               // AFTER navigation is triggered, handle logout and provider invalidation
               // Adding a slight delay to ensure navigation happens first
@@ -185,12 +171,20 @@ class DeleteAccountButton extends ConsumerWidget {
                 // Log out the user
                 authService.logout().then((_) {
                   // Invalidate the auth provider to reflect logged out state
-                  ref.invalidate(authUserProvider);
+                  // ref.invalidate(authUserProvider);
+                          ref.invalidate(authUserProvider);
+                ref.invalidate(subscriptionProvider(
+                  SubscriptionDetailParameter(userId: ""),
+                ));
+                ref.invalidate(favoritesProvider);
+                ref.invalidate(favoritesWithDetailsProvider);
+                ref.invalidate(watchHistoryProvider);
                 }).catchError((e) {
                   print("Logout error (handled silently): $e");
                   // We don't show an error here since the user is already navigated away
                 });
               });
+              
             } catch (e) {
               // This will only catch navigation errors, not logout errors
               print("Navigation error: $e");

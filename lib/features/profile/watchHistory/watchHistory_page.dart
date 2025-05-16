@@ -53,7 +53,8 @@ class _WatchHistoryPageState extends ConsumerState<WatchHistoryPage> {
   @override
   Widget build(BuildContext context) {
     final userAsyncValue = ref.watch(authUserProvider);
-    final isTV = AppSizes.getDeviceType(context) == DeviceType.tv;
+    final isTv = AppSizes.getDeviceType(context) == DeviceType.tv;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Watch History"),
@@ -93,7 +94,7 @@ class _WatchHistoryPageState extends ConsumerState<WatchHistoryPage> {
                   padding: const EdgeInsets.all(8.0),
                   child: GridView.builder(
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: isTV ? 5 : 3, // Display 3 items per row
+                      crossAxisCount: isTv ? 5 : 3, // Display 3 items per row
                       crossAxisSpacing:
                           8.0, // Spacing between cards horizontally
                       mainAxisSpacing: 8.0, // Spacing between cards vertically
@@ -135,15 +136,15 @@ class _WatchHistoryPageState extends ConsumerState<WatchHistoryPage> {
                   const SizedBox(height: 20),
                   Container(
                       decoration: BoxDecoration(
-                        border: isButtonFocused && isTV
-                            ? Border.all(color: Colors.amber, width: 3)
-                            : null,
-                        borderRadius: BorderRadius.circular(10),
+                        border: 
+                            Border.all(color: Colors.amber, width: 2),
+                            
+                        borderRadius: BorderRadius.circular(18),
                       ),
                       child: ElevatedButton(
                         onFocusChange: (value) {
                       setState(() {
-                        isButtonFocused = true;
+                        isButtonFocused = value;
                       });
                     },
                     onPressed: () async {
@@ -160,22 +161,22 @@ class _WatchHistoryPageState extends ConsumerState<WatchHistoryPage> {
                       }
                     },
                         style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 30, vertical: 15),
-                          backgroundColor: isButtonFocused
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                          backgroundColor: isButtonFocused && isTv
                               ? Colors.amber
-                              : null,
+                              : Theme.of(context).primaryColorLight, // fallback default
                         ),
                         child: Text(
                           "Login",
                           style: TextStyle(
                             fontSize: 16,
-                            color: isButtonFocused
+                            color: isButtonFocused && isTv
                                 ? Colors.black
-                                : null,
+                                : Colors.white,
                           ),
                         ),
                       ),
+                    
                     ),
                 ],
               ),

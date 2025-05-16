@@ -35,7 +35,8 @@ class DeleteAccountButton extends ConsumerWidget {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              contentPadding: EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+              contentPadding:
+                  EdgeInsets.symmetric(vertical: 20, horizontal: 20),
               actions: [
                 ElevatedButton(
                   onPressed: () {
@@ -47,7 +48,9 @@ class DeleteAccountButton extends ConsumerWidget {
                   ),
                   child: Text("Cancel"),
                 ),
-                SizedBox(width: 10,),
+                SizedBox(
+                  width: 10,
+                ),
                 ElevatedButton(
                   onPressed: () {
                     Navigator.of(context).pop(true); // User confirms
@@ -78,15 +81,55 @@ class DeleteAccountButton extends ConsumerWidget {
                   size: 40.0,
                 ),
                 titlePadding: EdgeInsets.all(20),
-                content: Text(
-                  "Your account has been temporarily deactivated. If you log in within the next 7 days, you'll be able to recover it. After 7 days, it will be permanently deleted.",
-                  style: TextStyle(
-                    color: Theme.of(context).primaryColorDark,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+                // content: Text(
+                //   "Your account has been temporarily deactivated. If you log in within the next 7 days, you'll be able to recover it. After 7 days, it will be permanently deleted.",
+                // style: TextStyle(
+                //   color: Theme.of(context).primaryColorDark,
+                //   fontSize: 16,
+                //   fontWeight: FontWeight.w600,
+                // ),
+                // ),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Your account will be scheduled for deletion. During the next 7 days:',
+                      style: TextStyle(
+                        color: Theme.of(context).primaryColorDark,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      '• Your account will be deactivated and hidden',
+                      style: TextStyle(
+                        color: Theme.of(context).primaryColorDark,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      '• You can cancel deletion by logging back in',
+                      style: TextStyle(
+                        color: Theme.of(context).primaryColorDark,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      '• After 7 days, your account and all data will be permanently deleted',
+                      style: TextStyle(
+                        color: Theme.of(context).primaryColorDark,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
-                contentPadding: EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 20, horizontal: 20),
                 actions: [
                   ElevatedButton(
                     onPressed: () {
@@ -109,38 +152,36 @@ class DeleteAccountButton extends ConsumerWidget {
               // This prevents the "invalid refresh token" issue
 
               final navigator = Navigator.of(context);
-              
+
               // Navigate to the login screen or bottom navigation
               final result = await navigator.push(
                 MaterialPageRoute(builder: (context) => LoginScreen()),
                 // (route) => false, // Remove all previous routes
               );
               if (result == true) {
-                            ref.invalidate(authUserProvider);
-                            ref.invalidate(subscriptionProvider(
-                              SubscriptionDetailParameter(userId: ""),
-                            ));
-                            ref.invalidate(favoritesProvider);
-                            ref.invalidate(favoritesWithDetailsProvider);
-                            ref.invalidate(watchHistoryProvider);
+                ref.invalidate(authUserProvider);
+                ref.invalidate(subscriptionProvider(
+                  SubscriptionDetailParameter(userId: ""),
+                ));
+                ref.invalidate(favoritesProvider);
+                ref.invalidate(favoritesWithDetailsProvider);
+                ref.invalidate(watchHistoryProvider);
+              } else {
+                ref.invalidate(authUserProvider);
+                ref.invalidate(subscriptionProvider(
+                  SubscriptionDetailParameter(userId: ""),
+                ));
+                ref.invalidate(favoritesProvider);
+                ref.invalidate(favoritesWithDetailsProvider);
+                ref.invalidate(watchHistoryProvider);
+              }
 
-                          }else{
-                            ref.invalidate(authUserProvider);
-                            ref.invalidate(subscriptionProvider(
-                              SubscriptionDetailParameter(userId: ""),
-                            ));
-                                 ref.invalidate(favoritesProvider);
-                            ref.invalidate(favoritesWithDetailsProvider);
-                            ref.invalidate(watchHistoryProvider);
-
-                          }
-              
               // AFTER navigation is triggered, handle logout and provider invalidation
               // Adding a slight delay to ensure navigation happens first
               Future.delayed(Duration(milliseconds: 100), () {
                 // Here you would call your backend to mark the account for deletion
                 // await authService.deleteAccountTemporarily();
-                
+
                 // Log out the user
                 authService.logout().then((_) {
                   // Invalidate the auth provider to reflect logged out state
@@ -150,7 +191,6 @@ class DeleteAccountButton extends ConsumerWidget {
                   // We don't show an error here since the user is already navigated away
                 });
               });
-              
             } catch (e) {
               // This will only catch navigation errors, not logout errors
               print("Navigation error: $e");

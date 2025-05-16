@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ import 'package:nandiott_flutter/features/home/pages/home_page.dart';
 import 'package:nandiott_flutter/features/profile/profile_page.dart';
 import 'package:nandiott_flutter/features/rental_download/download_page.dart';
 import 'package:nandiott_flutter/pages/rental_page.dart';
+import 'package:nandiott_flutter/pages/search_page.dart';
 import 'package:nandiott_flutter/pages/tv_searchPage.dart';
 import 'package:nandiott_flutter/utils/Device_size.dart';
 
@@ -33,7 +35,7 @@ class _ResponsiveNavigationState extends ConsumerState<ResponsiveNavigation> {
   final GlobalKey _contentKey = GlobalKey(debugLabel: 'contentAreaKey');
 bool _isDialogVisible = false;
 
-
+final bool isIos = Platform.isIOS;
 
 
 
@@ -265,24 +267,82 @@ void _setupDirectionalFocus() {
   }
 
   // Screens corresponding to navigation items - MODIFIED FOR TV SPECIFIC PAGES
-  List<Widget> _getScreens(bool isTV) => [
-        // For Home, use TVHomePage on TV devices, regular HomePage otherwise
-        HomePage(),
-        isTV ? TVSearchPage() : DownloadsPage(),
-        MyRentalPage(),
-        ProfilePage(),
-      ];
+
+  // List<Widget> _getScreens(bool isTV) => [
+  //       // For Home, use TVHomePage on TV devices, regular HomePage otherwise
+  //       HomePage(),
+  //       isTV ? TVSearchPage(): DownloadsPage(),
+  //       MyRentalPage(),
+  //       ProfilePage(),
+  //     ];
+
+  List<Widget> _getScreens(bool isTV) {
+  if (isTV) {
+    return [
+      HomePage(),
+      TVSearchPage(),
+      MyRentalPage(),
+      ProfilePage(),
+    ];
+  } else if (isIos) {
+    // iOS: exclude DownloadsPage
+    return [
+      HomePage(),
+      SearchPage(hasAppbar: false,), // or whatever page fits here instead of downloads
+      MyRentalPage(),
+      ProfilePage(),
+    ];
+  } else {
+    // Android or others
+    return [
+      HomePage(),
+      DownloadsPage(),
+      MyRentalPage(),
+      ProfilePage(),
+    ];
+  }
+}
+
 
   // Navigation items based on device type
-  List<NavigationItem> _getNavigationItems(bool isTV) => [
-        NavigationItem(icon: Icons.home, label: 'Home'),
-        isTV
-            ? NavigationItem(icon: Icons.search, label: 'Search')
-            : NavigationItem(icon: Icons.download, label: 'Downloads'),
-        NavigationItem(
-            icon: Icons.movie_creation_outlined, label: 'My Rentals'),
-        NavigationItem(icon: Icons.person, label: 'Profile'),
-      ];
+  // List<NavigationItem> _getNavigationItems(bool isTV) => [
+  //       NavigationItem(icon: Icons.home, label: 'Home'),
+  //       isTV
+  //           ? NavigationItem(icon: Icons.search, label: 'Search')
+  //           : NavigationItem(icon: Icons.download, label: 'Downloads'),
+  //       NavigationItem(
+  //           icon: Icons.movie_creation_outlined, label: 'My Rentals'),
+  //       NavigationItem(icon: Icons.person, label: 'Profile'),
+  //     ];
+
+  List<NavigationItem> _getNavigationItems(bool isTV) {
+  if (isTV) {
+    return [
+      NavigationItem(icon: Icons.home, label: 'Home'),
+      NavigationItem(icon: Icons.search, label: 'Search'),
+      NavigationItem(icon: Icons.movie_creation_outlined, label: 'My Rentals'),
+      NavigationItem(icon: Icons.person, label: 'Profile'),
+    ];
+  } else if (isIos) {
+    // iOS: exclude Downloads
+    return [
+      NavigationItem(icon: Icons.home, label: 'Home'),
+      NavigationItem(icon: Icons.search, label: 'Search'),
+      NavigationItem(icon: Icons.movie_creation_outlined, label: 'My Rentals'),
+      NavigationItem(icon: Icons.person, label: 'Profile'),
+    ];
+  } else {
+    // Android or others
+    return [
+      NavigationItem(icon: Icons.home, label: 'Home'),
+      NavigationItem(icon: Icons.download, label: 'Downloads'),
+      NavigationItem(icon: Icons.movie_creation_outlined, label: 'My Rentals'),
+      NavigationItem(icon: Icons.person, label: 'Profile'),
+    ];
+  }
+}
+
+
 
   @override
   Widget build(BuildContext context) {

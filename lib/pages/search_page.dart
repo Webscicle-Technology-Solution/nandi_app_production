@@ -9,7 +9,8 @@ import 'package:nandiott_flutter/utils/appstyle.dart';
 import 'dart:async';
 
 class SearchPage extends ConsumerStatefulWidget {
-  const SearchPage({super.key});
+  final bool hasAppbar;
+  SearchPage({super.key,this.hasAppbar=true});
 
   @override
   ConsumerState<SearchPage> createState() => _SearchPageState();
@@ -52,8 +53,8 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     });
 
     return Scaffold(
-      appBar: const CustomAppBar(
-          title: 'Search', showBackButton: true, showActionIcon: false),
+      appBar: widget.hasAppbar? CustomAppBar(
+          title: 'Search', showBackButton: true, showActionIcon: false):null,
       body: Column(
         children: [
           FilterSelector(

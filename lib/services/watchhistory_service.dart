@@ -6,30 +6,24 @@ class WatchHistoryService {
   final Dio _dio = Dio();
   final baseUrl = dotenv.env['API_BASE_URL'];
 
-  // WatchHistoryService() : _dio = dio;
-
   Future<int?> getWatchHistory({
     required String mediaId,
     required String mediaType,
     required String token,
   }) async {
     try {
-      // print("calling api get history ${mediaId}  media type ${mediaType}");
-
       final response = await _dio.get(
         '$baseUrl/auth/history/$mediaType/$mediaId',
         options: Options(headers: {
           "Authorization": "Bearer $token",
         }),
       );
-      print("watch history response is ${response.data}");
 
       if (response.data["success"] == true &&
           response.data["history"] != null) {
         return (response.data["history"]["watchTime"] as num).floor();
       }
     } catch (e) {
-      print("Error fetching watch history: $e");
     }
     return null;
   }
@@ -43,7 +37,6 @@ class WatchHistoryService {
     required String token,
   }) async {
     try {
-      // print("calling api update history ${mediaId}  media type ${mediaType} watch time ${watchTime}, duration ${duration} tvseries $tvSeriesId");
 
       final response = await _dio.post(
         '$baseUrl/auth/history/update',
@@ -60,9 +53,7 @@ class WatchHistoryService {
           "Authorization": "Bearer $token",
         }),
       );
-      print("updated watch history ${response.data} ");
     } catch (e) {
-      print("Error updating watch history: $e");
     }
   }
 
@@ -73,7 +64,6 @@ class WatchHistoryService {
     String token = await storage.read(key: "accessToken") ?? "";
 
     try {
-      // print('calling api ${url}');
 
       final response = await _dio.get(
         url,

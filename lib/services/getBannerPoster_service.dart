@@ -22,9 +22,7 @@ class getBannerPosterService {
     final transformedMediaType = mediaTypeMap[mediaType] ?? mediaType;
     final url = '$baseUrl/content/poster/$transformedMediaType/$mediaId';
     try {
-      // print('calling api ${url}');
       final response = await _dio.get(url);
-      print('response data movie :${response.data}');
       return response.data;
     } on DioException catch (e) {
       if (e.response?.data['message'] != null) {

@@ -85,9 +85,7 @@ class QualityNotifier extends StateNotifier<QualityType> {
       case QualityType.highQuality:
         resolution = 1080;
         break;
-      default:
-        resolution = 720;
-    }
+      }
 
     await prefs.setInt(streamQualityKey, resolution);
     await prefs.setInt(downloadQualityKey, resolution);

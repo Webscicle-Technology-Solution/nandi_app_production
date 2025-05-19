@@ -81,7 +81,6 @@ class GetSeriesService {
 
   try {
     final response = await _dio.get(url);
-    print("season get deatils = ${response.data}");
     if(response.data['message'] != null && response.data['success'] == true){
     return response.data['season']['seasonNumber'];  
     }else{

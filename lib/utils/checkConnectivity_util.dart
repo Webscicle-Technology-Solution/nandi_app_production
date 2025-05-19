@@ -1,7 +1,5 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nandiott_flutter/app/widgets/custombottombar.dart';
 
 class ConnectivityUtils {
   static bool _isDialogVisible = false;
@@ -35,12 +33,6 @@ class ConnectivityUtils {
                 showNoConnectionDialog(context);
               } else {
                 _isDialogVisible = false;
-
-                // Reload the page using navigator
-                // Navigator.of(context).pushAndRemoveUntil(
-                //   MaterialPageRoute(builder: (_) => pageToReload),
-                //   (route) => false,
-                // );
               }
             },
             child: Text("Retry"),

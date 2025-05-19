@@ -58,7 +58,6 @@ class SupportService {
       'message': 'Unexpected response from server.',
     };
   } on DioException catch (e) {
-    print("Error sending support issue: $e");
 
     if (e.response?.statusCode == 401) {
       return {
@@ -76,7 +75,6 @@ class SupportService {
           : 'Failed to send your issue. Please try again later.',
     };
   } catch (e) {
-    print("Unexpected error sending support issue: $e");
     return {
       'success': false,
       'message': 'An unexpected error occurred. Please try again later.',

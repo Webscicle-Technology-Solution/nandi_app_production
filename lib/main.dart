@@ -23,7 +23,6 @@ Future<void> main() async {
 
   // Only safe to call after Firebase.initializeApp()
   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-    print("onMessageOpenApp: $message");
     Navigator.pushNamed(
       MaterialApplication.globalKey.currentState!.context,
       "/push-page",
@@ -56,12 +55,10 @@ final settings=await messaging.requestPermission(
   carPlay: false,
   criticalAlert: false
 );
-print("Permission status:${settings.authorizationStatus}");
 }
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
-  print("_firebaseMessagingBackgroundHandler: $message");
 }
 
 Future<void> initializeQualitySettings() async {

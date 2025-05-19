@@ -6,29 +6,9 @@ class DeviceType {
 }
 
 class AppSizes {
-  // static String getDeviceType(BuildContext context) {
-  //   // MediaQuery can help detect if we're on a TV
-  //   final size = MediaQuery.of(context).size;
-  //   final orientation = MediaQuery.of(context).orientation;
-
-  //   // Check if running on Android TV
-  //   // This is a simplified check - you might want to use a plugin like 'device_info_plus'
-  //   // for more accurate detection
-  //   bool isTV = size.width > 1200 ||
-  //       Theme.of(context).platform == TargetPlatform.android &&
-  //           size.width / size.height > 1.5;
-
-  //   return isTV ? DeviceType.tv : DeviceType.mobile;
-  // }
-
     static String getDeviceType(BuildContext context) {
     // MediaQuery can help detect if we're on a TV
     final size = MediaQuery.of(context).size;
-    final orientation = MediaQuery.of(context).orientation;
-
-    // Check if running on Android TV
-    // This is a simplified check - you might want to use a plugin like 'device_info_plus'
-    // for more accurate detection
     bool isTV = size.width > 1200 ||
         Theme.of(context).platform == TargetPlatform.android &&
             size.width / size.height > 1.5;

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:nandiott_flutter/utils/Device_size.dart';
 import 'package:shimmer/shimmer.dart';
 
 class Buttonskelton extends StatelessWidget {

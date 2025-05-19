@@ -1,63 +1,3 @@
-  // import 'package:flutter_riverpod/flutter_riverpod.dart';
-  // import 'package:nandiott_flutter/services/getAllMedia_service.dart';
-  // import 'package:nandiott_flutter/models/movie_model.dart';
-
-  // // Provider for the selected filter
-  // final filterProvider = StateProvider<String>((ref) => 'Movies'); // 
-
-  // final mediaProvider = FutureProvider.family<List<dynamic>, String>((ref, filter) async {
-    
-  //   final mediaService = getAllMediaService();
-
-  //       final filterToMediaTypeMap = {
-  //       'Movies': 'movies',
-  //       'Series': 'tvseries',
-  //       'Short Film': 'shortfilms',
-  //       'Documentary': 'documentaries',
-  //       'Music': 'videosongs',
-  //     };
-
-  //     final mediaType = filterToMediaTypeMap[filter] ?? 'movies'; // Default to 'movie
-
-  //   final response = await mediaService.getLatestMedia(mediaType: mediaType);
-
-  //   if (response != null && response['success']) {
-  //     // if (filter == 'Movies') {
-  //     //   // Handle movies
-  //     //   return (response['data']['items'] as List)
-  //     //       .map((movieData) => Movie.fromJson(movieData))
-  //     //       .toList();
-  //     // } else if (filter == 'Series') {
-  //     //   print("callinf the tvseries section ${response}");
-  //     //   // Handle TV Series
-  //     //   return (response['result']['tvSeries'] as List)
-  //     //       .map((tvData) => Movie.fromJson(tvData))
-  //     //       .toList();
-  //     // } else if(filter == 'Short Film'){
-  //     //   return (response['result']['shortFilms'] as List)
-  //     //       .map((movieData) => Movie.fromJson(movieData))
-  //     //       .toList();
-  //     // }else if(filter == 'Documentary'){
-  //     //   return (response['result']['documentaries'] as List)
-  //     //       .map((movieData) => Movie.fromJson(movieData))
-  //     //       .toList();
-  //     // }else if(filter == 'Music'){
-  //     //   return (response['result']['videoSongs'] as List)
-  //     //       .map((movieData) => Movie.fromJson(movieData))
-  //     //       .toList();
-  //     // }
-  //     // else {
-  //     //   throw Exception('Unsupported filter type');
-  //     // }
-  //     return (response['data']['items'] as List)
-  //         .map((movieData) => Movie.fromJson(movieData))
-  //         .toList();
-          
-  //   } else {
-  //     throw Exception('Failed to load $filter');
-  //   }
-  // });
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nandiott_flutter/models/movie_model.dart';
 import 'package:nandiott_flutter/services/contentType_service.dart';
@@ -89,7 +29,6 @@ final homeSectionVisibilityProvider = FutureProvider.family<Map<String, dynamic>
     final settings = await contentService.getHomeContentSettings(mediaType);
     return settings;
   } catch (e) {
-    print('Error fetching home content settings: $e');
     return null;
   }
 });
@@ -111,30 +50,6 @@ final latestMediaProvider = FutureProvider.family<List<Movie>, String>((ref, fil
   final response = await mediaService.getLatestMedia(mediaType: mediaType);
   
   if (response != null && response['success']) {
-    // if (filter == 'Movies') {
-    //   return (response['result']['movies'] as List)
-    //       .map((movieData) => Movie.fromJson(movieData))
-    //       .toList();
-    // } else if (filter == 'Series') {
-    //   return (response['result']['tvSeries'] as List)
-    //       .map((tvData) => Movie.fromJson(tvData))
-    //       .toList();
-    // } else if (filter == 'Short Film') {
-    //   return (response['result']['shortFilms'] as List)
-    //       .map((movieData) => Movie.fromJson(movieData))
-    //       .toList();
-    // } else if (filter == 'Documentary') {
-    //   return (response['result']['documentaries'] as List)
-    //       .map((movieData) => Movie.fromJson(movieData))
-    //       .toList();
-    // } else if (filter == 'Music') {
-    //   return (response['result']['videoSongs'] as List)
-    //       .map((movieData) => Movie.fromJson(movieData))
-    //       .toList();
-    // } else {
-    //   return [];
-    // }
-    
     return (response['data']['items'] as List)
         .map((movieData) => Movie.fromJson(movieData))
         .toList();
@@ -165,23 +80,6 @@ final freeMediaProvider = FutureProvider.family<List<Movie>, String>((ref, filte
           .map((movieData) => Movie.fromJson(movieData))
           .toList();
     } 
-    // else if (filter == 'Series') {
-    //   return (response['data']['tvSeries'] as List)
-    //       .map((tvData) => Movie.fromJson(tvData))
-    //       .toList();
-    // } else if (filter == 'Short Film') {
-    //   return (response['data']['shortFilms'] as List)
-    //       .map((movieData) => Movie.fromJson(movieData))
-    //       .toList();
-    // } else if (filter == 'Documentary') {
-    //   return (response['data']['documentaries'] as List)
-    //       .map((movieData) => Movie.fromJson(movieData))
-    //       .toList();
-    // } else if (filter == 'Music') {
-    //   return (response['data']['videoSongs'] as List)
-    //       .map((movieData) => Movie.fromJson(movieData))
-    //       .toList();
-    // } 
     else {
       return [];
     }
@@ -194,6 +92,7 @@ final freeMediaProvider = FutureProvider.family<List<Movie>, String>((ref, filte
 // final trendingMediaProvider = ...
 
 // Helper function to check if a section should be visible
+
 bool isSectionVisible(AsyncValue<Map<String, dynamic>?> sectionVisibility, String sectionKey) {
   return sectionVisibility.when(
     data: (data) => data != null && data[sectionKey] == true,

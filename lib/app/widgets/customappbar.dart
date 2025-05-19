@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nandiott_flutter/pages/search_page.dart';
+import 'package:nandiott_flutter/features/search/page/search_page.dart';
 import 'package:nandiott_flutter/utils/Device_size.dart';
 import 'package:nandiott_flutter/utils/appstyle.dart';
 
@@ -59,50 +59,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         centerTitle: true,
         actions: showActionIcon
             ? [
-                // Watch the authUserProvider to conditionally show the login button
-                // Consumer(
-                //   builder: (context, ref, child) {
-                //     final authUser = ref.watch(authUserProvider);
-
-                //     // ref.invalidate(authUserProvider);
-
-                //     return authUser.when(
-                //       data: (user) {
-                //         // Future.delayed(Duration(seconds: 2));
-                //         if (user == null) {
-                //           // User is not logged in, show the login button
-                //           return ElevatedButton.icon(
-                //             style: ElevatedButton.styleFrom(
-                //               padding: EdgeInsets.symmetric(
-                //                   vertical: 8.0,
-                //                   horizontal:
-                //                       16.0), // Adjust vertical padding to reduce height
-                //             ),
-                //             onPressed: () async {
-                //               final login = await Navigator.push(
-                //                 context,
-                //                 MaterialPageRoute(
-                //                     builder: (context) => LoginPage()),
-                //               );
-                //               print("is login = $login");
-                //               if (login == true) {
-                //                 ref.invalidate(authUserProvider);
-                //               }
-                //             },
-                //             icon: Icon(Icons.login),
-                //             label: Text('Login'),
-                //           );
-                //         } else {
-                //           // User is logged in, don't show the login button
-                //           return SizedBox(); // Empty widget
-                //         }
-                //       },
-                //       loading: () => Container(),
-                //       error: (error, stackTrace) => SizedBox(),
-                //     );
-                //   },
-                // ),
-                // SizedBox(width: isTV ? 50.0 : 30.0),
                 Consumer(
                   builder: (context, ref, child) {
                     // final selectedFilter = ref.watch(filterProvider);
@@ -115,7 +71,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                           ),
                         );
                       },
-                      child: Row(
+                      child: const Row(
                         children: [
                           Icon(Icons.travel_explore, size: 25),
                           Padding(

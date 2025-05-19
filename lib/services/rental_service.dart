@@ -5,7 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class RentalService {
   final Dio _dio = Dio();
   final baseUrl = dotenv.env['API_BASE_URL'];
-  final storage = FlutterSecureStorage();
+  final storage = const FlutterSecureStorage();
 
   // Fetch rentals
 Future<Map<String, dynamic>> getRentals() async {
@@ -15,19 +15,9 @@ Future<Map<String, dynamic>> getRentals() async {
   try {
     _dio.options.headers['Authorization'] = 'Bearer $accessToken';
     final response = await _dio.get(url);
-    print('✅ API Response of rentals is: ${response.data}');
-
-    // // Check if success is false
-    // if (response.data == null || response.data['success'] == false) {
-    //   final errorMessage = response.data?['message'] ?? "Failed to fetch rentals";
-    //   print('❌ API Error: $errorMessage');
-    //   throw Exception(errorMessage); // Throw an exception with the error message
-    // }
-
     return response.data; // Return the successful response
   } on DioException catch (e) {
     final errorMessage = e.response?.data?['message'] ?? e.message;
-    print('❌ API Error: $errorMessage');
     throw errorMessage; // Throw exception instead of returning null
   }
 }
@@ -37,11 +27,9 @@ Future<Map<String, dynamic>> getRentals() async {
     final url = '$baseUrl/admin/meta/movies/$movieId';
     try {
       final response = await _dio.get(url);
-            print('✅ API Response of movie details in rentals is: ${response.data}');
 
       return response.data; // Returning the response as a map
     } on DioException catch (e) {
-      print('❌ API Error: ${e.response?.data ?? e.message}');
       throw Exception('Failed to load movie details');
     }
   }

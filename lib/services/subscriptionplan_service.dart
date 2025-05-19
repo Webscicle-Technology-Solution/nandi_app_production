@@ -10,10 +10,8 @@ class SubscriptionplanService {
     try {
       final response = await dio.get(url);
       // No need to pass authorization headers; cookies are managed automatically
-      print("Api response of plan detais is ${response.data}");
       return response.data;
     } on DioException catch (e) {
-      // print("Error: ${e.response?.data}")
       return {
         'message': e.response?.data['message'] ?? 'Something went wrong,Please try again later',
         'success': false

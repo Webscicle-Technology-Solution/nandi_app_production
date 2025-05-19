@@ -15,16 +15,13 @@ class FavoritesService {
 
     try {
       final response = await _dio.get(url);
-      print("Fetching fav : ${response.data}");
       return FavoriteMoviesResponse.fromJson(response.data);
     } on DioException catch (e) {
-      print("Error fetching favorites: ${e.message}");
       return null;
     }
   }
 
   Future<bool> updateFavorite(String movieId, String type) async {
-    print("Updating favorite for movieId: $movieId and type: $type");
     final accessToken = await storage.read(key: "accessToken");
     _dio.options.headers['Authorization'] = 'Bearer $accessToken';
     final url = '$baseUrl/auth/favorites';
@@ -34,14 +31,11 @@ class FavoritesService {
       "mediaId": movieId,
       "contentType": type,
     };
-    print("calling update fav api, movieid=$movieId,cintenet type = $type");
-
     try {
       final response =
           await _dio.put(url, data: data); // Send the data in the request body
       return response.statusCode == 200;
     } on DioException catch (e) {
-      print("Error adding favorite: ${e.message}");
       return false;
     }
   }

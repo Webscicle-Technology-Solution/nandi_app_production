@@ -6,13 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nandiott_flutter/app/widgets/customappbar.dart';
-import 'package:nandiott_flutter/features/home/filter_container_widget.dart';
-import 'package:nandiott_flutter/features/home/pages/home_page.dart';
-import 'package:nandiott_flutter/features/profile/profile_page.dart';
-import 'package:nandiott_flutter/features/rental_download/download_page.dart';
-import 'package:nandiott_flutter/pages/rental_page.dart';
-import 'package:nandiott_flutter/pages/search_page.dart';
-import 'package:nandiott_flutter/pages/tv_searchPage.dart';
+import 'package:nandiott_flutter/features/home/widget/filter_container_widget.dart';
+import 'package:nandiott_flutter/features/home/page/home_page.dart';
+import 'package:nandiott_flutter/features/profile/page/profile_page.dart';
+import 'package:nandiott_flutter/features/rental_download/page/download_page.dart';
+import 'package:nandiott_flutter/features/rental_download/page/rental_page.dart';
+import 'package:nandiott_flutter/features/search/page/search_page.dart';
+import 'package:nandiott_flutter/features/search/page/tv_searchPage.dart';
 import 'package:nandiott_flutter/utils/Device_size.dart';
 
 final selectedIndexProvider = StateProvider<int>((ref) => 0);
@@ -43,7 +43,6 @@ void _showNoConnectionDialog(BuildContext context, WidgetRef ref) {
   if (_isDialogVisible) return;
 
   _isDialogVisible = true;
-print("retry");
   showDialog(
     context: context,
     barrierDismissible: false,
@@ -59,21 +58,16 @@ TextButton(
     await Future.delayed(Duration(milliseconds: 300));
 
     // Check connectivity
-    final connectivityResultList = await Connectivity().checkConnectivity();
-       print("Connectivity result list: $connectivityResultList");
- 
+    final connectivityResultList = await Connectivity().checkConnectivity(); 
     // Get the first element of the list
     final connectivityResult = connectivityResultList.isNotEmpty ? connectivityResultList[0] : ConnectivityResult.none;
 
-    print("Connectivity result: $connectivityResult");
 
     if (connectivityResult == ConnectivityResult.none) {
-      print("Still no connection, showing dialog again...");
       _isDialogVisible = false;
       _showNoConnectionDialog(context, ref);
     } else {
 
-      print("Connection restored.");
       _isDialogVisible = false;
             // Trigger a page reload by navigating away and back to the same screen
       Navigator.of(context).pushAndRemoveUntil(
@@ -100,9 +94,6 @@ TextButton(
     _isDialogVisible = false;
   });
 }
-
-
-
 
   @override
   void initState() {
@@ -140,7 +131,6 @@ void _setupDirectionalFocus() {
     // If navigation has focus and left arrow is pressed
     if (isInNavigation && event.logicalKey == LogicalKeyboardKey.arrowLeft) {
       // Always keep focus on navigation for left arrow
-      print("NAVIGATION: Keeping focus on navigation for left arrow");
       return true; // Handled, don't allow other handlers
     }
     
@@ -155,9 +145,7 @@ void _setupDirectionalFocus() {
       if (ref.read(isNavigationExpandedProvider)) {
         ref.read(isNavigationExpandedProvider.notifier).state = false;
       }
-      
-      print("NAVIGATION: Moving focus from menu to content");
-      
+            
       // Set that we're no longer focused on menu
       ref.read(isMenuFocusedProvider.notifier).state = false;
       
@@ -190,9 +178,7 @@ void _setupDirectionalFocus() {
 
     // If we're in the content area and press Left at the edge
     if (_isWithinContent(currentFocus) && 
-        event.logicalKey == LogicalKeyboardKey.arrowLeft) {
-      print("KEYBOARD HANDLER: Left arrow in content detected");
-      
+        event.logicalKey == LogicalKeyboardKey.arrowLeft) {      
       // Determine if we're at the left edge of a component
       bool isAtLeftEdge = false;
       
@@ -208,9 +194,7 @@ void _setupDirectionalFocus() {
         }
       }
       
-      if (isAtLeftEdge) {
-        print("KEYBOARD HANDLER: At left edge, moving focus to navigation");
-        
+      if (isAtLeftEdge) {        
         // Set the provider state
         ref.read(isMenuFocusedProvider.notifier).state = true;
         
@@ -456,11 +440,8 @@ WidgetsBinding.instance.addPostFrameCallback((_) {
     canRequestFocus: true,
     debugLabel: 'navigation_collapsed_button',
     onFocusChange: (hasFocus) {
-      print("NAVIGATION FOCUS: $hasFocus");
-      
       if (mounted) {
         setState(() {});
-        
         // Update the provider state
         // ref.read(isMenuFocusedProvider.notifier).state = hasFocus;
         ref.read(isMenuFocusedProvider.notifier).state = hasFocus;
@@ -471,7 +452,6 @@ WidgetsBinding.instance.addPostFrameCallback((_) {
           Future.delayed(Duration(milliseconds: 300), () {
             if (mounted && !_navigationFocusNode.hasFocus && 
                 ref.read(isMenuFocusedProvider)) {
-              print("NAVIGATION: Focus was stolen, reclaiming");
               FocusScope.of(context).requestFocus(_navigationFocusNode);
             }
           });

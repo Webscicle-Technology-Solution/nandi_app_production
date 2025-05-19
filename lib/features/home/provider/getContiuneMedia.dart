@@ -1,15 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:nandiott_flutter/features/profile/watchHistory/watchHistory_provider.dart';
-import 'package:nandiott_flutter/providers/checkauth_provider.dart';
+import 'package:nandiott_flutter/features/profile/provider/watchHistory_provider.dart';
 import 'package:nandiott_flutter/services/watchhistory_service.dart';
 
 
 // Define the Continue Watching provider
 final continueWatchingProvider = FutureProvider<List<WatchHistoryItem>>((ref) async {
   final continueWatchingService = WatchHistoryService();
-  final response = await continueWatchingService.getContinueWatching();
-      print('response continue watching provider :${response}');
-  
+  final response = await continueWatchingService.getContinueWatching();  
   if (response != null && response['success']) {
     // Parse the data and return a list of WatchHistoryItem
     return (response['watchHistory'] as List)

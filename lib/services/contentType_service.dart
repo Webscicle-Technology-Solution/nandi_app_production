@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:nandiott_flutter/utils/constants.dart';
 
 class ContentService {
   final baseUrl = dotenv.env['API_BASE_URL'];
@@ -28,7 +27,6 @@ class ContentService {
       }
       return null;
     } catch (e) {
-      print('Error fetching home content settings for $mediaType: $e');
       return null;
     }
   }
@@ -43,7 +41,6 @@ class ContentService {
     for (String mediaType in allMediaTypes) {
       try {
         final settings = await getHomeContentSettings(mediaType);
-        print("contenttype visibleity = $settings");
         if (settings != null) {
           bool isVisible = settings['isCategoriesVisible'] == true;
           
@@ -56,7 +53,6 @@ class ContentService {
           }
         }
       } catch (e) {
-        print('Error checking visibility for $mediaType: $e');
       }
     }
     

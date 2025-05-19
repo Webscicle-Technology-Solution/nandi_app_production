@@ -7,12 +7,9 @@ class getAllMediaService {
   Future<Map<String, dynamic>?> getLatestMedia({
     required String mediaType,
   }) async {
-    print("calling api $mediaType");
     final url = '$baseUrl/admin/meta/user/$mediaType/all';
     try {
-      // print('calling api ${url}');
       final response = await _dio.get(url);
-      print('response data movie :${response.data}');
       return response.data;
     } on DioException catch (e) {
       if (e.response?.data['message'] != null) {
@@ -31,12 +28,9 @@ class getAllMediaService {
   Future<Map<String, dynamic>?> getFreeMedia({
     required String mediaType,
   }) async {
-    print("calling api $mediaType");
     final url = '$baseUrl/admin/meta/user/$mediaType/all/free';
     try {
-      // print('calling api ${url}');
       final response = await _dio.get(url);
-      print('response data movie :${response.data}');
       return response.data;
     } on DioException catch (e) {
       if (e.response?.data['message'] != null) {

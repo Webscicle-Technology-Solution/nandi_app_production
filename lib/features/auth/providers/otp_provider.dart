@@ -58,7 +58,7 @@ final verifyOtpProviderLogin =
   final response = await otpService.loginUserPhone(
     phone: params.phone,
     otp: params.otp,
-    deviceToken: params.deviceToken!
+    // deviceToken: params.deviceToken
     
   );
 
@@ -72,15 +72,15 @@ final verifyOtpProviderLogin =
 class VerifyOtpParameter extends Equatable {
   final String phone;
   final String otp;
-  final String? deviceToken;
+  // final String deviceToken;
 
   const VerifyOtpParameter({
-    this.deviceToken,
+    // this.deviceToken="",
     required this.phone,
     required this.otp,
     
   });
 
   @override
-  List<Object> get props => [phone, otp,deviceToken!];
+  List<Object> get props => [phone, otp];
 }

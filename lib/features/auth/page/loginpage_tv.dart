@@ -29,7 +29,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   final bool isIos = Platform.isIOS;
 
-  String? deviceToken;
+  late String deviceToken;
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _otpController = TextEditingController();
   bool _isOtpSent = false;
@@ -301,7 +301,7 @@ final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
       final parameter = VerifyOtpParameter(
         phone: _phoneController.text,
         otp: _otpController.text,
-        deviceToken: deviceToken
+        // deviceToken: deviceToken
       );
 
       try {

@@ -138,8 +138,8 @@ class AuthService {
   Future<Map<String, dynamic>?> loginUserPhone(
       {required String phone,
       required String otp,
-      required String deviceToken}) async {
-    final url = '$baseUrl/auth/login?deviceToken=$deviceToken';
+      }) async {
+    final url = '$baseUrl/auth/login';
     try {
       final response = await dio.post(url, // Your login API endpoint
           data: jsonEncode(

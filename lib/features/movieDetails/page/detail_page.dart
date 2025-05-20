@@ -668,7 +668,7 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
                               builder: (context) => AlertDialog(
                                 title: Text("Subscription Unavailable"),
                                 content: Text(
-                                  "In-app subscriptions are not available on iOS.\nPlease visit our website to subscribe.",
+                                  "Subscriptions are not available.\nPlease visit our website to know more",
                                 ),
                                 actions: [
                                   TextButton(

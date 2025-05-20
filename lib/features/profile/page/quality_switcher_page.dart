@@ -6,7 +6,8 @@ import 'package:nandiott_flutter/features/profile/provider/quailty_provider.dart
 import 'package:nandiott_flutter/utils/Device_size.dart';
 
 class QualitySwitcherPage extends ConsumerStatefulWidget {
-  const QualitySwitcherPage({Key? key}) : super(key: key);
+  final bool isIos;
+  const QualitySwitcherPage(this.isIos, {Key? key}) : super(key: key);
 
   @override
   _QualitySwitcherPageState createState() => _QualitySwitcherPageState();
@@ -177,6 +178,7 @@ class _QualitySwitcherPageState extends ConsumerState<QualitySwitcherPage> {
               2,
             ),
             const SizedBox(height: 20),
+            if (!widget.isIos) ...[
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               child: Text(
@@ -206,6 +208,7 @@ class _QualitySwitcherPageState extends ConsumerState<QualitySwitcherPage> {
               () => ref.read(downloadQualityProvider.notifier).updateQuality(QualityType.highQuality),
               5,
             ),
+            ],
             // Add some bottom padding to ensure the last item can be properly scrolled to
             const SizedBox(height: 100),
           ],

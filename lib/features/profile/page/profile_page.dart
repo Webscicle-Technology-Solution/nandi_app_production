@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // Import Riverpod
 import 'package:nandiott_flutter/features/auth/page/loginpage_tv.dart';
@@ -39,6 +41,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     // TODO: implement initState
     super.initState();
   }
+    final bool isIos = Platform.isIOS;
 
   @override
   Widget build(BuildContext context) {
@@ -79,9 +82,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               title: 'Account Settings',
               page: AccountSettingsPage(),
             ),
-            const YellowborderContainer(
-              title: 'Stream & Download Quality ',
-              page: QualitySwitcherPage(),
+             YellowborderContainer(
+              title: isIos? 'Stream Quality':'Stream & Download Quality',
+              page: QualitySwitcherPage(isIos),
             ),
             const YellowborderContainer(
               title: 'Help & Support',

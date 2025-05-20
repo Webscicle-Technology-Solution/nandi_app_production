@@ -701,8 +701,15 @@ final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
                                       );
                                     },
                                   ),
-                                  if (isTv == false && _isOtpSent == false && isIos==false)
-                                    Container(
+                                  if (isTv == false && _isOtpSent == false)
+                                    isIos?const Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        Text("If you don't have an account "),
+                                        Text("Create account through nandipictures.in")
+                                      ],
+                                    ): Container(
                                       margin: const EdgeInsets.symmetric(
                                           horizontal: 30, vertical: 30),
                                       width: double.infinity,
@@ -730,7 +737,7 @@ final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
                                           style: TextStyle(color: Colors.amber),
                                         ),
                                       ),
-                                    ),
+                                    )
                                 ],
                               ),
                             ),

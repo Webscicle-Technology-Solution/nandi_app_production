@@ -823,6 +823,606 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
       ),
     );
   }
+  // Widget _buildWatchNowButton(MovieDetail movie, BuildContext context) {
+  //   final authUser = ref.watch(authUserProvider);
+
+  //   return authUser.when(
+  //     data: (user) {
+  //       if (user == null) {
+  //         return _buildButton(
+  //           text: "Login to Watch",
+  //           icon: Icons.login,
+  //           textColor: Color(0xFFF4AE00),
+  //           focusNode: watchButtonFocusNode,
+  //           autofocus: true,
+  //           onPressed: () async {
+  //             FocusScope.of(context).unfocus();
+  //             watchButtonFocusNode.canRequestFocus = false;
+  //             favoriteButtonFocusNode.canRequestFocus = false;
+
+  //             final loginResult = await Navigator.push(
+  //               context,
+  //               MaterialPageRoute(builder: (context) => LoginScreen()),
+  //             );
+
+  //             if (mounted) {
+  //               watchButtonFocusNode.canRequestFocus = true;
+  //               favoriteButtonFocusNode.canRequestFocus = true;
+  //               FocusScope.of(context).requestFocus(watchButtonFocusNode);
+  //             }
+
+  //             if (loginResult == true) {
+  //               await ref.refresh(authUserProvider.future);
+  //               await ref.refresh(favoritesProvider.future);
+  //             }
+  //           },
+  //         );
+  //       } else {
+  //         return _buildButton(
+  //           text: "Watch Now",
+  //           icon: Icons.visibility,
+  //           textColor: Color(0xFFF4AE00),
+  //           focusNode: watchButtonFocusNode,
+  //           autofocus: true,
+  //           onPressed: () async {
+  //             FocusScope.of(context).unfocus();
+  //             watchButtonFocusNode.canRequestFocus = false;
+  //             favoriteButtonFocusNode.canRequestFocus = false;
+
+  //             await Navigator.push(
+  //               context,
+  //               MaterialPageRoute(
+  //                 builder: (context) => VideoPlayerScreen(
+  //                   mediaType: widget.mediaType,
+  //                   movieId: movie.id,
+  //                 ),
+  //               ),
+  //             );
+
+  //             ref.invalidate(watchHistoryProvider);
+  //             ref.invalidate(movieDetailProvider);
+  //             ref.invalidate(tvSeriesWatchProgressProvider);
+
+  //             if (mounted) {
+  //               watchButtonFocusNode.canRequestFocus = true;
+  //               favoriteButtonFocusNode.canRequestFocus = true;
+  //               FocusScope.of(context).requestFocus(watchButtonFocusNode);
+  //             }
+  //           },
+  //         );
+  //       }
+  //     },
+  //     loading: () => const Center(child: Buttonskelton()),
+  //     error: (_, __) => _buildButton(
+  //       text: "Login to Watch",
+  //       icon: Icons.login,
+  //       textColor: Color(0xFFF4AE00),
+  //       focusNode: watchButtonFocusNode,
+  //       autofocus: true,
+  //       onPressed: () async {
+  //         FocusScope.of(context).unfocus();
+  //         watchButtonFocusNode.canRequestFocus = false;
+  //         favoriteButtonFocusNode.canRequestFocus = false;
+
+  //         final loginResult = await Navigator.push(
+  //           context,
+  //           MaterialPageRoute(builder: (context) => LoginScreen()),
+  //         );
+
+  //         if (mounted) {
+  //           watchButtonFocusNode.canRequestFocus = true;
+  //           favoriteButtonFocusNode.canRequestFocus = true;
+  //           FocusScope.of(context).requestFocus(watchButtonFocusNode);
+  //         }
+
+  //         if (loginResult == true) {
+  //           await ref.refresh(authUserProvider.future);
+  //           await ref.refresh(favoritesProvider.future);
+  //         }
+  //       },
+  //     ),
+  //   );
+  // }
+
+  // Widget _buildFavoriteDownloadButtons(
+  //     MovieDetail movie, BuildContext context) {
+  //   final isTV = AppSizes.getDeviceType(context) == DeviceType.tv;
+  //   final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+  //   final Map<String, String> mediaTypeMapbanner = {
+  //     'videosong': 'videosong',
+  //     'shortfilm': 'shortfilm',
+  //     'documentary': 'documentary',
+  //     'episodes': 'episode',
+  //     'movie': 'movie',
+  //     'tvseries': 'tvseries',
+  //     'VideoSong': 'videosong',
+  //     'ShortFilm': 'shortfilm',
+  //     'Documentary': 'documentary',
+  //     'Movie': 'movie',
+  //     'TVSeries': 'tvseries',
+  //   };
+
+  //   final transformedMediaTypebanner =
+  //       mediaTypeMapbanner[widget.mediaType] ?? widget.mediaType;
+
+  //   final Map<String, String> mediaTypeMap = {
+  //     'videosong': 'videosongs',
+  //     'shortfilm': 'shortfilms',
+  //     'documentary': 'documentaries',
+  //     'episodes': 'episode',
+  //     'movie': 'movies',
+  //     'tvseries': 'tvseries',
+  //     'VideoSong': 'videosongs',
+  //     'ShortFilm': 'shortfilms',
+  //     'Documentary': 'documentaries',
+  //     'Movie': 'movies',
+  //     'TVSeries': 'tvseries',
+  //   };
+
+  //   final transformedMediaType =
+  //       mediaTypeMap[widget.mediaType] ?? widget.mediaType;
+
+  //   final authUser = ref.watch(authUserProvider);
+  //   final buttonState = ref.watch(downloadButtonStateProvider(widget.movieId));
+
+  //   return authUser.when(
+  //     data: (user) {
+  //       // When no user is logged in
+  //       if (user == null) {
+  //         return const SizedBox();
+  //       } else {
+  //         // User is logged in, show appropriate buttons
+  //         final isFavorite = ref.watch(isMovieFavoriteProvider(movie.id));
+
+  //         // Simplify button logic by using our dedicated state provider
+  //         final showGoToDownloads = buttonState.isDownloaded ||
+  //             buttonState.isDownloading ||
+  //             buttonState.isPaused;
+
+  //         // Check if content is TV Series - we don't allow downloads for these
+  //         bool isTVSeries =
+  //             widget.mediaType == "TVSeries" || widget.mediaType == "tvseries";
+
+  //         return Padding(
+  //           padding: const EdgeInsets.symmetric(horizontal: 16.0),
+  //           child: Row(
+  //             children: [
+  //               // Favorite Button with focus
+  //               Expanded(
+  //                 child: Focus(
+  //                   focusNode: favoriteButtonFocusNode,
+  //                   onKey: (node, event) {
+  //                     if (event is RawKeyDownEvent) {
+  //                       if (event.logicalKey == LogicalKeyboardKey.select ||
+  //                           event.logicalKey == LogicalKeyboardKey.enter) {
+  //                         ref.read(favoritesProvider.notifier).toggleFavorite(
+  //                               movie.id,
+  //                               widget.mediaType,
+  //                             );
+  //                         return KeyEventResult.handled;
+  //                       }
+  //                     }
+  //                     return KeyEventResult.ignored;
+  //                   },
+  //                   child: Builder(builder: (context) {
+  //                     final isFocused = Focus.of(context).hasFocus;
+  //                     return Container(
+  //                       decoration: BoxDecoration(
+  //                         borderRadius: BorderRadius.circular(10),
+  //                         border: Border.all(
+  //                           color:
+  //                               isFocused ? Colors.amber : Colors.transparent,
+  //                           width: 3,
+  //                         ),
+  //                         boxShadow: isFocused && isTV
+  //                             ? [
+  //                                 BoxShadow(
+  //                                   color: Colors.amber.withOpacity(0.5),
+  //                                   blurRadius: 8,
+  //                                   spreadRadius: 2,
+  //                                 )
+  //                               ]
+  //                             : null,
+  //                       ),
+  //                       child: OutlinedButton.icon(
+  //                         onPressed: () {
+  //                           ref.read(favoritesProvider.notifier).toggleFavorite(
+  //                                 movie.id,
+  //                                 widget.mediaType,
+  //                               );
+  //                         },
+  //                         icon: ShaderMask(
+  //                           shaderCallback: (Rect bounds) {
+  //                             return const LinearGradient(
+  //                               colors: [
+  //                                 Color.fromARGB(255, 255, 187, 0),
+  //                                 Color.fromARGB(255, 255, 123, 0)
+  //                               ],
+  //                               begin: Alignment.topLeft,
+  //                               end: Alignment.bottomRight,
+  //                             ).createShader(bounds);
+  //                           },
+  //                           child: Icon(
+  //                             isFavorite
+  //                                 ? Icons.favorite
+  //                                 : Icons.favorite_border,
+  //                             color: Colors.white,
+  //                           ),
+  //                         ),
+  //                         label: ShaderMask(
+  //                           shaderCallback: (Rect bounds) {
+  //                             return const LinearGradient(
+  //                               colors: [
+  //                                 Color.fromARGB(255, 255, 187, 0),
+  //                                 Color.fromARGB(255, 255, 123, 0)
+  //                               ],
+  //                               begin: Alignment.topLeft,
+  //                               end: Alignment.bottomRight,
+  //                             ).createShader(bounds);
+  //                           },
+  //                           child: Text(
+  //                             isFavorite
+  //                                 ? "Remove Favorite"
+  //                                 : "Add to Favorites",
+  //                             style: const TextStyle(color: Colors.white),
+  //                           ),
+  //                         ),
+  //                         style: OutlinedButton.styleFrom(
+  //                           padding: const EdgeInsets.symmetric(vertical: 12),
+  //                           side: const BorderSide(
+  //                               color: Color.fromARGB(255, 224, 129, 5)),
+  //                           foregroundColor: Colors.white,
+  //                         ),
+  //                       ),
+  //                     );
+  //                   }),
+  //                 ),
+  //               ),
+  //               const SizedBox(width: 10),
+
+  //               // Download Button with focus - skip for TV Series and TV devices
+  //               isTVSeries || isTV || isIos
+  //                   ? const SizedBox()
+  //                   : Expanded(
+  //                       child: Focus(
+  //                         // focusNode: downloadButtonFocusNode,
+  //                         child: Builder(builder: (context) {
+  //                           final isFocused = Focus.of(context).hasFocus;
+  //                           return Container(
+  //                             decoration: BoxDecoration(
+  //                               borderRadius: BorderRadius.circular(10),
+  //                               border: Border.all(
+  //                                 color: isFocused
+  //                                     ? Colors.amber
+  //                                     : Colors.transparent,
+  //                                 width: 3,
+  //                               ),
+  //                               boxShadow: isFocused && isTV
+  //                                   ? [
+  //                                       BoxShadow(
+  //                                         color: Colors.amber.withOpacity(0.5),
+  //                                         blurRadius: 8,
+  //                                         spreadRadius: 2,
+  //                                       )
+  //                                     ]
+  //                                   : null,
+  //                             ),
+  //                             child: OutlinedButton.icon(
+  //                               onPressed: buttonState.isPreparingDownload ||
+  //                                       buttonState.isDownloading
+  //                                   ? null // Disable during download
+  //                                   : () async {
+  //                                       if (showGoToDownloads) {
+  //                                         ref
+  //                                             .read(selectedIndexProvider
+  //                                                 .notifier)
+  //                                             .state = 1;
+  //                                         Navigator.push(
+  //                                           context,
+  //                                           MaterialPageRoute(
+  //                                               builder: (context) =>
+  //                                                   ResponsiveNavigation()),
+  //                                         );
+  //                                       } else {
+  //                                         // Show initial feedback
+  //                                         ScaffoldMessenger.of(context)
+  //                                             .showSnackBar(
+  //                                           const SnackBar(
+  //                                               content: Text(
+  //                                                   'Preparing download...')),
+  //                                         );
+  //                                         // Start preparing for download
+  //                                         ref
+  //                                             .read(downloadButtonStateProvider(
+  //                                                     widget.movieId)
+  //                                                 .notifier)
+  //                                             .setPreparingDownload(true);
+
+  //                                         try {
+  //                                           // Get and validate the media URL
+  //                                           final mediaUrl =
+  //                                               "$baseUrl/drm/getmasterplaylist/$transformedMediaType/${movie.id}";
+  //                                           final mediaUrlValidity =
+  //                                               await ref.read(
+  //                                                   trailerUrlValidityProvider(
+  //                                                           mediaUrl)
+  //                                                       .future);
+
+  //                                           if (mediaUrlValidity.isEmpty) {
+  //                                             ref
+  //                                                 .read(
+  //                                                     downloadButtonStateProvider(
+  //                                                             widget.movieId)
+  //                                                         .notifier)
+  //                                                 .setPreparingDownload(false);
+
+  //                                             if (mounted) {
+  //                                               ScaffoldMessenger.of(context)
+  //                                                   .showSnackBar(
+  //                                                 const SnackBar(
+  //                                                     content: Text(
+  //                                                         'No media available to download.')),
+  //                                               );
+  //                                             }
+  //                                             return;
+  //                                           }
+
+  //                                           // Start the download using our method
+  //                                           final success = await ref
+  //                                               .read(
+  //                                                   downloadButtonStateProvider(
+  //                                                           widget.movieId)
+  //                                                       .notifier)
+  //                                               .startDownload(
+  //                                                 mediaUrl: mediaUrlValidity,
+  //                                                 movieId: movie.id,
+  //                                                 title: movie.title,
+  //                                                 context: context,
+  //                                                 mediaType: widget.mediaType,
+  //                                                 transformedMediaTypebanner:
+  //                                                     transformedMediaTypebanner,
+  //                                               );
+
+  //                                           if (success && mounted) {
+  //                                             ScaffoldMessenger.of(context)
+  //                                                 .showSnackBar(
+  //                                               SnackBar(
+  //                                                 content: const Text(
+  //                                                     'Download started. Go to Downloads page to view progress.'),
+  //                                                 action: SnackBarAction(
+  //                                                   label: 'Go Now',
+  //                                                   onPressed: () {
+  //                                                     Navigator.push(
+  //                                                       context,
+  //                                                       MaterialPageRoute(
+  //                                                           builder: (context) =>
+  //                                                               DownloadsPage()),
+  //                                                     );
+  //                                                   },
+  //                                                 ),
+  //                                               ),
+  //                                             );
+  //                                           }
+  //                                         } catch (e) {
+  //                                           ref
+  //                                               .read(
+  //                                                   downloadButtonStateProvider(
+  //                                                           widget.movieId)
+  //                                                       .notifier)
+  //                                               .setPreparingDownload(false);
+
+  //                                           if (mounted) {
+  //                                             ScaffoldMessenger.of(context)
+  //                                                 .showSnackBar(
+  //                                               SnackBar(
+  //                                                   content: Text(
+  //                                                       'Error: ${e.toString()}')),
+  //                                             );
+  //                                           }
+  //                                         }
+  //                                       }
+  //                                     },
+  //                               icon: buttonState.isPreparingDownload
+  //                                   ? const SizedBox(
+  //                                       width: 16,
+  //                                       height: 16,
+  //                                       child: CircularProgressIndicator(
+  //                                           strokeWidth: 2))
+  //                                   : buttonState.isDownloading
+  //                                       ? const SizedBox(
+  //                                           width: 16,
+  //                                           height: 16,
+  //                                           child: CircularProgressIndicator(
+  //                                               strokeWidth: 2,
+  //                                               valueColor:
+  //                                                   AlwaysStoppedAnimation<
+  //                                                       Color>(Colors.white)))
+  //                                       : showGoToDownloads
+  //                                           ? const Icon(Icons.download_done,
+  //                                               color: Colors.green)
+  //                                           : Icon(Icons.download,
+  //                                               color: Theme.of(context)
+  //                                                   .primaryColorDark),
+  //                               label: buttonState.isPreparingDownload
+  //                                   ? const Text("Starting...",
+  //                                       style: TextStyle(color: Colors.white))
+  //                                   : buttonState.isDownloading
+  //                                       ? const Text("Downloading...",
+  //                                           style:
+  //                                               TextStyle(color: Colors.white))
+  //                                       : showGoToDownloads
+  //                                           ? const Text("Go to Downloads",
+  //                                               style: TextStyle(
+  //                                                   color: Colors.white))
+  //                                           : Text("Download",
+  //                                               style: TextStyle(
+  //                                                   color: Theme.of(context)
+  //                                                       .primaryColorDark)),
+  //                               style: OutlinedButton.styleFrom(
+  //                                 backgroundColor: isDarkMode
+  //                                     ? Colors.grey[900]
+  //                                     : Colors.grey[50],
+  //                                 padding:
+  //                                     const EdgeInsets.symmetric(vertical: 12),
+  //                                 side: BorderSide(
+  //                                   color: buttonState.isPreparingDownload ||
+  //                                           buttonState.isDownloading
+  //                                       ? Colors.blue
+  //                                       : showGoToDownloads
+  //                                           ? Colors.green
+  //                                           : Theme.of(context)
+  //                                               .primaryColorDark,
+  //                                 ),
+  //                                 foregroundColor: Colors.white,
+  //                                 disabledForegroundColor:
+  //                                     buttonState.isDownloading
+  //                                         ? Colors.white.withOpacity(0.7)
+  //                                         : Colors.grey.withOpacity(0.5),
+  //                                 disabledBackgroundColor:
+  //                                     buttonState.isDownloading
+  //                                         ? Colors.blue.withOpacity(0.1)
+  //                                         : null,
+  //                               ),
+  //                             ),
+  //                           );
+  //                         }),
+  //                       ),
+  //                     ),
+  //             ],
+  //           ),
+  //         );
+  //       }
+  //     },
+  //     loading: () => const Center(child: Buttonskelton()),
+  //     error: (_, __) => Padding(
+  //       padding: const EdgeInsets.symmetric(horizontal: 16.0),
+  //       child: Row(
+  //         children: [
+  //           // Favorite Button still works even if auth fails
+  //           Expanded(
+  //             child: Focus(
+  //               focusNode: favoriteButtonFocusNode,
+  //               child: Builder(builder: (context) {
+  //                 final isFocused = Focus.of(context).hasFocus;
+  //                 return Container(
+  //                   decoration: BoxDecoration(
+  //                     borderRadius: BorderRadius.circular(10),
+  //                     border: Border.all(
+  //                       color: isFocused ? Colors.amber : Colors.transparent,
+  //                       width: 3,
+  //                     ),
+  //                     boxShadow: isFocused && isTV
+  //                         ? [
+  //                             BoxShadow(
+  //                               color: Colors.amber.withOpacity(0.5),
+  //                               blurRadius: 8,
+  //                               spreadRadius: 2,
+  //                             )
+  //                           ]
+  //                         : null,
+  //                   ),
+  //                   child: OutlinedButton.icon(
+  //                     onPressed: () {
+  //                       // Show login dialog if not authenticated
+  //                       showDialog(
+  //                         context: context,
+  //                         builder: (context) => AlertDialog(
+  //                           title: const Text("Authentication Required"),
+  //                           content: const Text(
+  //                               "Please login to add items to favorites."),
+  //                           actions: [
+  //                             TextButton(
+  //                               onPressed: () => Navigator.pop(context),
+  //                               child: const Text("Cancel"),
+  //                             ),
+  //                             TextButton(
+  //                               onPressed: () {
+  //                                 Navigator.pop(context);
+  //                                 Navigator.push(
+  //                                   context,
+  //                                   MaterialPageRoute(
+  //                                       builder: (context) => LoginScreen()),
+  //                                 );
+  //                               },
+  //                               child: const Text("Login"),
+  //                             ),
+  //                           ],
+  //                         ),
+  //                       );
+  //                     },
+  //                     icon: Icon(
+  //                       Icons.favorite_border,
+  //                       color: const Color.fromARGB(255, 255, 123, 0),
+  //                     ),
+  //                     label: Text(
+  //                       "Add to Favorites",
+  //                       style: const TextStyle(
+  //                           color: Color.fromARGB(255, 255, 123, 0)),
+  //                     ),
+  //                     style: OutlinedButton.styleFrom(
+  //                       padding: const EdgeInsets.symmetric(vertical: 12),
+  //                       side: const BorderSide(
+  //                           color: Color.fromARGB(255, 224, 129, 5)),
+  //                     ),
+  //                   ),
+  //                 );
+  //               }),
+  //             ),
+  //           ),
+  //           const SizedBox(width: 10),
+
+  //           // Show login required download button
+  //           widget.mediaType == "TVSeries" ||
+  //                   widget.mediaType == "tvseries" ||
+  //                   isTV ||
+  //                   isIos
+  //               ? const SizedBox()
+  //               : Expanded(
+  //                   child: Builder(builder: (context) {
+  //                     final isFocused = Focus.of(context).hasFocus;
+  //                     return Container(
+  //                       decoration: BoxDecoration(
+  //                         borderRadius: BorderRadius.circular(10),
+  //                         border: Border.all(
+  //                           color:
+  //                               isFocused ? Colors.amber : Colors.transparent,
+  //                           width: 3,
+  //                         ),
+  //                         boxShadow: isFocused && isTV
+  //                             ? [
+  //                                 BoxShadow(
+  //                                   color: Colors.amber.withOpacity(0.5),
+  //                                   blurRadius: 8,
+  //                                   spreadRadius: 2,
+  //                                 )
+  //                               ]
+  //                             : null,
+  //                       ),
+  //                       child: OutlinedButton.icon(
+  //                         onPressed: () {
+  //                           Navigator.push(
+  //                             context,
+  //                             MaterialPageRoute(
+  //                                 builder: (context) => LoginScreen()),
+  //                           );
+  //                         },
+  //                         icon: const Icon(Icons.login, color: Colors.grey),
+  //                         label: const Text("Login to Download",
+  //                             style: TextStyle(color: Colors.grey)),
+  //                         style: OutlinedButton.styleFrom(
+  //                           padding: const EdgeInsets.symmetric(vertical: 12),
+  //                           side: const BorderSide(color: Colors.grey),
+  //                         ),
+  //                       ),
+  //                     );
+  //                   }),
+  //                 ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget _buildFavoriteDownloadButtons(
       MovieDetail movie, BuildContext context) {
@@ -1075,7 +1675,7 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
                                                             .notifier)
                                                     .setPreparingDownload(
                                                         true);
-                                
+
                                                 try {
                                                   // Get and validate the media URL
                                                   final mediaUrl =
@@ -1085,7 +1685,7 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
                                                           trailerUrlValidityProvider(
                                                                   mediaUrl)
                                                               .future);
-                                
+
                                                   if (mediaUrlValidity
                                                       .isEmpty) {
                                                     ref
@@ -1095,7 +1695,7 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
                                                             .notifier)
                                                         .setPreparingDownload(
                                                             false);
-                                
+
                                                     if (mounted) {
                                                       ScaffoldMessenger.of(
                                                               context)
@@ -1107,7 +1707,7 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
                                                     }
                                                     return;
                                                   }
-                                
+
                                                   // Start the download using our method
                                                   final success = await ref
                                                       .read(
@@ -1126,7 +1726,7 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
                                                         transformedMediaTypebanner:
                                                             transformedMediaTypebanner,
                                                       );
-                                
+
                                                   if (success && mounted) {
                                                     ScaffoldMessenger.of(
                                                             context)
@@ -1159,7 +1759,7 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
                                                               .notifier)
                                                       .setPreparingDownload(
                                                           false);
-                                
+
                                                   if (mounted) {
                                                     ScaffoldMessenger.of(
                                                             context)

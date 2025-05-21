@@ -98,42 +98,90 @@ class AuthService {
     }
   }
 
-  Future<Map<String, dynamic>?> loginUser({
-    required String email,
-    required String password,
-  }) async {
-    final url = '$baseUrl/auth/login';
-    try {
-      final response = await dio.post(url, // Your login API endpoint
-          data: jsonEncode(
-            {
-              'email': email,
-              'password': password,
-            },
-          ));
+  //**********************LOGIN WITH EEMAIL */
 
-      // If the response contains a refresh token, save it
-      if (response.headers['set-cookie'] != null) {
-        // Extract refresh token from cookies (you may need to adjust this based on your response structure)
-        final cookies = response.headers['set-cookie'];
-        final refreshToken = _extractRefreshTokenFromCookies(cookies);
-        if (refreshToken != null) {
-          await saveRefreshToken(refreshToken);
-        }
-      }
-      // Handle response
-      return response.data;
-    } on DioException catch (e) {
-      if (e.response?.data['message'] != null) {
-        return {'message': e.response?.data['message'], 'success': false};
-      } else {
-        return {
-          'message': 'Something went wrong,Please try again later',
-          'success': false
-        };
-      }
-    }
-  }
+  // Future<Map<String, dynamic>?> loginUser({
+  //   required String email,
+  //   required String password,
+  // }) async {
+  //   final url = '$baseUrl/auth/login';
+  //   try {
+  //     final response = await dio.post(url, // Your login API endpoint
+  //         data: jsonEncode(
+  //           {
+  //             'email': email,
+  //             'password': password,
+  //           },
+  //         ));
+
+  //     // If the response contains a refresh token, save it
+  //     if (response.headers['set-cookie'] != null) {
+  //       // Extract refresh token from cookies (you may need to adjust this based on your response structure)
+  //       final cookies = response.headers['set-cookie'];
+  //       final refreshToken = _extractRefreshTokenFromCookies(cookies);
+  //       if (refreshToken != null) {
+  //         await saveRefreshToken(refreshToken);
+  //       }
+  //     }
+  //     // Handle response
+  //     return response.data;
+  //   } on DioException catch (e) {
+  //     if (e.response?.data['message'] != null) {
+  //       return {'message': e.response?.data['message'], 'success': false};
+  //     } else {
+  //       return {
+  //         'message': 'Something went wrong,Please try again later',
+  //         'success': false
+  //       };
+  //     }
+  //   }
+  // }
+
+//***********************/
+
+
+//*********************************** */
+
+  //old-backend code if primary is not working
+
+  // Future<Map<String, dynamic>?> loginUserPhone(
+  //     {required String phone,
+  //     required String otp,
+  //     }) async {
+  //   final url = '$baseUrl/auth/login';
+  //   try {
+  //     final response = await dio.post(url, // Your login API endpoint
+  //         data: jsonEncode(
+  //           {
+  //             'phone': phone.trim(),
+  //             'code': otp.trim(),
+  //           },
+  //         ));
+
+  //     // If the response contains a refresh token, save it
+  //     if (response.headers['set-cookie'] != null) {
+  //       // Extract refresh token from cookies (you may need to adjust this based on your response structure)
+  //       final cookies = response.headers['set-cookie'];
+  //       final refreshToken = _extractRefreshTokenFromCookies(cookies);
+  //       if (refreshToken != null) {
+  //         await saveRefreshToken(refreshToken);
+  //       }
+  //     }
+
+  //     // Handle response
+  //     return response.data;
+  //   } on DioException catch (e) {
+  //     if (e.response?.data['message'] != null) {
+  //       return {'message': e.response?.data['message'], 'success': false};
+  //     } else {
+  //       return {
+  //         'message': 'Something went wrong,Please try again later',
+  //         'success': false
+  //       };
+  //     }
+  //   }
+  // }
+//*********************************** */
 
   Future<Map<String, dynamic>?> loginUserPhone(
       {required String phone,

@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nandiott_flutter/app/theme/dark_theme.dart';
 import 'package:nandiott_flutter/app/widgets/custombottombar.dart';
 import 'package:nandiott_flutter/features/profile/provider/quailty_provider.dart';
+import 'package:nandiott_flutter/firebase_options.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'app/theme/theme_provider.dart';
 // import 'package:flutter_downloader/flutter_downloader.dart';
@@ -15,7 +16,9 @@ import 'app/theme/theme_provider.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Required before using platform channels or async services
   await dotenv.load(fileName: "assets/.env");
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
    await initializeQualitySettings();
   await requestPermission();
 

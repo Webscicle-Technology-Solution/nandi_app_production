@@ -9,6 +9,7 @@ import 'package:nandiott_flutter/app/widgets/customappbar.dart';
 import 'package:nandiott_flutter/features/home/widget/filter_container_widget.dart';
 import 'package:nandiott_flutter/features/home/page/home_page.dart';
 import 'package:nandiott_flutter/features/profile/page/profile_page.dart';
+import 'package:nandiott_flutter/features/profile/widget/wishlist_widget.dart';
 import 'package:nandiott_flutter/features/rental_download/page/download_page.dart';
 import 'package:nandiott_flutter/features/rental_download/page/rental_page.dart';
 import 'package:nandiott_flutter/features/search/page/search_page.dart';
@@ -273,7 +274,8 @@ void _setupDirectionalFocus() {
     return [
       HomePage(),
       SearchPage(hasAppbar: false,), // or whatever page fits here instead of downloads
-      MyRentalPage(),
+      // MyRentalPage(),
+      WishlistWidget(isIos: true,),
       ProfilePage(),
     ];
   } else {
@@ -312,7 +314,7 @@ void _setupDirectionalFocus() {
     return [
       NavigationItem(icon: Icons.home, label: 'Home'),
       NavigationItem(icon: Icons.search, label: 'Search'),
-      NavigationItem(icon: Icons.movie_creation_outlined, label: 'My Rentals'),
+      NavigationItem(icon: Icons.movie_creation_outlined, label: 'Wishlist'),
       NavigationItem(icon: Icons.person, label: 'Profile'),
     ];
   } else {

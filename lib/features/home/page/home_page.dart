@@ -17,6 +17,8 @@ import 'package:nandiott_flutter/features/auth/providers/checkauth_provider.dart
 import 'package:nandiott_flutter/features/home/provider/filter_fav_provider.dart';
 import 'package:nandiott_flutter/features/home/provider/filter_provider.dart';
 import 'package:nandiott_flutter/utils/Device_size.dart';
+import 'package:nandiott_flutter/utils/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -42,37 +44,59 @@ class HomePageState extends ConsumerState<HomePage> {
   static const String _freeToWatchKey = 'freeToWatch';
   static const String _favoritesKey = 'favorites';
 
-  @override
-  void initState() {
-    super.initState();
+@override
+void initState() {
+  super.initState();
 
-    // Initialize section keys
-    _sectionKeys[_featuredKey] = GlobalKey();
-    _sectionKeys[_continueWatchingKey] = GlobalKey();
-    _sectionKeys[_newReleasesKey] = GlobalKey();
-    _sectionKeys[_freeToWatchKey] = GlobalKey();
-    _sectionKeys[_favoritesKey] = GlobalKey();
+  // Initialize section keys
+  _sectionKeys[_featuredKey] = GlobalKey();
+  _sectionKeys[_continueWatchingKey] = GlobalKey();
+  _sectionKeys[_newReleasesKey] = GlobalKey();
+  _sectionKeys[_freeToWatchKey] = GlobalKey();
+  _sectionKeys[_favoritesKey] = GlobalKey();
 
-    // Initialize focus node lists
-    _focusNodes[_featuredKey] = [_featuredFocusNode];
-    _focusNodes[_continueWatchingKey] = [];
-    _focusNodes[_newReleasesKey] = [];
-    _focusNodes[_freeToWatchKey] = [];
-    _focusNodes[_favoritesKey] = [];
+  // Initialize focus node lists
+  _focusNodes[_featuredKey] = [_featuredFocusNode];
+  _focusNodes[_continueWatchingKey] = [];
+  _focusNodes[_newReleasesKey] = [];
+  _focusNodes[_freeToWatchKey] = [];
+  _focusNodes[_favoritesKey] = [];
 
-    // Set up initial focus only once
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        Future.delayed(Duration(milliseconds: 500), () {
-          if (mounted && !_hasInitialFocus) {
-            _hasInitialFocus = true;
-            final isMenuFocused = ref.read(isMenuFocusedProvider);
-            _featuredFocusNode.requestFocus();
-          }
-        });
-      }
-    });
-  }
+  // Set up initial focus and run update check
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (mounted) {
+      Future.delayed(Duration(milliseconds: 500), () async {
+        if (mounted && !_hasInitialFocus) {
+          _hasInitialFocus = true;
+          final isMenuFocused = ref.read(isMenuFocusedProvider);
+          _featuredFocusNode.requestFocus();
+        }
+
+        // 🔔 Show update dialog if needed
+        final updateUrl = await ref.read(updateCheckProvider.future);
+        if (updateUrl != null && mounted) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (_) => AlertDialog(
+              title: const Text('Update Required'),
+              content: const Text('A new version of the app is available. Please update to continue.'),
+              actions: [
+                TextButton(
+                  onPressed: () => launchUrl(
+                    Uri.parse(updateUrl),
+                    mode: LaunchMode.externalApplication,
+                  ),
+                  child: const Text('Update Now'),
+                ),
+              ],
+            ),
+          );
+        }
+      });
+    }
+  });
+}
 
   @override
   void dispose() {

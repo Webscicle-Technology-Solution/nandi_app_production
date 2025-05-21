@@ -54,6 +54,8 @@ dependencies:
   telephony: ^0.2.0
   fluttertoast: ^8.2.12
   connectivity_plus: ^6.1.4
+  firebase_remote_config: ^5.4.4
+  package_info_plus: ^8.3.0
 
 dev_dependencies:
   flutter_test:

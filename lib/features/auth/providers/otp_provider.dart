@@ -82,5 +82,5 @@ class VerifyOtpParameter extends Equatable {
   });
 
   @override
-  List<Object> get props => [phone, otp,deviceToken!];
+  List<Object> get props => [phone, otp,deviceToken];
 }

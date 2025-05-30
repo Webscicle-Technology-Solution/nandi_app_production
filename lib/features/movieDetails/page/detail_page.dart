@@ -823,6 +823,10 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
       ),
     );
   }
+
+  //********************************************* */
+  //*old backend working button without sub and rental*//
+
   // Widget _buildWatchNowButton(MovieDetail movie, BuildContext context) {
   //   final authUser = ref.watch(authUserProvider);
 
@@ -1423,6 +1427,9 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
   //     ),
   //   );
   // }
+
+  //*old backend working button without sub and rental*//
+  //********************************************* */
 
   Widget _buildFavoriteDownloadButtons(
       MovieDetail movie, BuildContext context) {

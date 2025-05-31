@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -73,7 +75,8 @@ void initState() {
         }
 
         // 🔔 Show update dialog if needed
-        final updateUrl = await ref.read(updateCheckProvider.future);
+        if(Platform.isAndroid){
+          final updateUrl = await ref.read(updateCheckProvider.future);
         if (updateUrl != null && mounted) {
           showDialog(
             context: context,
@@ -92,6 +95,7 @@ void initState() {
               ],
             ),
           );
+        }
         }
       });
     }

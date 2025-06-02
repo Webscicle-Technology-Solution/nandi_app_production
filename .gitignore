@@ -25,3 +25,4 @@ pifcache/
 # Exclude the .env file
 /assets/.env
 .DS_Store
+.idea

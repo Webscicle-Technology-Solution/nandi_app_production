@@ -1624,27 +1624,27 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
                             ? const SizedBox()
                             : Expanded(
                                 child: Builder(builder: (context) {
-                                  final isFocused =
-                                      Focus.of(context).hasFocus;
+                                  // final isFocused =
+                                  //     Focus.of(context).hasFocus;
                                   return Container(
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(10),
                                       border: Border.all(
-                                        color: isFocused
-                                            ? Colors.amber
-                                            : Colors.transparent,
+                                        // color: isFocused
+                                        //     ? Colors.amber
+                                        //     : Colors.transparent,
                                         width: 3,
                                       ),
-                                      boxShadow: isFocused
-                                          ? [
-                                              BoxShadow(
-                                                color: Colors.amber
-                                                    .withOpacity(0.5),
-                                                blurRadius: 8,
-                                                spreadRadius: 2,
-                                              )
-                                            ]
-                                          : null,
+                                      // boxShadow: isFocused
+                                      //     ? [
+                                      //         BoxShadow(
+                                      //           color: Colors.amber
+                                      //               .withOpacity(0.5),
+                                      //           blurRadius: 8,
+                                      //           spreadRadius: 2,
+                                      //         )
+                                      //       ]
+                                      //     : null,
                                     ),
                                     child: OutlinedButton.icon(
                                       onPressed: !canDownload ||
@@ -1941,26 +1941,26 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
                           ? const SizedBox()
                           : Expanded(
                               child: Builder(builder: (context) {
-                                final isFocused = Focus.of(context).hasFocus;
+                                // final isFocused = Focus.of(context).hasFocus;
                                 return Container(
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(10),
                                     border: Border.all(
-                                      color: isFocused
-                                          ? Colors.amber
-                                          : Colors.transparent,
+                                      // color: isFocused
+                                      //     ? Colors.amber
+                                      //     : Colors.transparent,
                                       width: 3,
                                     ),
-                                    boxShadow: isFocused
-                                        ? [
-                                            BoxShadow(
-                                              color: Colors.amber
-                                                  .withOpacity(0.5),
-                                              blurRadius: 8,
-                                              spreadRadius: 2,
-                                            )
-                                          ]
-                                        : null,
+                                    // boxShadow: isFocused
+                                    //     ? [
+                                    //         BoxShadow(
+                                    //           color: Colors.amber
+                                    //               .withOpacity(0.5),
+                                    //           blurRadius: 8,
+                                    //           spreadRadius: 2,
+                                    //         )
+                                    //       ]
+                                    //     : null,
                                   ),
                                   child: OutlinedButton.icon(
                                     onPressed: null,
@@ -2053,32 +2053,32 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
                       ? const SizedBox()
                       : Expanded(
                           child: Builder(builder: (context) {
-                            final isFocused = Focus.of(context).hasFocus;
+                            // final isFocused = Focus.of(context).hasFocus;
                             return Container(
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
-                                  color: isFocused
-                                      ? Colors.amber
-                                      : Colors.transparent,
+                                  // color: isFocused
+                                  //     ? Colors.amber
+                                  //     : Colors.transparent,
                                   width: 3,
                                 ),
-                                boxShadow: isFocused
-                                    ? [
-                                        BoxShadow(
-                                          color:
-                                              Colors.amber.withOpacity(0.5),
-                                          blurRadius: 8,
-                                          spreadRadius: 2,
-                                        )
-                                      ]
-                                    : null,
+                                // boxShadow: isFocused
+                                //     ? [
+                                //         BoxShadow(
+                                //           color:
+                                //               Colors.amber.withOpacity(0.5),
+                                //           blurRadius: 8,
+                                //           spreadRadius: 2,
+                                //         )
+                                //       ]
+                                //     : null,
                               ),
                               child: OutlinedButton.icon(
                                 onPressed: null,
                                 icon: const Icon(Icons.error,
                                     color: Colors.grey),
-                                label: const Text("Unable to verify access",
+                                label: const Text("Unable to verify",
                                     style: TextStyle(color: Colors.grey)),
                                 style: OutlinedButton.styleFrom(
                                   padding: const EdgeInsets.symmetric(

@@ -16,6 +16,7 @@ final authUserProvider = FutureProvider<User?>((ref) async {
 
   try {
     final response = await authService.checkAuthUser();
+    print("resposne of checkauth in provider : $response");
 
     if (response["success"] == true && response["user"] != null) {
       final accessToken = response["accessToken"];

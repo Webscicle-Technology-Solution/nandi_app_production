@@ -196,12 +196,14 @@ class AuthService {
               'code': otp.trim(),
             },
           ));
-
+print("response : $response");
       // If the response contains a refresh token, save it
       if (response.headers['set-cookie'] != null) {
+        print("reepsonse cookie : ${response.headers['set-cookie']}");
         // Extract refresh token from cookies (you may need to adjust this based on your response structure)
         final cookies = response.headers['set-cookie'];
         final refreshToken = _extractRefreshTokenFromCookies(cookies);
+        print("refreseh token : $refreshToken");
         if (refreshToken != null) {
           await saveRefreshToken(refreshToken);
         }
@@ -253,10 +255,13 @@ class AuthService {
       dio.options.headers['Cookie'] = 'refreshToken=${refreshToken}';
       dio.options.headers['Authorization'] = 'Bearer $accessToken';
       final response = await dio.get(url);
+       print("response checkauth in service:$response");
       // If the response contains a refresh token, save it
       if (response.headers['set-cookie'] != null) {
         // Extract refresh token from cookies (you may need to adjust this based on your response structure)
+        print("response of response header:${response.headers['set-cookie']}");
         final cookies = response.headers['set-cookie'];
+        
         final refreshToken = _extractRefreshTokenFromCookies(cookies);
         if (refreshToken != null) {
           await saveRefreshToken(refreshToken);
@@ -274,6 +279,8 @@ class AuthService {
     } on DioException catch (e) {
       final errorMessage =
           e.response?.data?['message'] ?? "Failed to authenticate user";
+                print("checkauth error${errorMessage}");
+
       throw Exception(errorMessage);
     }
   }
@@ -307,6 +314,7 @@ String? _extractRefreshTokenFromCookies(List<String>? cookies) {
     if (cookie.contains('refreshToken=')) {
       // You can extract the value here
       final token = cookie.split('refreshToken=')[1];
+      print("token in extract method : $token");
       return token.split(';')[0]; // Remove any trailing characters like ';'
     }
   }

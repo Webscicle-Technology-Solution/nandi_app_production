@@ -48,7 +48,7 @@ final latestMediaProvider = FutureProvider.family<List<Movie>, String>((ref, fil
   final mediaType = filterToMediaTypeMap[filter] ?? 'movies';
   
   final response = await mediaService.getLatestMedia(mediaType: mediaType);
-  
+  print("response in provider movie:$response['data']['items']");
   if (response != null && response['success']) {
     return (response['data']['items'] as List)
         .map((movieData) => Movie.fromJson(movieData))

@@ -10,6 +10,7 @@ class getAllMediaService {
     final url = '$baseUrl/admin/meta/user/$mediaType/all';
     try {
       final response = await _dio.get(url);
+      print("response in movies latest: $response");
       return response.data;
     } on DioException catch (e) {
       if (e.response?.data['message'] != null) {

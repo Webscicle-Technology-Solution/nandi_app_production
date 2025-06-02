@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nandiott_flutter/services/rental_service.dart';
 import 'package:nandiott_flutter/models/rental_model.dart';
@@ -12,7 +14,7 @@ final rentalProvider = FutureProvider<List<Rental>>((ref) async {
 
   try {
     final response = await rentalService.getRentals();
-
+// print("rental response in provider : $response");
     // Ensure response is valid and contains data
     if (response == null || response['success'] == false || response['data'] == null) {
       final errorMessage = response?['message'] ?? "Failed to fetch rentals";

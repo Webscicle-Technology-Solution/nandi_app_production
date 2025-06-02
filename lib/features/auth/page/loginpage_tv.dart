@@ -14,6 +14,7 @@ import 'package:nandiott_flutter/utils/Device_size.dart';
 import 'package:nandiott_flutter/utils/appstyle.dart';
 import 'package:nandiott_flutter/utils/checkConnectivity_util.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart'; // Import UUID package
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -25,7 +26,7 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final tvLoginUrl=dotenv.env['TV_LOGIN_URL'];
+  final tvLoginUrl = dotenv.env['TV_LOGIN_URL'];
 
   final bool isIos = Platform.isIOS;
 
@@ -41,23 +42,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Timer? _otpTimer;
   int _otpTimeLeft = 60;
   bool _isLoading = false;
-  
+
   // UUID related variables
   final Uuid _uuid = Uuid();
   late String _sessionUuid;
   Timer? _uuidRefreshTimer;
-  final int _uuidRefreshInterval = 300; // Refresh UUID every 5 minutes (300 seconds)
+  final int _uuidRefreshInterval =
+      300; // Refresh UUID every 5 minutes (300 seconds)
   int _uuidTimeLeft = 300;
 
-  Future<void> getToken() async{
-    String? token=await FirebaseMessaging.instance.getToken();
-    if(token!=null){
+  Future<void> getToken() async {
+    String? token = await FirebaseMessaging.instance.getToken();
+    if (token != null) {
       setState(() {
-        deviceToken=token;
+        deviceToken = token;
       });
     }
   }
-  
+
   Future<void> isqrLoginCompleted() async {
     final loginStatus = AuthService();
 
@@ -81,7 +83,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   void initState() {
     super.initState();
 
-
     _numPadFocusNode.requestFocus();
     _generateNewUuid();
     _startUuidRefreshTimer();
@@ -91,7 +92,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         // Force focus to the numpad on TV
         if (AppSizes.getDeviceType(context) == DeviceType.tv) {
           FocusScope.of(context).requestFocus(_numPadFocusNode);
-          
+
           // Also request focus on the first numpad button
           if (_numPadButtonNodes.isNotEmpty) {
             _numPadButtonNodes[0].requestFocus();
@@ -100,13 +101,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       }
     });
   }
-  
+
   String? _deviceType;
-  
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_deviceType == null) { // Prevent re-running if dependencies change
+    if (_deviceType == null) {
+      // Prevent re-running if dependencies change
       _deviceType = AppSizes.getDeviceType(context);
       if (_deviceType == DeviceType.tv) {
         isqrLoginCompleted();
@@ -126,7 +128,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     _uuidRefreshTimer?.cancel();
     super.dispose();
   }
-  
+
   // Generate a new UUID for the QR code
   void _generateNewUuid() {
     setState(() {
@@ -136,7 +138,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     // Here you would also send this UUID to your backend to associate it with this TV session
     // _registerUuidWithBackend();
   }
-  
+
   // Start timer to refresh UUID periodically
   void _startUuidRefreshTimer() {
     _uuidRefreshTimer?.cancel();
@@ -147,11 +149,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         } else {
           // Time to generate a new UUID
           _generateNewUuid();
-          
+
           // Show a brief notification that QR was refreshed
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('QR Code automatically refreshed with new login code'),
+              content:
+                  Text('QR Code automatically refreshed with new login code'),
               duration: Duration(seconds: 2),
             ),
           );
@@ -196,10 +199,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void _sendOtp() async {
-  final connectivityResults = await Connectivity().checkConnectivity();
-final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
-    if (!hasInternet)
-    ConnectivityUtils.showNoConnectionDialog(context);
+    final connectivityResults = await Connectivity().checkConnectivity();
+    final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
+    if (!hasInternet) ConnectivityUtils.showNoConnectionDialog(context);
     if (_phoneController.text.length == 10) {
       setState(() {
         _isLoading = true;
@@ -253,10 +255,9 @@ final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
   }
 
   void _resendOtp() async {
-      final connectivityResults = await Connectivity().checkConnectivity();
-final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
-    if (!hasInternet)
-    ConnectivityUtils.showNoConnectionDialog(context);
+    final connectivityResults = await Connectivity().checkConnectivity();
+    final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
+    if (!hasInternet) ConnectivityUtils.showNoConnectionDialog(context);
     setState(() {
       _isLoading = true;
     });
@@ -288,10 +289,9 @@ final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
   }
 
   void _verifyOtp() async {
-      final connectivityResults = await Connectivity().checkConnectivity();
-final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
-    if (!hasInternet)
-    ConnectivityUtils.showNoConnectionDialog(context);
+    final connectivityResults = await Connectivity().checkConnectivity();
+    final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
+    if (!hasInternet) ConnectivityUtils.showNoConnectionDialog(context);
     if (_otpController.text.length == 6) {
       setState(() {
         _isLoading = true;
@@ -299,10 +299,9 @@ final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
 
       // Using Riverpod provider to verify OTP
       final parameter = VerifyOtpParameter(
-        phone: _phoneController.text,
-        otp: _otpController.text,
-        deviceToken: deviceToken
-      );
+          phone: _phoneController.text,
+          otp: _otpController.text,
+          deviceToken: deviceToken);
 
       try {
         final response =
@@ -313,12 +312,11 @@ final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
           _isLoading = false;
         });
         _otpTimer?.cancel();
-              ref.refresh(authUserProvider);
-              ref.refresh(rentalProvider);
-              
+        ref.refresh(authUserProvider);
+        ref.refresh(rentalProvider);
+
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Login successful! Redirecting...')),
+          const SnackBar(content: Text('Login successful! Redirecting...')),
         );
 
         // In real app, you would navigate to home screen here
@@ -428,7 +426,9 @@ final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
                               'Code refreshes in: ${(_uuidTimeLeft ~/ 60).toString().padLeft(2, '0')}:${(_uuidTimeLeft % 60).toString().padLeft(2, '0')}',
                               style: TextStyle(
                                 fontSize: 14,
-                                color: Theme.of(context).primaryColorDark.withOpacity(0.7),
+                                color: Theme.of(context)
+                                    .primaryColorDark
+                                    .withOpacity(0.7),
                               ),
                             ),
                             const SizedBox(height: 20),
@@ -439,16 +439,16 @@ final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: QrImageView(
-                                data: qrData,
-                                version: QrVersions.auto,
-                                size: 200,
-                                backgroundColor: Colors.white
-                              ),
+                                  data: qrData,
+                                  version: QrVersions.auto,
+                                  size: 200,
+                                  backgroundColor: Colors.white),
                             ),
                             const SizedBox(height: 24),
                             Text(
                               '1. Open your Google Lens in Your Mobile',
-                              style: TextStyle(color: Theme.of(context).primaryColorDark),
+                              style: TextStyle(
+                                  color: Theme.of(context).primaryColorDark),
                             ),
                             const SizedBox(height: 8),
                             Text(
@@ -469,7 +469,7 @@ final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
                       ),
                     )
                   : SizedBox.shrink(),
-              
+
               Expanded(
                 flex: 1,
                 child: Container(
@@ -504,7 +504,9 @@ final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
                                   SizedBox(height: 8),
                                   Text(
                                     'Redirecting to home...',
-                                    style: TextStyle(color: Theme.of(context).primaryColorDark),
+                                    style: TextStyle(
+                                        color:
+                                            Theme.of(context).primaryColorDark),
                                   ),
                                 ],
                               ),
@@ -519,17 +521,20 @@ final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
                                         )
                                       : SizedBox.shrink(),
                                   _isOtpSent
-                                        ? const SizedBox.shrink():const Text(
-                                     'Login with Phone',
-                                    style: TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.amber,
-                                    ),
-                                  ),
+                                      ? const SizedBox.shrink()
+                                      : const Text(
+                                          'Login with Phone',
+                                          style: TextStyle(
+                                            fontSize: 24,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.amber,
+                                          ),
+                                        ),
                                   SizedBox(height: isTv ? 20 : 50),
                                   if (!_isOtpSent) ...[
-                                    const SizedBox(height: 15,),
+                                    const SizedBox(
+                                      height: 15,
+                                    ),
                                     Container(
                                       decoration: BoxDecoration(
                                         color: Colors.grey.shade900,
@@ -566,12 +571,15 @@ final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
                                         ],
                                       ),
                                     ),
-                                    SizedBox(height: 15,)
+                                    SizedBox(
+                                      height: 15,
+                                    )
                                   ] else ...[
                                     Text(
                                       'OTP sent to +91 ${_phoneController.text}',
                                       style: TextStyle(
-                                          color: Theme.of(context).primaryColorDark),
+                                          color: Theme.of(context)
+                                              .primaryColorDark),
                                     ),
                                     const SizedBox(height: 16),
                                     Row(
@@ -603,12 +611,13 @@ final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
                                         ),
                                       ),
                                     ),
-                                     SizedBox(height: 16),
+                                    SizedBox(height: 16),
                                     _otpTimeLeft > 0
                                         ? Text(
                                             'Resend OTP in $_otpTimeLeft seconds',
                                             style: TextStyle(
-                                                color:Theme.of(context).primaryColorDark),
+                                                color: Theme.of(context)
+                                                    .primaryColorDark),
                                           )
                                         : TextButton(
                                             onPressed: _resendOtp,
@@ -702,42 +711,81 @@ final hasInternet = !connectivityResults.contains(ConnectivityResult.none);
                                     },
                                   ),
                                   if (isTv == false && _isOtpSent == false)
-                                    isIos?const Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      children: [
-                                        Text("If you don't have an account "),
-                                        Text("Create account through nandipictures.in")
-                                      ],
-                                    ): Container(
-                                      margin: const EdgeInsets.symmetric(
-                                          horizontal: 30, vertical: 30),
-                                      width: double.infinity,
-                                      height: 50,
-                                      child: TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context).push(
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  SignupPage(),
+                                    isIos
+                                        ? Container(
+                                            margin: const EdgeInsets.symmetric(
+                                                horizontal: 30, vertical: 30),
+                                            width: double.infinity,
+                                            height: 50,
+                                            child: TextButton(
+                                              onPressed: () {
+                                                showDialog(
+                                                  context: context,
+                                                  builder: (context) =>
+                                                      AlertDialog(
+                                                    title: const Text(
+                                                        "Leaving the App"),
+                                                    content: const Text(
+                                                      "You are about to open an external website to create your account. "
+                                                      "This website is not operated by Apple, and Apple is not responsible for the privacy or security of any data you submit there.",
+                                                    ),
+                                                    actions: [
+                                                      TextButton(
+                                                        child: const Text(
+                                                            "Cancel"),
+                                                        onPressed: () =>
+                                                            Navigator.of(
+                                                                    context)
+                                                                .pop(),
+                                                      ),
+                                                      TextButton(
+                                                        child: const Text(
+                                                            "Continue"),
+                                                        onPressed: () {
+                                                          Navigator.of(context)
+                                                              .pop();
+                                                          launchUrl(
+                                                            Uri.parse(
+                                                                "https://nandipictures.in/signup"),
+                                                            mode: LaunchMode
+                                                                .externalApplication,
+                                                          );
+                                                        },
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                              },
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor:
+                                                    Colors.transparent,
+                                                side: const BorderSide(
+                                                    color:
+                                                        AppStyles.primaryColor),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
+                                                ),
+                                              ),
+                                              child: const Text(
+                                                'Create New account',
+                                                style: TextStyle(
+                                                    color: Colors.amber),
+                                              ),
                                             ),
-                                          );
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.transparent,
-                                          side: const BorderSide(
-                                              color: AppStyles.primaryColor),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                          ),
-                                        ),
-                                        child: const Text(
-                                          'Create New account',
-                                          style: TextStyle(color: Colors.amber),
-                                        ),
-                                      ),
-                                    )
+                                          )
+                                        : const Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                  "If you don't have an account "),
+                                              Text(
+                                                  "Create account through nandipictures.in"),
+                                            ],
+                                          )
                                 ],
                               ),
                             ),

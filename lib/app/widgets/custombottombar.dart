@@ -9,6 +9,7 @@ import 'package:nandiott_flutter/app/widgets/customappbar.dart';
 import 'package:nandiott_flutter/features/home/widget/filter_container_widget.dart';
 import 'package:nandiott_flutter/features/home/page/home_page.dart';
 import 'package:nandiott_flutter/features/profile/page/profile_page.dart';
+import 'package:nandiott_flutter/features/profile/widget/wishlist_widget.dart';
 import 'package:nandiott_flutter/features/rental_download/page/download_page.dart';
 import 'package:nandiott_flutter/features/rental_download/page/rental_page.dart';
 import 'package:nandiott_flutter/features/search/page/search_page.dart';
@@ -250,17 +251,7 @@ void _setupDirectionalFocus() {
     super.dispose();
   }
 
-  // Screens corresponding to navigation items - MODIFIED FOR TV SPECIFIC PAGES
-
-  // List<Widget> _getScreens(bool isTV) => [
-  //       // For Home, use TVHomePage on TV devices, regular HomePage otherwise
-  //       HomePage(),
-  //       isTV ? TVSearchPage(): DownloadsPage(),
-  //       MyRentalPage(),
-  //       ProfilePage(),
-  //     ];
-
-  List<Widget> _getScreens(bool isTV) {
+   List<Widget> _getScreens(bool isTV) {
   if (isTV) {
     return [
       HomePage(),
@@ -273,7 +264,8 @@ void _setupDirectionalFocus() {
     return [
       HomePage(),
       SearchPage(hasAppbar: false,), // or whatever page fits here instead of downloads
-      MyRentalPage(),
+      // MyRentalPage(),
+      WishlistWidget(isIos: true,),
       ProfilePage(),
     ];
   } else {
@@ -287,19 +279,7 @@ void _setupDirectionalFocus() {
   }
 }
 
-
-  // Navigation items based on device type
-  // List<NavigationItem> _getNavigationItems(bool isTV) => [
-  //       NavigationItem(icon: Icons.home, label: 'Home'),
-  //       isTV
-  //           ? NavigationItem(icon: Icons.search, label: 'Search')
-  //           : NavigationItem(icon: Icons.download, label: 'Downloads'),
-  //       NavigationItem(
-  //           icon: Icons.movie_creation_outlined, label: 'My Rentals'),
-  //       NavigationItem(icon: Icons.person, label: 'Profile'),
-  //     ];
-
-  List<NavigationItem> _getNavigationItems(bool isTV) {
+   List<NavigationItem> _getNavigationItems(bool isTV) {
   if (isTV) {
     return [
       NavigationItem(icon: Icons.home, label: 'Home'),
@@ -312,7 +292,7 @@ void _setupDirectionalFocus() {
     return [
       NavigationItem(icon: Icons.home, label: 'Home'),
       NavigationItem(icon: Icons.search, label: 'Search'),
-      NavigationItem(icon: Icons.movie_creation_outlined, label: 'My Rentals'),
+      NavigationItem(icon: Icons.movie_creation_outlined, label: 'Wishlist'),
       NavigationItem(icon: Icons.person, label: 'Profile'),
     ];
   } else {

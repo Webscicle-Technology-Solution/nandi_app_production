@@ -91,6 +91,8 @@ class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
         final videoUrl =
             "$baseUrl/drm/getmasterplaylist/$transformedMediaType/${widget.movieId.trim()}";
 
+            print("videoplayer response :$videoUrl");
+
         if (accesstoken.isEmpty) {
           return const Scaffold(
             appBar: CustomAppBar(title: "Video Player"),
@@ -103,6 +105,7 @@ class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
 
         return urlValidity.when(
           data: (url) {
+            print("video url : $url");
             if (url.isEmpty) {
               return const Scaffold(
                 appBar: CustomAppBar(

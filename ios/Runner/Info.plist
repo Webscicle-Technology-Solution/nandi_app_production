@@ -42,19 +42,6 @@
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-	</dict>
-	<key>NSAppleMusicUsageDescription</key>
-	<string>Access to play video and audio content</string>
-	<key>NSDownloadsFolderUsageDescription</key>
-	<string>Download videos for offline playback</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Access for media playback features</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Access to select media files</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
@@ -81,7 +68,5 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>kTCCServiceMediaLibrary</key>
-	<string>Media library access for playback</string>
 </dict>
 </plist>

@@ -59,10 +59,10 @@ final verifyOtpProviderLogin =
     phone: params.phone,
     otp: params.otp,
     deviceToken: params.deviceToken
-    
   );
 
   if (response != null && response['success'] == true) {
+    print("response in provider:$response");
     return response;
   } else {
     throw Exception(response?['message'] ?? 'Failed to verify OTP');
@@ -82,5 +82,5 @@ class VerifyOtpParameter extends Equatable {
   });
 
   @override
-  List<Object> get props => [phone, otp,deviceToken!];
+  List<Object> get props => [phone, otp,deviceToken];
 }

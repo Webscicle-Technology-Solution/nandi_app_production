@@ -794,7 +794,7 @@ KeyEventResult _handleDropdownKeyEvent(RawKeyEvent event) {
               _buildFocusableContactItem(
                 Icons.email, 
                 'Email', 
-                'support@nandiott.com',
+                'nandipictures2023@gmail.com',
                 _contactSection1FocusNode,
                 onKeyEvent: (node, event) {
                   if (event is RawKeyDownEvent) {
@@ -819,7 +819,7 @@ KeyEventResult _handleDropdownKeyEvent(RawKeyEvent event) {
               _buildFocusableContactItem(
                 Icons.call, 
                 'Phone', 
-                '+1 (800) 123-4567',
+                '+91 9050200503',
                 _contactSection2FocusNode,
                 onKeyEvent: (node, event) {
                   if (event is RawKeyDownEvent) {

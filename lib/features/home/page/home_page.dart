@@ -19,7 +19,7 @@ import 'package:nandiott_flutter/features/auth/providers/checkauth_provider.dart
 import 'package:nandiott_flutter/features/home/provider/filter_fav_provider.dart';
 import 'package:nandiott_flutter/features/home/provider/filter_provider.dart';
 import 'package:nandiott_flutter/utils/Device_size.dart';
-import 'package:nandiott_flutter/utils/provider.dart';
+import 'package:nandiott_flutter/utils/updationProvider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class HomePage extends ConsumerStatefulWidget {

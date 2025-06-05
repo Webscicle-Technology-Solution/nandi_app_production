@@ -56,6 +56,8 @@ dependencies:
   connectivity_plus: ^6.1.4
   firebase_remote_config: ^5.4.4
   package_info_plus: ^8.3.0
+  better_player:
+    git: https://github.com/Lo4D/better-player-ultra.git
 
 dev_dependencies:
   flutter_test:

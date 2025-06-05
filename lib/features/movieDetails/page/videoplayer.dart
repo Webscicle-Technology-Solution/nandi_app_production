@@ -5,11 +5,13 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:nandiott_flutter/app/widgets/customappbar.dart';
 import 'package:nandiott_flutter/features/movieDetails/widget/drmVideoplayer_widget.dart';
 import 'package:nandiott_flutter/features/auth/page/loginpage_tv.dart';
+import 'package:nandiott_flutter/features/movieDetails/widget/tvDrmVideoplayer.dart';
 import 'package:nandiott_flutter/features/profile/provider/watchHistory_provider.dart';
 import 'package:nandiott_flutter/features/movieDetails/provider/checkMovieUrl.dart';
 import 'package:nandiott_flutter/features/auth/providers/checkauth_provider.dart';
 import 'package:nandiott_flutter/features/movieDetails/provider/detail_provider.dart';
 import 'package:nandiott_flutter/features/profile/provider/series_watchhistory_provider.dart';
+import 'package:nandiott_flutter/utils/Device_size.dart';
 
 class VideoPlayerScreen extends ConsumerStatefulWidget {
   final String movieId;
@@ -64,8 +66,9 @@ class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isTV = AppSizes.getDeviceType(context) == DeviceType.tv;
     final authUser = ref.watch(authUserProvider);
-  final baseUrl = dotenv.env['API_BASE_URL'];
+    final baseUrl = dotenv.env['API_BASE_URL'];
 
     return authUser.when(
       data: (user) {
@@ -91,7 +94,7 @@ class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
         final videoUrl =
             "$baseUrl/drm/getmasterplaylist/$transformedMediaType/${widget.movieId.trim()}";
 
-            print("videoplayer response :$videoUrl");
+        print("videoplayer response :$videoUrl");
 
         if (accesstoken.isEmpty) {
           return const Scaffold(
@@ -118,21 +121,44 @@ class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
               );
             }
 
-            return Center(
-              child: FocusScope(
-                autofocus: true,
-                child: BetterVideoPlayer(
-                  videoUrl: videoUrl,
-                  fullScreen: true,
-                  auth: accesstoken,
-                  autoPlay: true,
-                  mediaId: widget.movieId,
-                  mediaType: widget.mediaType,
-                  tvSeriesId: widget.tvSeriesId ?? "",
-                  isTrailer: false,
-                ),
-              ),
-            );
+            return isTV
+                ? Scaffold(
+                    body: DrmVideoPlayer(
+                      // Your HLS video URL
+                      videoUrl: videoUrl,
+
+                      // Optional parameters
+                      defaultQuality: "720p",
+                      autoPlay: true,
+                      looping: false,
+                      fullScreenByDefault: false,
+                      aspectRatio: 16 / 9,
+                      fit: BoxFit.contain,
+                      controlsHideTimeout: 5, // Hide controls after 5 seconds
+
+                      // Watch history parameters (NEW)
+                      auth: accesstoken,
+                      mediaId: widget.movieId,
+                      mediaType: widget.mediaType,
+                      tvSeriesId: widget.tvSeriesId ?? "",
+                      isTrailer: false,
+                    ),
+                  )
+                : Center(
+                    child: FocusScope(
+                      autofocus: true,
+                      child: BetterVideoPlayer(
+                        videoUrl: videoUrl,
+                        fullScreen: true,
+                        auth: accesstoken,
+                        autoPlay: true,
+                        mediaId: widget.movieId,
+                        mediaType: widget.mediaType,
+                        tvSeriesId: widget.tvSeriesId ?? "",
+                        isTrailer: false,
+                      ),
+                    ),
+                  );
           },
           loading: () {
             return const Center(

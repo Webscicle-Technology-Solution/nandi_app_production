@@ -1,5 +1,6 @@
-import 'dart:io';
+// Updation checker provider, works only in andriod
 
+import 'dart:io';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -20,13 +21,12 @@ final updateCheckProvider = FutureProvider<String?>((ref) async {
 
   final minVersionCode = config.getInt('min_required_version');
   final androidUrl = config.getString('update_url_android');
-  final iosUrl = config.getString('update_url_ios');
  
   final packageInfo = await PackageInfo.fromPlatform();
   final currentVersionCode = int.parse(packageInfo.buildNumber);
 
-  if (currentVersionCode < minVersionCode) {
-    return Platform.isAndroid ? androidUrl : iosUrl;
+  if (currentVersionCode < minVersionCode && Platform.isAndroid) {
+    return androidUrl;
   }
 
   return null;

@@ -119,7 +119,6 @@ class _BetterVideoPlayerState extends State<BetterVideoPlayer> with WidgetsBindi
       });
     }
   }
-
   void _initializePlayer() {
     // Headers setup
     Map<String, String> headers = widget.auth != null && widget.auth!.isNotEmpty

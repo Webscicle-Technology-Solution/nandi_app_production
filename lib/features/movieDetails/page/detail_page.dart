@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -76,25 +77,18 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
     // Initialize focus nodes
     watchButtonFocusNode = FocusNode(debugLabel: 'watchButton');
     favoriteButtonFocusNode = FocusNode(debugLabel: 'favoriteButton');
-    // downloadButtonFocusNode = FocusNode(debugLabel: 'downloadButton');
 
-
-    ref.read(authUserProvider);
     movieId = widget.movieId;
     userId = widget.userId;
     mediaType = widget.mediaType;
 
-    // Ensure initial focus is set after the first frame is rendered
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (AppSizes.getDeviceType(context) == DeviceType.tv) {
-        FocusScope.of(context).requestFocus(watchButtonFocusNode);
-      }
-    });
+    // Initial focus setup will be handled in didChangeDependencies
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    
     // ✅ Refresh provider on page load
     ref.invalidate(authUserProvider);
     ref.invalidate(bannerProvider);
@@ -102,35 +96,56 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
     ref.invalidate(movieDetailProvider);
     ref.invalidate(rentalProvider);
     ref.invalidate(movieRateProvider);
-    // ref.invalidate(authUserProvider);
     ref.invalidate(rentalProvider);
-    ref.invalidate(
-        subscriptionProvider(SubscriptionDetailParameter(userId: userId)));
+    ref.invalidate(subscriptionProvider(SubscriptionDetailParameter(userId: userId)));
     ref.invalidate(movieDetailProvider);
     ref.invalidate(tvSeriesWatchProgressProvider);
     ref.invalidate(watchHistoryProvider);
-    ref.invalidate(ratedMovieProvider(MovieDetailParameter(
-        movieId: widget.movieId, mediaType: widget.mediaType)));
+    ref.invalidate(ratedMovieProvider(MovieDetailParameter(movieId: widget.movieId, mediaType: widget.mediaType)));
+
+    // Set up focus management after dependencies are updated
+    _setupFocus();
+  }
+
+  // New method to handle focus setup
+  void _setupFocus() {
+    final bool isTV = defaultTargetPlatform == TargetPlatform.fuchsia || 
+      defaultTargetPlatform == TargetPlatform.android && 
+      Theme.of(context).platform.toString().toLowerCase().contains('tv');
+
+    if (isTV) {
+      // Use post frame callback to ensure widget tree is built
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+
+        // Get the current auth state
+        final authState = ref.read(authUserProvider);
+        authState.whenData((user) {
+          if (user != null && mounted) {
+            // User is logged in, focus on watch button
+            watchButtonFocusNode.canRequestFocus = true;
+            favoriteButtonFocusNode.canRequestFocus = true;
+            FocusScope.of(context).requestFocus(watchButtonFocusNode);
+          } else if (mounted) {
+            // User is not logged in, focus on login button
+            watchButtonFocusNode.canRequestFocus = true;
+            FocusScope.of(context).requestFocus(watchButtonFocusNode);
+          }
+        });
+      });
+    }
   }
 
   @override
   void dispose() {
     _isNavigatingAway = true;
-    FocusScope.of(context).unfocus();
-    // Clean up focus nodes
     watchButtonFocusNode.dispose();
     favoriteButtonFocusNode.dispose();
-    // downloadButtonFocusNode.dispose();
-    // ref.invalidate(movieDetailProvider);
-    // ref.invalidate(tvSeriesWatchProgressProvider);
-
-    // TODO: implement dispose
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    ref.watch(rentalProvider);
     //     ref.watch(ratedMovieProvider(MovieDetailParameter(movieId: widget.movieId, mediaType: widget.mediaType)));
 
     final Map<String, String> mediaTypeMapbanner = {
@@ -178,7 +193,7 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
     // Watch the trailer URL validity provider using the full URL
     final isTrailerValid = ref.watch(trailerUrlValidityProvider(trailerUrl));
 
-    final bool isTV = AppSizes.getDeviceType(context) == DeviceType.tv;
+    // final bool isTV = AppSizes.getDeviceType(context) == DeviceType.tv;
 
     return Scaffold(
       appBar: CustomAppBar(
@@ -406,7 +421,10 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
     FocusNode? focusNode,
     bool autofocus = false,
   }) {
-    final isTv = AppSizes.getDeviceType(context) == DeviceType.tv;
+    // final isTv = AppSizes.getDeviceType(context) == DeviceType.tv;
+    final bool isTv = defaultTargetPlatform == TargetPlatform.fuchsia || 
+    defaultTargetPlatform == TargetPlatform.android && 
+    Theme.of(context).platform.toString().toLowerCase().contains('tv');
     return Focus(
       focusNode: focusNode,
       autofocus: autofocus,
@@ -476,6 +494,10 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
     // Add a loading state variable
     bool isRefreshing = false;
 
+    final bool isTV = defaultTargetPlatform == TargetPlatform.fuchsia || 
+    defaultTargetPlatform == TargetPlatform.android && 
+    Theme.of(context).platform.toString().toLowerCase().contains('tv');
+
     return authUser.when(
       data: (user) {
         // When no user is logged in
@@ -513,6 +535,11 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
 
               // If login was successful
               if (loginResult == true) {
+                // Start with loading state
+                setState(() {
+                  isRefreshing = true;
+                });
+
                 // Explicitly refresh providers one by one in order
                 await ref.refresh(authUserProvider.future);
 
@@ -532,8 +559,10 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
                     await ref.refresh(subscriptionProvider(
                             SubscriptionDetailParameter(userId: newUser.id))
                         .future);
-                    // await ref.refresh(isMovieFavoriteProvider(movie.id).future);
                     await ref.refresh(favoritesProvider.future);
+
+                    // Call focus setup after login
+                    _setupFocus();
                   }
 
                   // End loading state
@@ -598,6 +627,7 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
                               builder: (context) => VideoPlayerScreen(
                                 mediaType: widget.mediaType,
                                 movieId: movie.id,
+                                isTV: isTV,
                               ),
                             ),
                           );
@@ -1433,7 +1463,10 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
 
   Widget _buildFavoriteDownloadButtons(
       MovieDetail movie, BuildContext context) {
-    final isTV = AppSizes.getDeviceType(context) == DeviceType.tv;
+    // final isTV = AppSizes.getDeviceType(context) == DeviceType.tv;
+    final bool isTV = defaultTargetPlatform == TargetPlatform.fuchsia || 
+    defaultTargetPlatform == TargetPlatform.android && 
+    Theme.of(context).platform.toString().toLowerCase().contains('tv');
 
     final Map<String, String> mediaTypeMapbanner = {
       'videosong': 'videosong',
@@ -1923,8 +1956,7 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
                                       color: Color.fromARGB(255, 255, 123, 0)),
                                 ),
                                 style: OutlinedButton.styleFrom(
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 12),
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
                                   side: const BorderSide(
                                       color: Color.fromARGB(255, 224, 129, 5)),
                                 ),
@@ -2546,6 +2578,10 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
     bool isPublished,
     String seriesId,
   ) {
+    final bool isTV = defaultTargetPlatform == TargetPlatform.fuchsia || 
+    defaultTargetPlatform == TargetPlatform.android && 
+    Theme.of(context).platform.toString().toLowerCase().contains('tv');
+
     authUser.when(
       data: (user) {
         final isLoggedIn = user != null;
@@ -2643,6 +2679,7 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
                     movieId: episode.id,
                     mediaType: "episodes",
                     tvSeriesId: seriesId,
+                    isTV: isTV,
                   ),
                 ),
               );
@@ -2828,6 +2865,10 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
 // Extract episode tap logic to a separate method for reuse
   void _handleEpisodeTap(BuildContext context, bool isLoggedIn,
       bool isSubscribed, bool isPublished, dynamic episode, String seriesId) {
+    final bool isTV = defaultTargetPlatform == TargetPlatform.fuchsia || 
+    defaultTargetPlatform == TargetPlatform.android && 
+    Theme.of(context).platform.toString().toLowerCase().contains('tv');
+
     if (!isLoggedIn) {
       showDialog(
         context: context,
@@ -2885,6 +2926,7 @@ class _MovieDetailPageState extends ConsumerState<MovieDetailPage> {
             movieId: episode.id,
             mediaType: "episodes",
             tvSeriesId: seriesId,
+            isTV: isTV,
           ),
         ),
       );

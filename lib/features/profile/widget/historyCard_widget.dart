@@ -156,8 +156,6 @@ class _HistorycardWidgetState extends ConsumerState<HistorycardWidget> {
   Widget build(BuildContext context) {
     final isTV = AppSizes.getDeviceType(context) == DeviceType.tv;
     final userAsync = ref.watch(authUserProvider);
-
-    // Standard movie detail provider
     final movieDetailAsync = ref.watch(movieDetailProvider(MovieDetailParameter(
       movieId: widget.historyItem.tvSeriesId ?? widget.historyItem.contentId,
       mediaType: widget.historyItem.contentType,
@@ -171,6 +169,17 @@ class _HistorycardWidgetState extends ConsumerState<HistorycardWidget> {
                 episodeId: widget.historyItem.contentId,
               )))
             : null;
+
+    // Show skeleton loader while loading image or any data
+    if (imgUrl.isEmpty || movieDetailAsync.isLoading || 
+        (isTVSeriesContent() && tvWatchProgressAsync?.isLoading == true)) {
+      return Container(
+        margin: EdgeInsets.only(right: AppSizes.getCardMargin(context)),
+        width: AppSizes.getFilmCardWidth(context),
+        height: AppSizes.getFilmCardHeight(context),
+        child: const SkeletonLoader(),
+      );
+    }
 
     return userAsync.when(
       data: (user) {
@@ -337,96 +346,80 @@ class _HistorycardWidgetState extends ConsumerState<HistorycardWidget> {
                     SizedBox(height: 8),
 
                     // Progress section
-                    widget.historyItem.isCompleted
-                        ? Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: LinearProgressIndicator(
-                              value: 1.0,
-                              backgroundColor: Colors.grey[300],
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.amber),
-                            ),
-                          )
-                        : isTVSeriesContent() && tvWatchProgressAsync != null
-                            ? tvWatchProgressAsync.when(
-                                data: (tvProgress) {
-                                  if (tvProgress != null &&
-                                      tvProgress.duration > 0) {
-                                    // Use TV episode duration for TV content
-                                    progress = widget.historyItem.watchTime /
-                                        tvProgress.duration;
-
-                                    return Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: LinearProgressIndicator(
-                                        value: progress.clamp(0.0, 1.0),
-                                        backgroundColor: Colors.grey[300],
-                                        valueColor:
-                                            AlwaysStoppedAnimation<Color>(
-                                                Colors.amber),
-                                      ),
-                                    );
-                                  } else {
-                                    return Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: LinearProgressIndicator(
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final progressWidget = Container(
+                          height: 4,
+                          margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                          child: widget.historyItem.isCompleted
+                              ? LinearProgressIndicator(
+                                  value: 1.0,
+                                  backgroundColor: Colors.grey[300],
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
+                                )
+                              : isTVSeriesContent() && tvWatchProgressAsync != null
+                                  ? tvWatchProgressAsync.when(
+                                      data: (tvProgress) {
+                                        if (tvProgress != null && tvProgress.duration > 0) {
+                                          progress = widget.historyItem.watchTime / tvProgress.duration;
+                                          return LinearProgressIndicator(
+                                            value: progress.clamp(0.0, 1.0),
+                                            backgroundColor: Colors.grey[300],
+                                            valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
+                                          );
+                                        }
+                                        return LinearProgressIndicator(
+                                          value: 0.0,
+                                          backgroundColor: Colors.grey[300],
+                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
+                                        );
+                                      },
+                                      loading: () => LinearProgressIndicator(
                                         value: 0.0,
                                         backgroundColor: Colors.grey[300],
-                                        valueColor:
-                                            AlwaysStoppedAnimation<Color>(
-                                                Colors.amber),
+                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
                                       ),
-                                    );
-                                  }
-                                },
-                                loading: () => const SizedBox(),
-                                error: (error, stackTrace) => Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: LinearProgressIndicator(
-                                    value: 0.0,
-                                    backgroundColor: Colors.grey[300],
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.amber),
-                                  ),
-                                ),
-                              )
-                            : movieDetailAsync.when(
-                                data: (movieDetail) {
-                                  // Ensure we have movie details and duration
-                                  if (movieDetail != null &&
-                                      movieDetail.duration != null) {
-                                    duration = movieDetail.duration!;
-                                    // Calculate progress
-                                    progress =
-                                        widget.historyItem.watchTime / duration;
-
-                                    return Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: LinearProgressIndicator(
-                                        value: progress.clamp(0.0, 1.0),
-                                        backgroundColor: Colors.grey[300],
-                                        valueColor:
-                                            AlwaysStoppedAnimation<Color>(
-                                                Colors.amber),
-                                      ),
-                                    );
-                                  } else {
-                                    return Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: LinearProgressIndicator(
+                                      error: (_, __) => LinearProgressIndicator(
                                         value: 0.0,
                                         backgroundColor: Colors.grey[300],
-                                        valueColor:
-                                            AlwaysStoppedAnimation<Color>(
-                                                Colors.amber),
+                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
                                       ),
-                                    );
-                                  }
-                                },
-                                loading: () => const SizedBox(),
-                                error: (error, stackTrace) => const Center(
-                                    child: Text("Failed to load progress")),
-                              ),
+                                    )
+                                  : movieDetailAsync.when(
+                                      data: (movieDetail) {
+                                        if (movieDetail != null && movieDetail.duration != null) {
+                                          duration = movieDetail.duration!;
+                                          progress = widget.historyItem.watchTime / duration;
+                                          return LinearProgressIndicator(
+                                            value: progress.clamp(0.0, 1.0),
+                                            backgroundColor: Colors.grey[300],
+                                            valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
+                                          );
+                                        }
+                                        return LinearProgressIndicator(
+                                          value: 0.0,
+                                          backgroundColor: Colors.grey[300],
+                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
+                                        );
+                                      },
+                                      loading: () => LinearProgressIndicator(
+                                        value: 0.0,
+                                        backgroundColor: Colors.grey[300],
+                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
+                                      ),
+                                      error: (_, __) => LinearProgressIndicator(
+                                        value: 0.0,
+                                        backgroundColor: Colors.grey[300],
+                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.amber),
+                                      ),
+                                    ),
+                        );
+                        return SizedBox(
+                          width: constraints.maxWidth,
+                          child: progressWidget,
+                        );
+                      },
+                    ),
                   ],
                 ),
               ),

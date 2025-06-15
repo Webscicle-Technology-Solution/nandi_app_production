@@ -17,12 +17,14 @@ class VideoPlayerScreen extends ConsumerStatefulWidget {
   final String movieId;
   final String mediaType;
   final String? tvSeriesId;
+  final bool isTV;
 
   const VideoPlayerScreen({
     super.key,
     required this.movieId,
     required this.mediaType,
     this.tvSeriesId,
+    required this.isTV,
   });
 
   @override
@@ -66,7 +68,7 @@ class _VideoPlayerScreenState extends ConsumerState<VideoPlayerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isTV = AppSizes.getDeviceType(context) == DeviceType.tv;
+    final bool isTV = widget.isTV;
     final authUser = ref.watch(authUserProvider);
     final baseUrl = dotenv.env['API_BASE_URL'];
 

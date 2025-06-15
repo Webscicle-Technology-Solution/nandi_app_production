@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'dart:io';
 import 'package:better_player_plus/better_player_plus.dart';
@@ -155,20 +154,23 @@ class _BetterVideoPlayerState extends State<BetterVideoPlayer> with WidgetsBindi
       looping: false,
       fullScreenByDefault: widget.fullScreen,
       expandToFill: true,
-      fit: BoxFit.contain,
-      aspectRatio: 16 / 9,
-      fullScreenAspectRatio: 16 / 9,
+      fit: BoxFit.cover,
+      deviceOrientationsAfterFullScreen: [
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ],
       controlsConfiguration: controlsConfig,
       placeholder: widget.posterUrl != null
           ? Image.network(
               widget.posterUrl!,
-              fit: BoxFit.contain,
+              fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => Image.asset(
                 "assets/images/placeholder.png",
-                fit: BoxFit.contain,
+                fit: BoxFit.cover,
               ),
             )
-          : Image.asset("assets/images/placeholder.png", fit: BoxFit.contain),
+          : Image.asset("assets/images/placeholder.png", fit: BoxFit.cover),
       showPlaceholderUntilPlay: true,
     );
 
@@ -260,6 +262,16 @@ class _BetterVideoPlayerState extends State<BetterVideoPlayer> with WidgetsBindi
     if (event.betterPlayerEventType == BetterPlayerEventType.initialized && 
         !_initialized) {
       _initialized = true;
+
+      // Get and set the correct aspect ratio
+      final aspect = _betterPlayerController?.videoPlayerController?.value.aspectRatio;
+      if (aspect != null && mounted) {
+        setState(() {
+          // Update the controller with the correct aspect ratio
+          _betterPlayerController?.setOverriddenAspectRatio(aspect);
+        });
+        print("Video aspect ratio detected: $aspect");
+      }
 
       // Seek to the starting position for non-trailers
       if (_startPosition > 0 && !widget.isTrailer) {
@@ -373,6 +385,8 @@ class _BetterVideoPlayerState extends State<BetterVideoPlayer> with WidgetsBindi
   @override
   Widget build(BuildContext context) {
     _isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final size = MediaQuery.of(context).size;
+    final isLandscape = size.width > size.height;
 
     return _isLoading
         ? const Center(child: CircularProgressIndicator(color: Colors.amber))
@@ -381,48 +395,47 @@ class _BetterVideoPlayerState extends State<BetterVideoPlayer> with WidgetsBindi
             child: Stack(
               alignment: Alignment.center,
               children: [
-                AspectRatio(
-                  aspectRatio: 16 / 9,
-                  child: Container(
-                    color: Colors.black,
-                    child: _betterPlayerController != null
-                        ? Focus(
-                            focusNode: _playerFocusNode,
-                            autofocus: widget.fullScreen,
-                            onKeyEvent: (FocusNode node, KeyEvent event) {
-                              if (event is KeyDownEvent) {
-                                // All key events show controls
-                                _showControls();
-                                
-                                // Navigation keys are passed through
-                                if (event.logicalKey == LogicalKeyboardKey.arrowLeft ||
-                                    event.logicalKey == LogicalKeyboardKey.arrowRight ||
-                                    event.logicalKey == LogicalKeyboardKey.arrowUp ||
-                                    event.logicalKey == LogicalKeyboardKey.arrowDown) {
-                                  return KeyEventResult.ignored;
-                                } 
-                                // OK/Enter button
-                                else if (event.logicalKey == LogicalKeyboardKey.select ||
-                                         event.logicalKey == LogicalKeyboardKey.enter) {
-                                  // Toggle play/pause if controls aren't visible
-                                  if (!_controlsVisible) {
-                                    _togglePlayPause();
-                                    return KeyEventResult.handled;
-                                  }
+                Container(
+                  width: size.width,
+                  height: isLandscape ? size.height : null,
+                  color: Colors.black,
+                  child: _betterPlayerController != null
+                      ? Focus(
+                          focusNode: _playerFocusNode,
+                          autofocus: widget.fullScreen,
+                          onKeyEvent: (FocusNode node, KeyEvent event) {
+                            if (event is KeyDownEvent) {
+                              // All key events show controls
+                              _showControls();
+                              
+                              // Navigation keys are passed through
+                              if (event.logicalKey == LogicalKeyboardKey.arrowLeft ||
+                                  event.logicalKey == LogicalKeyboardKey.arrowRight ||
+                                  event.logicalKey == LogicalKeyboardKey.arrowUp ||
+                                  event.logicalKey == LogicalKeyboardKey.arrowDown) {
+                                return KeyEventResult.ignored;
+                              } 
+                              // OK/Enter button
+                              else if (event.logicalKey == LogicalKeyboardKey.select ||
+                                       event.logicalKey == LogicalKeyboardKey.enter) {
+                                // Toggle play/pause if controls aren't visible
+                                if (!_controlsVisible) {
+                                  _togglePlayPause();
+                                  return KeyEventResult.handled;
                                 }
                               }
-                              
-                              return KeyEventResult.ignored;
-                            },
-                            child: BetterPlayer(controller: _betterPlayerController!),
-                          )
-                        : const Center(
-                            child: Text(
-                              "Loading player...",
-                              style: TextStyle(color: Colors.white),
-                            ),
+                            }
+                            
+                            return KeyEventResult.ignored;
+                          },
+                          child: BetterPlayer(controller: _betterPlayerController!),
+                        )
+                      : const Center(
+                          child: Text(
+                            "Loading player...",
+                            style: TextStyle(color: Colors.white),
                           ),
-                  ),
+                        ),
                 ),
               ],
             ),

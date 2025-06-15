@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nandiott_flutter/app/theme/dark_theme.dart';
@@ -11,10 +12,22 @@ import 'package:nandiott_flutter/features/profile/provider/quailty_provider.dart
 import 'package:nandiott_flutter/firebase_options.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'app/theme/theme_provider.dart';
+import 'package:device_info_plus/device_info_plus.dart'; // Add this to detect Android TV
 // import 'package:flutter_downloader/flutter_downloader.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Required before using platform channels or async services
+ 
+  final deviceInfo = DeviceInfoPlugin();
+  final androidInfo = await deviceInfo.androidInfo;
+  final isTV = androidInfo.systemFeatures.contains('android.software.leanback');
+
+  if (!isTV) {
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
+  }
+  
   await dotenv.load(fileName: "assets/.env");
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -42,6 +55,7 @@ Future<void> main() async {
       );
     }
   });
+
 
   runApp(const ProviderScope(child: MyApp()));
 }

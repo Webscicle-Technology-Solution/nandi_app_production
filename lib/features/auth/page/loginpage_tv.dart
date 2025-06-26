@@ -711,14 +711,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     },
                                   ),
                                   if (isTv == false && _isOtpSent == false)
-                                    isIos
-                                        ? Container(
+                                    Container(
                                             margin: const EdgeInsets.symmetric(
                                                 horizontal: 30, vertical: 30),
                                             width: double.infinity,
                                             height: 50,
                                             child: TextButton(
-                                              onPressed: () {
+                                              onPressed: isIos?() {
                                                 showDialog(
                                                   context: context,
                                                   builder: (context) =>
@@ -755,7 +754,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                                     ],
                                                   ),
                                                 );
-                                              },
+                                              }:(){
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const SignupPage(),
+                                            ),
+                                          );
+                                        },
                                               style: ElevatedButton.styleFrom(
                                                 backgroundColor:
                                                     Colors.transparent,
@@ -773,18 +779,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                                     color: Colors.amber),
                                               ),
                                             ),
-                                          )
-                                        : const Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.center,
-                                            children: [
-                                              Text(
-                                                  "If you don't have an account "),
-                                              Text(
-                                                  "Create account through nandipictures.in"),
-                                            ],
                                           )
                                 ],
                               ),

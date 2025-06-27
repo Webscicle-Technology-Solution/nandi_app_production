@@ -23,8 +23,8 @@ android {
         applicationId = "com.nandi.ott"
         minSdkVersion 23
         targetSdk = 34
-        versionCode = 12
-        versionName = "1.0.2+12"
+        versionCode = 13
+        versionName = "1.0.2+13"
         
         // Add support for all ABIs to ensure maximum device compatibility
         ndk {

@@ -55,46 +55,46 @@ setState(() {
     startTimer();
     getToken();
     super.initState();
-    _listenForSms();
+  //  _listenForSms();
   }
 
-  // Listen for incoming SMS
-  void _listenForSms() async {
-    final bool? permissionsGranted = await telephony.requestPhoneAndSmsPermissions;
-    if (permissionsGranted ?? false) {
-      telephony.listenIncomingSms(
-        onNewMessage: (SmsMessage message) {
-          final body = message.body ?? '';
-          final otpRegex = RegExp(r'\b\d{6}\b'); // Match 6-digit OTP
-          final match = otpRegex.firstMatch(body);
-          if (match != null) {
-            final otp = match.group(0)!;
-            setState(() {
-              _otpController.text = otp;
-            });
+  // // Listen for incoming SMS
+  // void _listenForSms() async {
+  //   final bool? permissionsGranted = await telephony.requestPhoneAndSmsPermissions;
+  //   if (permissionsGranted ?? false) {
+  //     telephony.listenIncomingSms(
+  //       onNewMessage: (SmsMessage message) {
+  //         final body = message.body ?? '';
+  //         final otpRegex = RegExp(r'\b\d{6}\b'); // Match 6-digit OTP
+  //         final match = otpRegex.firstMatch(body);
+  //         if (match != null) {
+  //           final otp = match.group(0)!;
+  //           setState(() {
+  //             _otpController.text = otp;
+  //           });
 
-            // Optionally auto-submit when OTP is detected
-            ref.refresh(authProvider.notifier).registerUser(
-              widget.name,
-              widget.email,
-              widget.phone,
-              widget.state,
-              widget.city,
-              widget.pincode,
-              otp,
-              deviceToken!
-            );
-          }
-        },
-          listenInBackground: false, // 👈 This avoids the assertion error
-      );
-    } else {
-      // Handle case where permissions are not granted
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('SMS permissions are required to auto-fill OTP')),
-      );
-    }
-  }
+  //           // Optionally auto-submit when OTP is detected
+  //           ref.refresh(authProvider.notifier).registerUser(
+  //             widget.name,
+  //             widget.email,
+  //             widget.phone,
+  //             widget.state,
+  //             widget.city,
+  //             widget.pincode,
+  //             otp,
+  //             deviceToken!
+  //           );
+  //         }
+  //       },
+  //         listenInBackground: false, // 👈 This avoids the assertion error
+  //     );
+  //   } else {
+  //     // Handle case where permissions are not granted
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text('SMS permissions are required to auto-fill OTP')),
+  //     );
+  //   }
+  // }
 //Resend opt timer setting
 void startTimer(){
   setState(() {

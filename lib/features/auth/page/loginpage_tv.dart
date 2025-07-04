@@ -394,6 +394,85 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // Left side with QR code section
+
+              // isTv
+              //     ? Expanded(
+              //         flex: 1,
+              //         child: Container(
+              //           color: Theme.of(context).scaffoldBackgroundColor,
+              //           padding: const EdgeInsets.all(15),
+              //           child: Column(
+              //             mainAxisAlignment: MainAxisAlignment.center,
+              //             children: [
+              //               Text(
+              //                 'Scan to login',
+              //                 style: TextStyle(
+              //                   fontSize: 24,
+              //                   fontWeight: FontWeight.bold,
+              //                   color: Theme.of(context).primaryColorDark,
+              //                 ),
+              //               ),
+              //               const SizedBox(height: 10),
+              //               // Display the UUID code
+              //               Text(
+              //                 'Code: ${_sessionUuid.substring(0, 8)}...',
+              //                 style: TextStyle(
+              //                   fontSize: 16,
+              //                   color: Theme.of(context).primaryColorDark,
+              //                 ),
+              //               ),
+              //               const SizedBox(height: 5),
+              //               // Show the countdown timer for UUID refresh
+              //               Text(
+              //                 'Code refreshes in: ${(_uuidTimeLeft ~/ 60).toString().padLeft(2, '0')}:${(_uuidTimeLeft % 60).toString().padLeft(2, '0')}',
+              //                 style: TextStyle(
+              //                   fontSize: 14,
+              //                   color: Theme.of(context)
+              //                       .primaryColorDark
+              //                       .withOpacity(0.7),
+              //                 ),
+              //               ),
+              //               const SizedBox(height: 20),
+              //               Container(
+              //                 padding: const EdgeInsets.all(12),
+              //                 decoration: BoxDecoration(
+              //                   color: Theme.of(context).primaryColorDark,
+              //                   borderRadius: BorderRadius.circular(8),
+              //                 ),
+              //                 child: QrImageView(
+              //                     data: qrData,
+              //                     version: QrVersions.auto,
+              //                     size: 200,
+              //                     backgroundColor: Colors.white),
+              //               ),
+              //               const SizedBox(height: 24),
+              //               Text(
+              //                 '1. Open your Google Lens in Your Mobile',
+              //                 style: TextStyle(
+              //                     color: Theme.of(context).primaryColorDark),
+              //               ),
+              //               const SizedBox(height: 8),
+              //               Text(
+              //                 '2. Scan the QR code',
+              //                 style: TextStyle(
+              //                   color: Theme.of(context).primaryColorDark,
+              //                 ),
+              //               ),
+              //               const SizedBox(height: 8),
+              //               Text(
+              //                 '3. You will be redirected to the login page',
+              //                 style: TextStyle(
+              //                   color: Theme.of(context).primaryColorDark,
+              //                 ),
+              //               ),
+              //             ],
+              //           ),
+              //         ),
+              //       )
+              //     : SizedBox.shrink(),
+
+              //non qr qr section removed due to website server down
+
               isTv
                   ? Expanded(
                       flex: 1,
@@ -403,8 +482,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
+                            Icon(Icons.tv,
+                                size: 80,
+                                color: Theme.of(context).primaryColorDark),
+                            const SizedBox(height: 20),
                             Text(
-                              'Scan to login',
+                              'Welcome to Our TV App',
                               style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
@@ -412,56 +495,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                             ),
                             const SizedBox(height: 10),
-                            // Display the UUID code
                             Text(
-                              'Code: ${_sessionUuid.substring(0, 8)}...',
+                              'Login using your phone to get started.',
+                              textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 16,
-                                color: Theme.of(context).primaryColorDark,
-                              ),
-                            ),
-                            const SizedBox(height: 5),
-                            // Show the countdown timer for UUID refresh
-                            Text(
-                              'Code refreshes in: ${(_uuidTimeLeft ~/ 60).toString().padLeft(2, '0')}:${(_uuidTimeLeft % 60).toString().padLeft(2, '0')}',
-                              style: TextStyle(
-                                fontSize: 14,
                                 color: Theme.of(context)
                                     .primaryColorDark
                                     .withOpacity(0.7),
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).primaryColorDark,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: QrImageView(
-                                  data: qrData,
-                                  version: QrVersions.auto,
-                                  size: 200,
-                                  backgroundColor: Colors.white),
-                            ),
-                            const SizedBox(height: 24),
-                            Text(
-                              '1. Open your Google Lens in Your Mobile',
-                              style: TextStyle(
-                                  color: Theme.of(context).primaryColorDark),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              '2. Scan the QR code',
-                              style: TextStyle(
-                                color: Theme.of(context).primaryColorDark,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              '3. You will be redirected to the login page',
-                              style: TextStyle(
-                                color: Theme.of(context).primaryColorDark,
                               ),
                             ),
                           ],
@@ -520,16 +561,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                           height: 100,
                                         )
                                       : SizedBox.shrink(),
-                                  _isOtpSent
-                                      ? const SizedBox.shrink()
-                                      : const Text(
-                                          'Login with Phone',
-                                          style: TextStyle(
-                                            fontSize: 24,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.amber,
-                                          ),
-                                        ),
+                                  // _isOtpSent
+                                  //     ? const SizedBox.shrink()
+                                  //     : const Text(
+                                  //         'Login with Phone',
+                                  //         style: TextStyle(
+                                  //           fontSize: 24,
+                                  //           fontWeight: FontWeight.bold,
+                                  //           color: Colors.amber,
+                                  //         ),
+                                  //       ),
                                   SizedBox(height: isTv ? 20 : 50),
                                   if (!_isOtpSent) ...[
                                     const SizedBox(
@@ -712,12 +753,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   ),
                                   if (isTv == false && _isOtpSent == false)
                                     Container(
-                                            margin: const EdgeInsets.symmetric(
-                                                horizontal: 30, vertical: 30),
-                                            width: double.infinity,
-                                            height: 50,
-                                            child: TextButton(
-                                              onPressed: isIos?() {
+                                      margin: const EdgeInsets.symmetric(
+                                          horizontal: 30, vertical: 30),
+                                      width: double.infinity,
+                                      height: 50,
+                                      child: TextButton(
+                                        onPressed: isIos
+                                            ? () {
                                                 showDialog(
                                                   context: context,
                                                   builder: (context) =>
@@ -754,32 +796,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                                     ],
                                                   ),
                                                 );
-                                              }:(){
-                                          Navigator.of(context).push(
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  const SignupPage(),
-                                            ),
-                                          );
-                                        },
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor:
-                                                    Colors.transparent,
-                                                side: const BorderSide(
-                                                    color:
-                                                        AppStyles.primaryColor),
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(10),
-                                                ),
-                                              ),
-                                              child: const Text(
-                                                'Create New account',
-                                                style: TextStyle(
-                                                    color: Colors.amber),
-                                              ),
-                                            ),
-                                          )
+                                              }
+                                            : () {
+                                                Navigator.of(context).push(
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        const SignupPage(),
+                                                  ),
+                                                );
+                                              },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.transparent,
+                                          side: const BorderSide(
+                                              color: AppStyles.primaryColor),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                          ),
+                                        ),
+                                        child: const Text(
+                                          'Create New account',
+                                          style: TextStyle(color: Colors.amber),
+                                        ),
+                                      ),
+                                    )
                                 ],
                               ),
                             ),
